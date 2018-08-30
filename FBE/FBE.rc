@@ -11,13 +11,13 @@
 #include "targetver.h"
 #endif
 #define APSTUDIO_HIDDEN_SYMBOLS
-#include "wtl/atlres.h"
+#include <wtl/atlres.h>
 #undef APSTUDIO_HIDDEN_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Russian (Russia) resources
+// Русский (Россия) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
 LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
@@ -37,12 +37,12 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Russian (Russia) resources
+#endif    // Русский (Россия) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// Английский (США) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -678,7 +678,7 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "&New",                        ID_FILE_NEW
-        MENUITEM "&Open...",                    ID_FILE_OPEN
+        MENUITEM "&Open...",                    ID_FILE_PAGE_SETUP
         MENUITEM "&Save",                       ID_FILE_SAVE
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
         MENUITEM "&Validate",                   ID_FILE_VALIDATE
@@ -714,7 +714,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Go to footnote or reference", ID_GOTO_FOOTNOTE
         MENUITEM "Go to matching &tag",         ID_GOTO_MATCHTAG
-        MENUITEM "Go to &wrong tag",            ID_GOTO_WRONGTAG
         MENUITEM SEPARATOR
         MENUITEM "C&lone container",            ID_EDIT_CLONE
         MENUITEM "Sp&lit container",            ID_EDIT_SPLIT
@@ -733,8 +732,6 @@ BEGIN
         MENUITEM "D&escription",                ID_VIEW_DESC
         MENUITEM "&Body",                       ID_VIEW_BODY
         MENUITEM "So&urce",                     ID_VIEW_SOURCE
-        MENUITEM SEPARATOR
-        MENUITEM "Fast Mode",                   ID_VIEW_FASTMODE
     END
     POPUP "&Add"
     BEGIN
@@ -1230,9 +1227,10 @@ BEGIN
     IDS_ENCODING            "Encoding:"
     IDS_SETTINGS            "Settings"
     IDS_DONT_ASK_AGAIN      "Don't ask again"
+    IDS_NO_UNPAIR_TAGS_FOUND "No unpaired tags found"
 END
 
-#endif    // English (United States) resources
+#endif    // Английский (США) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

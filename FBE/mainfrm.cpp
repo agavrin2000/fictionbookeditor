@@ -72,9 +72,10 @@ CString	CMainFrame::GetOpenFileName()
 		const COMDLG_FILTERSPEC arrFilterSpec[] =
 		{
 			{ L"FictionBook files", L"*.fb2" },
+			{ L"FB2ZIP files", L"*.zip" },
 			{ L"All files", L"*.*" }
 		};
-		CShellFileOpenDialog dlg(NULL, FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST, L"fb",
+		CShellFileOpenDialog dlg(NULL, FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST, L"fb2",
 			arrFilterSpec, ARRAYSIZE(arrFilterSpec));
 		dlg.GetPtr()->SetClientGuid(GUID_FB2Dialog);
 		if (dlg.DoModal() == IDOK)
@@ -86,7 +87,7 @@ CString	CMainFrame::GetOpenFileName()
 	{
 
 		CFileDialog dlg(TRUE, L"fb2", NULL, OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | OFN_EXPLORER,
-			L"FictionBook files (*.fb2)\0*.fb2\0All files (*.*)\0*.*\0\0");
+			L"FictionBook files (*.fb2)\0*.fb2\0FB2ZIP files (*.zip)\0*.fb2.zip\0All files (*.*)\0*.*\0\0");
 		dlg.m_ofn.Flags &= ~OFN_ENABLEHOOK;
 		dlg.m_ofn.lpfnHook = NULL;
 		if (dlg.DoModal(*this) == IDOK)
@@ -183,17 +184,23 @@ CString	CMainFrame::GetSaveFileName(CString& encoding)
 	if (!filename || (filename == bstr_t(L"Untitled.fb2")))
 		filename = L"";
 
-	if (RunTimeHelper::IsVista)
+	if (RunTimeHelper::IsVista())
 	{
 		const COMDLG_FILTERSPEC arrFilterSpec[] =
 		{
 			{ L"FictionBook files", L"*.fb2" },
+			{ L"FB2ZIP files", L"*.zip" },
 			{ L"All files", L"*.*" }
 		};
 
 		CShellFileSaveDialog dlg(NULL, FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_OVERWRITEPROMPT,
-			L"fb2", arrFilterSpec, ARRAYSIZE(arrFilterSpec));
+			(U::GetFileExtension(m_doc->m_filename) == L"zip") ? L"zip" : L"fb2", arrFilterSpec, ARRAYSIZE(arrFilterSpec));
 		dlg.GetPtr()->SetClientGuid(GUID_FB2Dialog);
+
+		CComPtr<IFileDialog> spFileDialog;
+		dlg.GetPtr()->QueryInterface(&spFileDialog);
+		spFileDialog->SetFileTypeIndex((U::GetFileExtension(m_doc->m_filename) == L"zip") ? 2 :1);
+
 		CComPtr<IFileDialogCustomize> spFileDialogCustomize;
 		HRESULT hr = dlg.GetPtr()->QueryInterface(&spFileDialogCustomize);
 		if (SUCCEEDED(hr))
@@ -245,7 +252,7 @@ CString	CMainFrame::GetSaveFileName(CString& encoding)
 		CCustomSaveDialog	dlg(FALSE,
 			_Settings.m_keep_encoding ? m_doc->m_encoding : _Settings.GetDefaultEncoding(), L"fb2", filename,
 			OFN_HIDEREADONLY | OFN_NOREADONLYRETURN | OFN_OVERWRITEPROMPT | OFN_ENABLETEMPLATE,
-			L"FictionBook files (*.fb2)\0*.fb2\0All files (*.*)\0*.*\0\0");
+			L"FictionBook files (*.fb2)\0*.fb2\0FB2ZIP files (*.fb2.zip)\0*.fb2.zip\0All files (*.*)\0*.*\0\0");
 		if (dlg.DoModal(*this) == IDOK)
 		{
 			encoding = dlg.m_encoding;
@@ -311,7 +318,7 @@ CMainFrame::FILE_OP_STATUS CMainFrame::SaveFile(bool askname) {
   ATLASSERT(m_doc!=NULL);
 
   // force consistent html view
-  if ((IsSourceActive() && !SourceToHTML()) || m_bad_xml) // added by SeNS: do not save bad xml!
+  if ((IsSourceActive() && !SourceToHTML()) || m_bad_xml) // added by SeNS: do not save bad xml! TO_DO Say anything to user before exit!!!!!!
     return FAIL;
 
   if (askname || !m_doc->m_namevalid) { // ask user about save file name
@@ -349,6 +356,7 @@ CMainFrame::FILE_OP_STATUS CMainFrame::SaveFile(bool askname) {
   }
 }
 
+
 CMainFrame::FILE_OP_STATUS  CMainFrame::LoadFile(const wchar_t *initfilename)
 {
   if (!DiscardChanges())
@@ -369,12 +377,15 @@ CMainFrame::FILE_OP_STATUS  CMainFrame::LoadFile(const wchar_t *initfilename)
 	}
   EnableWindow(FALSE);
   m_status.SetPaneText(ID_DEFAULT_PANE,L"Loading...");
+
   bool fLoaded = doc->Load(m_view, filename);
   EnableWindow(TRUE);
   if (!fLoaded) 
   {
-	  if (LoadToScintilla(filename)) return OK;
-	  else return FAIL;
+	  // Don't try to load bad document at all!
+	  /*if (LoadToScintilla(filename)) return OK;
+	  else */
+		  return FAIL;
 /*  delete doc;
 	FB::Doc::m_active_doc = m_doc;
     return FAIL; */
@@ -1568,13 +1579,13 @@ LRESULT CMainFrame::OnCreate(UINT, WPARAM, LPARAM, BOOL&)
 	m_doc->CreateBlank(m_view);
 	m_file_age = ~0;
   }
-
+  /*
   if (_Settings.m_fast_mode) {
 		m_doc->SetFastMode(true);
 		UISetCheck(ID_VIEW_FASTMODE, TRUE);
   } else
     m_doc->SetFastMode(false);
-
+	*/
   AttachDocument(m_doc);
   UISetCheck(ID_VIEW_BODY,1);
 
@@ -1896,6 +1907,7 @@ public:
 		}
 	}
   virtual void DoReplace() {
+	  //TO DO repeat search in selection to refill patterns if search by regexp (??)
     if (m_selvalid) { // replace
       m_source.SendMessage(SCI_TARGETFROMSELECTION);
       DWORD   len=::WideCharToMultiByte(CP_UTF8,0,
@@ -1928,7 +1940,7 @@ public:
     if (m_view->m_fo.flags & CFBEView::FRF_CASE)
       flags|=SCFIND_MATCHCASE;
     if (m_view->m_fo.fRegexp)
-      flags|=SCFIND_REGEXP;
+      flags|=SCFIND_REGEXP|SCFIND_REGEXP;
     m_source.SendMessage(SCI_SETSEARCHFLAGS,flags,0);
 
     // setup target range
@@ -2292,7 +2304,7 @@ LRESULT CMainFrame::OnViewStatusBar(WORD, WORD, HWND, BOOL&)
   UpdateLayout();
   return 0;
 }
-
+/*
 LRESULT CMainFrame::OnViewFastMode(WORD, WORD, HWND, BOOL&)
 {
 	bool mode = m_doc->GetFastMode();
@@ -2303,7 +2315,7 @@ LRESULT CMainFrame::OnViewFastMode(WORD, WORD, HWND, BOOL&)
 	UpdateLayout();
 	return 0;
 }
-
+*/
 LRESULT CMainFrame::OnViewTree(WORD, WORD, HWND, BOOL&)
 {
 	if(IsSourceActive())
@@ -4081,12 +4093,14 @@ void CMainFrame::ExpandFold(int &line, bool doExpand, bool force, int visLevels,
   }
 }
 
+/// <summary>Internal function for defining Scintilla marker<summary>
 void  CMainFrame::DefineMarker(int marker, int markerType, COLORREF fore,COLORREF back) {
   m_source.SendMessage(SCI_MARKERDEFINE, marker, markerType);
   m_source.SendMessage(SCI_MARKERSETFORE, marker, fore);
   m_source.SendMessage(SCI_MARKERSETBACK, marker, back);
 }
 
+/// <summary>Setup Scintilla acccording to parameters<summary>
 void  CMainFrame::SetupSci() 
 {
   m_source.SendMessage(SCI_SETCODEPAGE,SC_CP_UTF8);
@@ -4094,20 +4108,21 @@ void  CMainFrame::SetupSci()
   m_source.SendMessage(SCI_SETVIEWEOL, _Settings.m_xml_src_showEOL);
   m_source.SendMessage(SCI_SETVIEWWS, _Settings.m_xml_src_showSpace);
   m_source.SendMessage(SCI_SETWRAPMODE, _Settings.m_xml_src_wrap ? SC_WRAP_WORD : SC_WRAP_NONE);
+
   // added by SeNS: try to speed-up wrap mode
   m_source.SendMessage(SCI_SETLAYOUTCACHE,SC_CACHE_DOCUMENT);
   m_source.SendMessage(SCI_SETXCARETPOLICY,CARET_SLOP|CARET_EVEN,50);
   m_source.SendMessage(SCI_SETYCARETPOLICY,CARET_SLOP|CARET_EVEN,50);
+
   // added by SeNS: display line numbers
-  if (_Settings.m_show_line_numbers) m_source.SendMessage(SCI_SETMARGINWIDTHN,0,64);
-  else m_source.SendMessage(SCI_SETMARGINWIDTHN,0,0);
-  m_source.SendMessage(SCI_SETMARGINWIDTHN,1,0);
-  m_source.SendMessage(SCI_SETFOLDFLAGS, 16);
-  m_source.SendMessage(SCI_SETPROPERTY,(WPARAM)"fold",(WPARAM)"1");
-  m_source.SendMessage(SCI_SETPROPERTY,(WPARAM)"fold.html",(WPARAM)"1");
-  m_source.SendMessage(SCI_SETPROPERTY,(WPARAM)"fold.compact",(WPARAM)"1");
-  m_source.SendMessage(SCI_SETPROPERTY,(WPARAM)"fold.flags",(WPARAM)"16");
-  m_source.SendMessage(SCI_SETSTYLEBITS,7);
+  if (_Settings.m_show_line_numbers) {
+	  int margin_line_w = m_source.SendMessage(SCI_TEXTWIDTH, STYLE_LINENUMBER, (WPARAM)"_99999");
+	  m_source.SendMessage(SCI_SETMARGINWIDTHN, 0, margin_line_w);
+  }
+  else {
+	  m_source.SendMessage(SCI_SETMARGINWIDTHN, 0, 0);
+  }
+
   // added by SeNS: disable Scintilla's control characters
   char sciCtrlChars[] = {'Q','E','R','S','K',':'};
   for (int i=0; i<sizeof(sciCtrlChars); i++)
@@ -4123,13 +4138,15 @@ void  CMainFrame::SetupSci()
     m_source.SendMessage(SCI_SETMARGINWIDTHN, 2, 16);
     m_source.SendMessage(SCI_SETMARGINMASKN, 2, SC_MASK_FOLDERS);
     m_source.SendMessage(SCI_SETMARGINSENSITIVEN, 2, 1);
-    DefineMarker(SC_MARKNUM_FOLDEROPEN, SC_MARK_MINUS, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
-    DefineMarker(SC_MARKNUM_FOLDER, SC_MARK_PLUS, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
-    DefineMarker(SC_MARKNUM_FOLDERSUB, SC_MARK_EMPTY, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
-    DefineMarker(SC_MARKNUM_FOLDERTAIL, SC_MARK_EMPTY, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
-    DefineMarker(SC_MARKNUM_FOLDEREND, SC_MARK_EMPTY, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
-    DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_EMPTY, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
-    DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_EMPTY, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
+	
+	// Define markers
+    DefineMarker(SC_MARKNUM_FOLDEROPEN, SC_MARK_BOXMINUS, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
+    DefineMarker(SC_MARKNUM_FOLDER, SC_MARK_BOXPLUS, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
+    DefineMarker(SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
+    DefineMarker(SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNER, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
+    DefineMarker(SC_MARKNUM_FOLDEREND, SC_MARK_BOXPLUSCONNECTED, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
+    DefineMarker(SC_MARKNUM_FOLDEROPENMID, SC_MARK_BOXMINUSCONNECTED, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
+    DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, SC_MARK_TCORNER, RGB(0xff, 0xff, 0xff), RGB(0, 0, 0));
 
 	// indicator for tag match
 	m_source.SendMessage(SCI_INDICSETSTYLE, SCE_UNIVERSAL_TAGMATCH, INDIC_ROUNDBOX);
@@ -4142,12 +4159,21 @@ void  CMainFrame::SetupSci()
 	m_source.SendMessage(SCI_INDICSETUNDER, SCE_UNIVERSAL_TAGATTR, TRUE);
 	m_source.SendMessage(SCI_INDICSETFORE,  SCE_UNIVERSAL_TAGATTR, RGB(128, 128, 255));
 
+	// turn on folding
+	m_source.SendMessage(SCI_SETFOLDFLAGS, SC_FOLDFLAG_LINEAFTER_CONTRACTED);
+	m_source.SendMessage(SCI_SETPROPERTY, (WPARAM)"fold", (WPARAM)"1");
+	m_source.SendMessage(SCI_SETPROPERTY, (WPARAM)"fold.html", (WPARAM)"1");
+	m_source.SendMessage(SCI_SETPROPERTY, (WPARAM)"fold.compact", (WPARAM)"1");
+	m_source.SendMessage(SCI_SETPROPERTY, (WPARAM)"fold.flags", (WPARAM)"16");
+
 	m_source.SendMessage(SCI_COLOURISE,0,-1);
-  } 
+  }
   else 
   {
     m_source.SendMessage(SCI_SETLEXER, SCLEX_NULL);
     m_source.SendMessage(SCI_SETMARGINWIDTHN, 2, 0);
+	FoldAll();
+	m_source.SendMessage(SCI_COLOURISE, 0, -1);
   }
 }
 
@@ -4176,14 +4202,6 @@ bool CMainFrame::SciUpdateUI(bool gotoTag)
 		return true;
 	}
 	return false;
-}
-
-void CMainFrame::SciGotoWrongTag()
-{
-	CWaitCursor *hourglass = new CWaitCursor();
-	XmlMatchedTagsHighlighter xmlTagMatchHiliter(&m_source);
-	xmlTagMatchHiliter.gotoWrongTag();
-	delete hourglass;
 }
 
 void  CMainFrame::SciMarginClicked(const SCNotification& scn) 
@@ -4711,15 +4729,15 @@ void CMainFrame::ApplyConfChanges()
 	SetSciStyles();
 
 	// added by SeNS: display line numbers
-	if (_Settings.m_show_line_numbers)
+	/*if (_Settings.m_show_line_numbers)
 		m_source.SendMessage(SCI_SETMARGINWIDTHN,0,64);
 	else
-		m_source.SendMessage(SCI_SETMARGINWIDTHN,0,0);
+		m_source.SendMessage(SCI_SETMARGINWIDTHN,0,0);*/
 
-	XmlMatchedTagsHighlighter xmlTagMatchHiliter(&m_source);
+	/*XmlMatchedTagsHighlighter xmlTagMatchHiliter(&m_source);
 	xmlTagMatchHiliter.tagMatch(_Settings.m_xml_src_tagHL, false, false);
 	UIEnable(ID_GOTO_MATCHTAG, _Settings.m_xml_src_tagHL);
-
+	*/
 	// added by SeNS
 	if (_Settings.m_usespell_check)
 	{
@@ -5363,8 +5381,6 @@ bool CMainFrame::LoadToScintilla(CString filename)
 		}
 		m_source.SendMessage(SCI_EMPTYUNDOBUFFER);
 		m_source.SendMessage(SCI_SETSAVEPOINT);
-
-		SciGotoWrongTag();
 
 		m_bad_xml = true;
 		m_bad_filename = filename;

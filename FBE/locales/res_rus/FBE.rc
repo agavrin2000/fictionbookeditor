@@ -7,13 +7,13 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "wtl/atlres.h"
+#include <wtl/atlres.h>
 #include "..\..\res1.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Russian (Russia) resources
+// Русский (Россия) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
 LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
@@ -65,7 +65,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Перейти к сноске или к ссылке", ID_GOTO_FOOTNOTE
         MENUITEM "Перейти к парному &тегу",     ID_GOTO_MATCHTAG
-        MENUITEM "Перейти к о&шибочному тегу",  ID_GOTO_WRONGTAG
         MENUITEM SEPARATOR
         MENUITEM "К&лонировать",                ID_EDIT_CLONE
         MENUITEM "Разр&езать",                  ID_EDIT_SPLIT
@@ -84,8 +83,6 @@ BEGIN
         MENUITEM "&Описание документа",         ID_VIEW_DESC
         MENUITEM "&Дизайн",                     ID_VIEW_BODY
         MENUITEM "&Код",                        ID_VIEW_SOURCE
-        MENUITEM SEPARATOR
-        MENUITEM "&Ускоренный режим",           ID_VIEW_FASTMODE
     END
     POPUP "В&ставка"
     BEGIN
@@ -1005,7 +1002,7 @@ BEGIN
     IDS_DONT_ASK_AGAIN      "Больше не спрашивать"
 END
 
-#endif    // Russian (Russia) resources
+#endif    // Русский (Россия) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

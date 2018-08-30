@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by FBE.rc
+// Включаемый файл, созданный в Microsoft Visual C++.
+// Используется FBE.rc
 //
 #define IDOK3                           2
 #define IDUPDATE                        2
@@ -281,6 +281,7 @@
 #define IDS_ENCODING                    306
 #define IDS_SETTINGS                    307
 #define IDS_DONT_ASK_AGAIN              308
+#define IDS_NO_UNPAIR_TAGS_FOUND        309
 #define IDB_UPD_CHECK1                  400
 #define IDB_UPD_CHECK2                  401
 #define IDB_UPD_CHECK3                  402

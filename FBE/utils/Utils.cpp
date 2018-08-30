@@ -1621,4 +1621,51 @@ void InitSettingsHotkeyGroups()
 		return res;
 	}
 
+	/// <summary>Get file extension</summary>
+	/// <param name="inStr">filename</param>  
+	/// <returns>Extension (last chars after '.')</returns> 
+	CString GetFileExtension(const CString& inStr)
+	{
+		CString file_extension = L"";
+		int idx = inStr.ReverseFind(L'.');
+		if (idx != -1) {
+			file_extension = inStr.Right(inStr.GetLength() - idx - 1);
+		}
+		return file_extension;
+	}
+
+	/// <summary>Define string encoding</summary>
+	/// <param name="filename">fb2 filename</param>  
+	/// <returns>Encoding name</returns> 
+	CString GetStringEncoding(const char * buffer)
+	{
+		CString enc(L"uncknown");
+		// Check first bytes at first
+		if (buffer[0] == '\xEF' && buffer[1] == '\xBB' && buffer[2] == '\xBF')
+		{
+			enc = L"utf-8";
+		}
+		else if (buffer[0] == '\xFF' && buffer[1] == '\xFE')
+		{
+			enc = L"utf-16be";
+		}
+		else if (buffer[0] == '\xFE' && buffer[1] == '\xFF')
+		{
+			enc = L"utf-16le";
+		}
+		// Check encoding attribute in xml-header
+		else
+		{
+			enc = buffer;
+			enc.MakeLower();
+			int pos = enc.Find(L"encoding");
+			if (pos >= 0)
+			{
+				int pos2 = enc.Find(L"\"", pos + 10);
+				enc = enc.Mid(pos + 10, pos2 - pos - 10);
+			}
+		}
+		return enc;
+	}
+
 }

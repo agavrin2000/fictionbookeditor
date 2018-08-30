@@ -44,16 +44,13 @@ public:
   void		DeleteSaveMarker();
   long		GetSavedPos(bstr_t& dom, bool deleteMarker = true);
 
-  // loading and savingaa
+  // loading and saving
   void	  CreateBlank(HWND hWndParent);
   bool	  Load(HWND hWndParent,const CString& filename);
-  //bool	  LoadFromDOM(HWND hWndParent,MSXML2::IXMLDOMDocument2 *dom);
   bool	  LoadFromHTML(HWND hWndParent,const CString& filename);
   MSXML2::IXMLDOMDocument2Ptr CreateDOM(const CString& encoding);
   HRESULT InvokeFunc(BSTR FuncName, CComVariant *params, int count, CComVariant &vtResult);
-  void	  ShowDescription(bool Show);
   void	  RunScript(BSTR filePath);
-  VARIANT_BOOL Doc::CheckScript(BSTR filePath);
 
   bool	  Save(const CString& filename);
   bool	  Validate(int &errline,int &errcol) {
@@ -143,9 +140,6 @@ private:
   bool	  SaveToFile(const CString& filename,bool fValidateOnly=false,int *errline=NULL,int *errcol=NULL);
   MSXML2::IXMLDOMDocument2Ptr CreateDOMImp(const CString& encoding);
 
-  // loading support
-  void	  TransformXML(MSXML2::IXSLTemplatePtr tp,MSXML2::IXMLDOMDocument2Ptr doc,
-		       CFBEView& dest);
   CString MyID() { CString ret; ret.Format(_T("%lu"),(unsigned long)this); return ret; }
   CString MyURL(const wchar_t *part) { CString ret; ret.Format(_T("fbw-internal:%lu:%s"),(unsigned long)this,part); return ret; }
 
@@ -153,14 +147,14 @@ private:
 
 public:
 	MSHTML::IHTMLDOMNodePtr MoveNode(MSHTML::IHTMLDOMNodePtr from, MSHTML::IHTMLDOMNodePtr to, MSHTML::IHTMLDOMNodePtr insertBefore);
-	void SetFastMode(bool fast);
-	bool GetFastMode();
 	int GetSelectedPos();
 
 	CString GetOpenFileName()const;
 
 private:
-	void FastMode();
+	size_t ReadFB2File(const CString& filename, char** buffer);
+	size_t ReadZIPFile(const CString& filename, char** buffer);
+	bool SaveZIPFile(const CString& filename, void* buffer, size_t bufsize);
 };
 
 } // namespace FB

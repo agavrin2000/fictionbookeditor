@@ -54,7 +54,6 @@ const wchar_t XML_SRC_SYNTAX_HL_KEY[]	= L"XMLSrcSyntaxHL";
 const wchar_t XML_SRC_TAG_HL_KEY[]		= L"XMLSrcTagHL";
 const wchar_t XML_SRC_SHOW_EOL_KEY[]	= L"XMLSrcShowEOL";
 const wchar_t XML_SRC_SHOW_SPACE_KEY[]	= L"XMLSrcShowSpace";
-const wchar_t FAST_MODE_KEY[]			= L"FastMode";
 const wchar_t FONT_KEY[]				= L"Font";
 const wchar_t SRC_FONT_KEY[]			= L"SrcFont";
 const wchar_t VIEW_STATUS_BAR_KEY[]		= L"ViewStatusBar";
@@ -583,11 +582,7 @@ void CSettings::InitHotkeyGroups()
 	CHotkey ViewSource(L"Source", IDS_HOTKEY_VIEW_SOURCE, FALT, ID_VIEW_SOURCE, VK_F3);
 	view_hotkeys_group.m_hotkeys.push_back(ViewSource);
 
-	// Added by SeNS
-	// Fast mode
-	CHotkey FastMode(L"Fast mode", IDS_HOTKEY_FASTMODE, NULL, ID_VIEW_FASTMODE, VK_F5);
-	view_hotkeys_group.m_hotkeys.push_back(FastMode);
-
+	// View tree
 	CHotkey ViewTree(L"Toggle Tree View", IDS_HOTKEY_TREEVIEW, FCONTROL, ID_VIEW_TREE, VK_F5);
 	view_hotkeys_group.m_hotkeys.push_back(ViewTree);
 
@@ -722,7 +717,6 @@ int CSettings::GetProperties(std::vector<CString>& properties)
 	properties.push_back(XML_SRC_TAG_HL_KEY);
 	properties.push_back(XML_SRC_SHOW_EOL_KEY);
 	properties.push_back(XML_SRC_SHOW_SPACE_KEY);
-	properties.push_back(FAST_MODE_KEY);
 	properties.push_back(FONT_KEY);
 	properties.push_back(SRC_FONT_KEY);
 	properties.push_back(VIEW_STATUS_BAR_KEY);
@@ -810,11 +804,6 @@ bool CSettings::GetPropertyValue(const CString& sProperty, CProperty& property)
 	else if(sProperty == XML_SRC_SHOW_SPACE_KEY)
 	{
 		property = GetStringedProperty(&m_xml_src_showSpace, KEY_BOOL);
-		return true;
-	}
-	else if(sProperty == FAST_MODE_KEY)
-	{
-		property = GetStringedProperty(&m_fast_mode, KEY_BOOL);
 		return true;
 	}
 	else if(sProperty == FONT_KEY)
@@ -1036,11 +1025,6 @@ bool CSettings::SetPropertyValue(const CString& sProperty, CProperty& sValue)
 	else if(sProperty == XML_SRC_SHOW_SPACE_KEY)
 	{
 		m_xml_src_showSpace = StrToBool(sValue.GetStringValue());
-		return true;
-	}
-	else if(sProperty == FAST_MODE_KEY)
-	{
-		m_fast_mode = StrToBool(sValue.GetStringValue());
 		return true;
 	}
 	else if(sProperty == FONT_KEY)
@@ -1581,19 +1565,21 @@ CString CSettings::GetScriptsFolder() const
 CString CSettings::GetDefaultScriptsFolder()
 {
 	TCHAR filepath[MAX_PATH];
+	CString tmp = L"";
 	DWORD pathlen = ::GetModuleFileName(_Module.GetModuleInstance(), filepath, MAX_PATH);
-	CString tmp = U::GetFullPathName(filepath);
-	int pos = tmp.ReverseFind(_T('\\'));
-	if (pos >= 0)
-	{
-		tmp.Delete(pos, tmp.GetLength() - pos);
-		tmp.Append(L"\\");
-		tmp.Append(DEFAULT_SCRIPTS_FOLDER);
-		tmp.Append(L"\\");
+	if (pathlen) {
+		tmp = U::GetFullPathName(filepath);
+		int pos = tmp.ReverseFind(_T('\\'));
+		if (pos >= 0)
+		{
+			tmp.Delete(pos, tmp.GetLength() - pos);
+			tmp.Append(L"\\");
+			tmp.Append(DEFAULT_SCRIPTS_FOLDER);
+			tmp.Append(L"\\");
+		}
+
+		tmp.MakeLower();
 	}
-
-	tmp.MakeLower();
-
 	return tmp;
 }
 
@@ -1665,12 +1651,6 @@ void CSettings::SetXmlSrcShowEOL(bool eol, bool apply)
 void CSettings::SetXmlSrcShowSpace(bool eol, bool apply)
 {
 	m_xml_src_showSpace = eol;
-	if(apply)
-		Save();
-}
-void CSettings::SetFastMode(bool mode,  bool apply)
-{
-	m_fast_mode = mode;
 	if(apply)
 		Save();
 }
@@ -1934,7 +1914,7 @@ void CSettings::SaveWords()
 		vtObject.vt = VT_DISPATCH;
 		vtObject.pdispVal = pXMLRootElem;
 		vtObject.pdispVal->AddRef();
-		pXMLDoc->insertBefore(pXMLProcessingNode,vtObject);
+		static_cast<MSXML2::IXMLDOMNodePtr>(pXMLDoc)->insertBefore(pXMLProcessingNode, vtObject);
 
 		CString fileName(U::GetSettingsDir()+WORDS_XML_FILE);
 		pXMLDoc->save(fileName.AllocSysString());
@@ -1954,7 +1934,6 @@ void CSettings::SetDefaults()
 	m_xml_src_tagHL			= true;
 	m_xml_src_showEOL		= false;
 	m_xml_src_showSpace		= false;
-	m_fast_mode				= false;
 	m_font					= DEFAULT_FONT;
 	m_srcfont				= DEFAULT_SRCFONT;
 	m_view_status_bar		= true;

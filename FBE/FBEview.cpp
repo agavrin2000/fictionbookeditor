@@ -3211,7 +3211,7 @@ bool CFBEView::SciFindNext(HWND src,bool fFwdOnly,bool fBarf) {
   if (m_fo.flags & FRF_CASE)
     flags|=SCFIND_MATCHCASE;
   if (m_fo.fRegexp)
-    flags|=SCFIND_REGEXP;
+    flags|=SCFIND_REGEXP|SCFIND_POSIX;
   int rev=m_fo.flags & FRF_REVERSE && !fFwdOnly;
 
   // added by SeNS

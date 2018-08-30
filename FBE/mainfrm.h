@@ -412,7 +412,6 @@ public:
 		UPDATE_ELEMENT(ATL_IDW_BAND_FIRST+5, UPDUI_MENUPOPUP)
 
 		UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
-		UPDATE_ELEMENT(ID_VIEW_FASTMODE, UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_VIEW_TREE, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_VIEW_DESC, UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_VIEW_BODY, UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
@@ -546,7 +545,6 @@ public:
 		COMMAND_ID_HANDLER(ATL_IDW_BAND_FIRST+7, OnViewToolBar)
 		COMMAND_ID_HANDLER(ATL_IDW_BAND_FIRST+8, OnViewToolBar)
 		COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
-		COMMAND_ID_HANDLER(ID_VIEW_FASTMODE, OnViewFastMode)
 		COMMAND_ID_HANDLER(ID_VIEW_TREE, OnViewTree)
 		COMMAND_ID_HANDLER(ID_VIEW_DESC, OnViewDesc)
 		COMMAND_ID_HANDLER(ID_VIEW_BODY, OnViewBody)
@@ -596,7 +594,6 @@ public:
 		COMMAND_CODE_HANDLER(EN_KILLFOCUS, OnEdKillFocus)
 		COMMAND_CODE_HANDLER(CBN_EDITCHANGE, OnCbEdChange)
 		COMMAND_CODE_HANDLER(CBN_SELENDOK, OnCbSelEndOk)
-		COMMAND_CODE_HANDLER(IDN_FAST_MODE_CHANGE, OnFastModeChange)
 		COMMAND_HANDLER(IDC_HREF,CBN_SETFOCUS, OnCbSetFocus)
 
 		// source code editor notifications
@@ -611,7 +608,6 @@ public:
 		COMMAND_ID_HANDLER_EX(ID_GOTO_FOOTNOTE, OnGoToFootnote)
 		COMMAND_ID_HANDLER_EX(ID_GOTO_REFERENCE, OnGoToReference)
 		COMMAND_ID_HANDLER_EX(ID_GOTO_MATCHTAG, OnGoToMatchTag);
-		COMMAND_ID_HANDLER_EX(ID_GOTO_WRONGTAG, OnGoToWrongTag);
 
 		// chain commands to active view
 		MESSAGE_HANDLER(WM_COMMAND, OnUnhandledCommand)
@@ -755,7 +751,6 @@ public:
 
   LRESULT OnViewToolBar(WORD, WORD, HWND, BOOL&);
   LRESULT OnViewStatusBar(WORD, WORD, HWND, BOOL&);
-  LRESULT OnViewFastMode(WORD, WORD, HWND, BOOL&);
   LRESULT OnViewTree(WORD, WORD, HWND, BOOL&);
   LRESULT OnViewDesc(WORD, WORD, HWND, BOOL&) {
     ShowView(DESC);
@@ -808,11 +803,11 @@ public:
 	DisplayCharCode();
     return 0;
   }
-  LRESULT OnFastModeChange(WORD, WORD mode, HWND hWndCtl, BOOL&) 
+/*  LRESULT OnFastModeChange(WORD, WORD mode, HWND hWndCtl, BOOL&) 
   {
 	  UISetCheck(ID_VIEW_FASTMODE, mode);
 	  return 0;
-  }
+  }*/
   LRESULT OnEdStatusText(WORD, WORD, HWND hWndCtl, BOOL&) {
     StopIncSearch(true);
     m_status.SetText(ID_DEFAULT_PANE,(const TCHAR *)hWndCtl);
@@ -940,13 +935,6 @@ public:
   {
     if (m_current_view == SOURCE)
 		SciUpdateUI(true);
-	return 0;
-  }
-
-  LRESULT OnGoToWrongTag(WORD wNotifyCode, WORD wID, HWND hWndCtl)
-  {
-    if (m_current_view == SOURCE)
-		SciGotoWrongTag();
 	return 0;
   }
 

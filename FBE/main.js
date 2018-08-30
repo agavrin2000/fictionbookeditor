@@ -1,5 +1,5 @@
 // Object reference maker
-Object.prototype.$=function $(val){if(val)this.valueOf=this.toSource=this.toString=function(){return val};return val;};
+//Object.prototype.$=function $(val){if(val)this.valueOf=this.toSource=this.toString=function(){return val};return val;};
 
 var IDOK     = 1;
 var IDCANCEL = 2;
@@ -21,17 +21,8 @@ var ImagesInfo = new Array();
 
 function FillCoverList()
 {
+
 	return FillLists();
-}
-
-function apiGetBinary(id)
-{
- var bin_objects=document.all.binobj.getElementsByTagName("DIV");
-
- for(var i=0; i<bin_objects.length; i++)
- {
-  if(bin_objects[i].all.id.value==id) return bin_objects[i].base64data;
- }
 }
 
 function OnBinaryIdChange() {
@@ -84,8 +75,8 @@ function apiAddBinary(fullpath, id, type, data)
 		'unselectable="on">&#xcd;</button>';
 	}
 
-	div.innerHTML += '<label unselectable="on">ID:</label><input type="text" maxlength="256" id="id" style="width:20em;"><label unselectable="on">Type:</label><input type="text" style="width:8em;" maxlength="256" id="type" value="">';
-	div.innerHTML += '<label unselectable="on">Size:</label><input type="text" disabled id="size" style="width:5em;" value="' + window.external.GetBinarySize(data) + '">';
+	div.innerHTML += '<label unselectable="on">ID:</label><input type="text" maxlength="256" id="id" style="width:20em;"/><label unselectable="on">Type:</label><input type="text" style="width:8em;" maxlength="256" id="type" value=""/>';
+	div.innerHTML += '<label unselectable="on">Size:</label><input type="text" disabled id="size" style="width:5em;" value="' + window.external.GetBinarySize(data) + '"/>';
 
 	if(type.search("image") != -1)
 	{
@@ -112,28 +103,28 @@ function apiAddBinary(fullpath, id, type, data)
 			}
 	}
 
-	div.all.id.value = curid;
+	div.all.id.value =  curid;
 	div.all.type.value = type;
 	div.base64data = data;
 	div.all.id.setAttribute("oldId",curid);
 	div.all.id.onchange=OnBinaryIdChange;
 
 	document.all.binobj.appendChild(div);
-	// PutSpacers(document.all.binobj);
 
 	return curid;
 }
 
 function GetImageData(id)
 {
-	var bo = document.all.binobj.getElementsByTagName("DIV");
-	for(var i = 0; i < bo.length; i++)
-	{
-		if(bo[i].all.id.value == id)
-			return bo[i].base64data;
-	}
-
-	return;
+	return $("#binobj DIV").filter(function () {return $("#id", this).val() == id}).prop("base64data");
+	alert(id);
+	/*
+	var bin_objects=document.all.binobj.getElementsByTagName("DIV");
+	 for(var i=0; i<bin_objects.length; i++)
+	 {
+	  if(bin_objects[i].all.id.value==id) return bin_objects[i].base64data;
+	 }
+	*/
 }
 
 function HighlightBorder(element, override, style, width, color)
@@ -151,16 +142,11 @@ function HighlightBorder(element, override, style, width, color)
 
 function ShowPrevImage(source)
 {
+/*
 	var prevImgPanel = document.getElementById("prevImgPanel");
 	var prevImg = document.getElementById("prevImg");
 
 	if(!prevImgPanel || !prevImg) return;
-
-	// Shouldn't be shown in Fast mode.
-	/*if(window.external.IsFastMode())
-		return;
-	}*/
-
 	var idx = -1;
 	for(i = 0; i < ImagesInfo.length; ++i)
 	{
@@ -176,6 +162,12 @@ function ShowPrevImage(source)
 
 	var imgWidth = ImagesInfo[idx].width;
 	var imgHeight = ImagesInfo[idx].height;
+*/
+	var strWH = $("#binobj DIV").filter(function () {return ("fbw-internal:#"+ $("#id", this).val()) == source}).find("#dims").val();
+
+	if(strWH === undefined) return; //not found
+	var imgWidth =  Number(strWH.slice(0, strWH.indexOf("x")));
+	var imgHeight = Number(strWH.slice(strWH.indexOf("x")+1));
 
 	var btnHeight = event.srcElement.offsetHeight;
 
@@ -256,7 +248,18 @@ function ShowPrevImage(source)
       break;
     }
   }
-
+	$("#prevImg").attr({
+		"src": source,
+		 "width" : imgWidth,
+	   	"height" : imgHeight
+	}).css("cursor", "default");
+	$("#prevImgPanel").css({
+		"left": (coordX + scrollX - Math.round(imgWidth/2)) + "px", 
+		"top": (place == "top")	? (coordY + scrollY - Math.round(imgHeight) - btnHeight) + "px"
+		   			: (coordY + scrollY + btnHeight) + "px"
+	});
+	setTimeout('$("#prevImgPanel").css("visibility", "visible")', 500);
+/*
 	prevImg.src = source;
 	prevImg.width = imgWidth ;
 	prevImg.height = imgHeight;
@@ -274,25 +277,23 @@ function ShowPrevImage(source)
 	}
 
 	setTimeout('prevImgPanel.style.visibility = "visible"', 500);
+*/
 }
 
 function HidePrevImage()
 {
-	var prevImgPanel = document.getElementById("prevImgPanel");
-	var prevImg = document.getElementById("prevImg");
-
-	if(!prevImgPanel || !prevImg) return;
-
-	prevImg.src = "";
-	prevImg.width = 0;
-	prevImg.height = 0;
-	prevImgPanel.style.visibility = "hidden";
+	$("#prevImg").attr({
+        "src" : "",
+        "width" : 0,
+        "height" : 0
+    });
+	$("#prevImgPanel").css("visibility", "hidden");
 }
 
 function ShowFullImage(source)
 {
 	HidePrevImage();
-
+/*
 	var fullImgPanel = document.getElementById("fullImgPanel");
 	var fullImg = document.getElementById("fullImg");
 
@@ -307,12 +308,19 @@ function ShowFullImage(source)
 			break;
 		}
 	}
-
 	if(idx == -1)
 		return;
 
 	var imgWidth = ImagesInfo[idx].width;
 	var imgHeight = ImagesInfo[idx].height;
+*/
+
+	var strWH = $("#binobj DIV").filter(function () {return ("fbw-internal:#"+ $("#id", this).val()) == source}).find("#dims").val();
+
+	if(strWH === undefined) return; //not found
+	var imgWidth = Number(strWH.slice(0, strWH.indexOf("x")));
+	var imgHeight = Number(strWH.slice(strWH.indexOf("x")+1));
+
 
 	var scrollX = 0;
 	var scrollY = 0;
@@ -330,6 +338,24 @@ function ShowFullImage(source)
 		winHeight = document.documentElement.clientHeight;
 	}
 
+
+	$("#fullImg.").attr({
+		"src": source,
+		 "width" : imgWidth,
+	   	"height" : imgHeight
+	}).css({ 
+	"top" : (imgHeight<winHeight) ? ((winHeight-imgHeight) / 2)+"px" : "0px",
+	"cursor" : "default"
+	});
+	$("#fullImgPanel").css({
+		"left": "0px", 
+		"width" : (winWidth) + "px",
+	   	"height" : Math.max(winHeight, imgHeight) + "px",
+		"top": (scrollY) + "px",
+                "visibility" : "visible"
+	});
+
+/*
 	fullImg.src = source;
 	fullImg.width = imgWidth;
 	fullImg.height = imgHeight;
@@ -345,24 +371,32 @@ function ShowFullImage(source)
 	fullImgPanel.style.height = (winHeight) + "px";
 
 	fullImgPanel.style.visibility = "visible";
+*/
 }
 
 function HideFullImage()
 {
-	var fullImgPanel = document.getElementById("fullImgPanel");
-	var fullImg = document.getElementById("fullImg");
-
-	if(!fullImgPanel || !fullImg) return;
-
-	fullImg.src = "";
-	fullImg.width = 0;
-	fullImg.height = 0;
-	fullImgPanel.style.visibility = "hidden";
+	$("#fullImg").attr({
+		"src": "",
+		"width": 0,
+		"height": 0
+	});
+	$("#fullImgPanel").css("visibility", "hidden");
 }
 
 
 function SaveImage(source)
 {
+	var Pos = source.indexOf("fbw-internal:#");
+	if (Pos == -1)
+		return;
+	var sourceid = source.substr(Pos+14);
+
+	var $jq = $("#binobj DIV").filter(function () {return $("#id", this).val() == sourceid});
+	if ($jq.length == 1) {
+		window.external.SaveBinary(sourceid, $jq.prop("base64data"), 1);
+	}
+	/*
   var bin_objects=document.all.binobj.getElementsByTagName("DIV");
   for(var i=0, cnt=0; i<bin_objects.length; i++)
   {
@@ -372,7 +406,7 @@ function SaveImage(source)
        window.external.SaveBinary(bin_objects[i].all.id.value, bin_objects[i].base64data, 1);
        break;
      }
-  }
+  }*/
 }
 
 function LoadXSL(path, lang)
@@ -414,15 +448,20 @@ function ClickOnDesc()
     document.body.focus();
   }
 }
-
+// Show CoverImage
 function ShowCoverImage(prntEl,fullImg)
 {
+  var cover = $(prntEl).find("SELECT").val();
+  if (fullImg)
+   ShowFullImage("fbw-internal:"+cover);
+   ShowPrevImage("fbw-internal:"+cover);
+/*
  if (!prntEl) return;
  var list=prntEl.getElementsByTagName("SELECT");
  if (list[0] && list[0].value) 
   if (fullImg)
    ShowFullImage("fbw-internal:"+list[0].value);
-   ShowPrevImage("fbw-internal:"+list[0].value);
+   ShowPrevImage("fbw-internal:"+list[0].value);*/
 }
 
 function TransformXML(xslt, dom)
@@ -458,6 +497,10 @@ function TransformXML(xslt, dom)
 
 function ShowDescElements()
 {
+	$("#fbw_desc SPAN[id]").each(function( index ) {
+		ShowElement($(this).attr("id"), window.external.GetExtendedStyle($(this).attr("id")));
+	});
+/*
   var desc = document.getElementById("fbw_desc");
   var spans = desc.getElementsByTagName("SPAN");
   for(var i=0; i < spans.length; i++)
@@ -466,6 +509,7 @@ function ShowDescElements()
     if(elem_id)
       ShowElement(elem_id, window.external.GetExtendedStyle(elem_id));
   }
+	*/
 }
 
 function LoadFromDOM(dom, lang)
@@ -584,8 +628,90 @@ function apiLoadFB2(path, lang)
 	return encoding;
 }
 
+function apiLoadFB2_new(path, strXML, lang) {
+	var css = document.getElementById("css");
+	var css_filename = css.href;
+	css.href = "";
+	var xml = new ActiveXObject("Msxml2.DOMDocument.6.0");
+	xml.async = false;
+	xml.preserveWhiteSpace = true;
+
+	xml.loadXML(strXML);
+	if (xml.parseError.errorCode) {
+		MsgBox("Loading error:\n\n" + xml.parseError.reason + "  \nLine: " + xml.parseError.line + ", char: " + xml.parseError.linepos + "\n");
+		return false;
+	}
+
+	pi = xml.firstChild;
+	var encoding;
+	if (pi) {
+		attr = pi.attributes;
+		if (attr) {
+			enc = attr.getNamedItem("encoding");
+			if (enc) {
+				encoding = enc.text;
+			}
+		}
+	}
+
+	xml.setProperty("SelectionNamespaces", "xmlns:fb='" + fbNS + "' xmlns:xlink='" + xlNS + "'");
+
+	if (window.external.GetNBSP()) {
+		var nbspChar = window.external.GetNBSP();
+
+		if (nbspChar != "\u00A0") {
+			var sel = xml.selectSingleNode("/fb:FictionBook/fb:description/fb:title-info/fb:annotation");
+			if (sel) recursiveChangeNbsp(sel, nbspChar);
+			sel = xml.selectSingleNode("/fb:FictionBook/fb:description/fb:document-info/fb:history");
+			if (sel) recursiveChangeNbsp(sel, nbspChar);
+			sel = xml.selectSingleNode("/fb:FictionBook/fb:body");
+			while (sel) {
+				if (sel.nodeName == "body") recursiveChangeNbsp(sel, nbspChar);
+				sel = sel.nextSibling;
+			}
+		}
+	}
+
+	if (!LoadFromDOM(xml, lang)) {
+		MsgBox("Error: can't prepare document for Body mode.");
+		return false;
+	}
+
+	document.selection.empty();
+
+	var desc = document.getElementById("fbw_desc");
+	var id = desc.all.diID;
+	if (id)
+		if (path.indexOf("blank.fb2") != -1) {
+			id.value = window.external.GetUUID();
+		}
+		else {
+			id.value = id.value; // ???????? ????????? ????????. ??? ???? ??????? ??? ?????? ??? ???????? ?????????? ????? ?????? ????, ??? ???????? ? ????? ?????????.
+		}
+
+	apiShowDesc(false);
+	css.href = css_filename;
+
+	return encoding;
+}
+
+
+// Switch description or body views
+// state: true for description view
 function apiShowDesc(state)
 {
+	if(state) {
+		$("#fbw_body").css("display","none");
+		$("#fbw_desc").css("display","block");
+		document.ScrollSave = document.body.scrollTop;
+		document.body.scrollTop = 0;
+	}
+	else {
+		$("#fbw_body").css("display","block");
+		$("#fbw_desc").css("display","none");
+		document.body.scrollTop = document.ScrollSave;
+	}
+/*	
 	var body=document.getElementById("fbw_body");
 	if(!body)
 		return;
@@ -596,19 +722,18 @@ function apiShowDesc(state)
 
 	if(state)
 	{
-		document.ScrollSave=document.body.scrollTop;
 		desc.style.display="block";
-		document.body.scrollTop=0;
 		body.style.display="none";
+		document.ScrollSave=document.body.scrollTop;
+		document.body.scrollTop=0;
 	}
 	else
 	{
 		desc.style.display="none";
 		body.style.display="block";
 		document.body.scrollTop=document.ScrollSave;
-	}
+	}*/
 }
-
 function apiRunCmd(path)
 {
 	var script=document.getElementById("userCmd");
@@ -645,11 +770,6 @@ function apiProcessCmd(path)
 	ProcessCmd();
 }
 
-function SetInFrame(range, tagName, className)
-{
-	range.pasteHTML("<" + tagName + " classname=\"" + className + "\">" + range.htmlText + "</" + tagName + ">");
-}
-
 function RemoveOuterTags(node)
 {
 	node.removeNode(false);
@@ -657,78 +777,31 @@ function RemoveOuterTags(node)
 
 function apiCleanUp(className)
 {
+	var cnt = $("DIV.className").contents();
+	$("DIV.className").replaceWith(cnt);
+/*
 	var divs = document.all.tags("DIV");
 	for(var i=0; i < divs.length; i++)
 	{
 		if (divs[i].className == className)
 			RemoveOuterTags(divs[i]);
 	}
-}
-
-function apiCheckRunnableScript()
-{
-  try
-  {
-    if(Run)
-    {
-      return true;
-    }
-  }
-  catch(e)
-  {
-    return false;
-  }
+*/
 }
 
 function apiSetFastMode(fast)
 {
-  var css=document.getElementById("css");
-  if(!css)
-    return;
 
-  if(fast)
-    css.href="main_fast.css";
-  else
-    css.href="main.css";
 }
-
-//======================================
-// Internal private functions
-//======================================
-
-function MsgBox(str)
-{
-	window.external.MsgBox(str);
-}
-function AskYesNo(str)
-{
-	return window.external.AskYesNo(str);
-}
-function InputBox(msg, value, result)
-{
-	result.$ = window.external.InputBox(msg, "FBE script message", value);
-	return window.external.GetModalResult();
-}
-//--------------------------------------
-// Our own, less scary error handler
-
-function errorHandler(msg,url,lno)
-{
-	MsgBox("Error at line "+lno+":\n"+msg+" ");
-	return true;
-}
-
-function errCantLoad(xd,file)
-{
-	MsgBox("\""+file+"\" loading error:\n\n"+xd.parseError.reason+"  \nLine: "+xd.parseError.line+", char: "+xd.parseError.linepos+"\n");
-}
-
+/*
 function FillImageList(list, bin_objects)
 {
 	if(list.id=='href')
 	{
 		var cover=list.value;
+	alert(cover);
 
+		
 		list.innerHTML='';
 
 		var newopt=document.createElement('option');
@@ -758,9 +831,26 @@ function FillImageList(list, bin_objects)
 		}
 	}
 }
+*/
 
 function FillLists()
 {
+	$("#tiCover,#stiCover").find("SELECT#href").each(function() {
+		var cover=$(this).val();
+		if (cover === null) cover ="";
+
+		$(this).empty();
+		$(this).append($("<option></option>"));
+
+		var $list = $(this);
+		$("#binobj DIV #id").each(function() {
+			var ext = $(this).val();
+			if (ext.search(/\.jpg|\.png|\.jpeg/i) !=-1) $list.append($("<option>"+ ext+ "</option>").val("#" + ext));
+		});
+		$(this).val(cover);
+	});
+	/* 
+
 	var bin_objects = document.all.binobj.getElementsByTagName("DIV");
 
 	var lists=document.all.tiCover.getElementsByTagName("select"); // drop-down lists
@@ -774,11 +864,41 @@ function FillLists()
 	{
 		FillImageList(stilists[i], bin_objects);
 	}
-}
+	*/	
 
+}
+// Set languages in drop-down boxes
 function SelectLanguages()
 {
+        // title-info language
+	$langList = $("#tiLang");
+	var sel = $langList.val();
 
+	$langList.find("option:contains('-org-')").remove();
+	$langList.find("option[value='"+ sel+"']").prop("selected", true)
+
+        // title-info source language
+	$langList = $("#tiSrcLang");
+	var sel = $langList.val();
+
+	$langList.find("option:contains('-org-')").remove();
+	$langList.find("option[value='"+ sel+"']").prop("selected", true)
+
+        // src-title-info language
+	$langList = $("#stiLang");
+	var sel = $langList.val();
+
+	$langList.find("option:contains('-org-')").remove();
+	$langList.find("option[value='"+ sel+"']").prop("selected", true)
+
+        // src-title-info source language
+	$langList = $("#stiSrcLang");
+	var sel = $langList.val();
+
+	$langList.find("option:contains('-org-')").remove();
+	$langList.find("option[value='"+ sel+"']").prop("selected", true)
+
+/* HTML DOM variant
 	var list=document.getElementById("tiLang");
 	var sel=list.value;
 
@@ -791,8 +911,7 @@ function SelectLanguages()
 		else if(opts[i].value==sel)
 			opts[i].selected=true;
 	}
-
-
+	alert(list.outerHTML);
 	var list=document.getElementById("tiSrcLang");
 	var sel=list.value;
 
@@ -832,6 +951,7 @@ function SelectLanguages()
 		else if(opts[i].value==sel)
 			opts[i].selected=true;
 	}
+*/
 }
 //-----------------------------------------------
 // Generates new ID and puts it into the field
@@ -850,9 +970,23 @@ function NewDocumentID(msg)
 //-----------------------------------------------
 // Puts lines to space cloned elements in description
 // Also prevents deletion of last element
-
 function PutSpacers(obj)
 {
+ if(obj.id=="binobj") return;
+ var $jq = $(obj).find("DIV");
+ 
+ $jq.each(function(index) {
+	if(obj.nodeName!="DIV" && index==0) {
+		$(this).css({ "marginTop": "0", "paddingTop" : "0", "borderTop" : "none"});
+		$(this).find("#del").prop( "disabled", $jq.length <= 1);
+	}
+	else {
+		$(this).css({"marginTop" : "0.2em", "paddingTop" : "0.2em", "borderTop" : "solid #D0D0BF 1px"});
+		$(this).children("#del").prop( "disabled", false);
+	}
+  });
+
+ /* HTM DOM variant
  if(obj.id=="binobj") return;
 
  var divs=obj.getElementsByTagName("DIV"); if(divs.length==0) return;
@@ -875,14 +1009,20 @@ function PutSpacers(obj)
   divs[i].style.paddingTop="0.2em";
   divs[i].style.borderTop="solid #D0D0BF 1px";
  }
+*/
 }
 //-----------------------------------------------
 // Puts spacers between all clones in description
-
 function InitFieldsets()
 {
+  $("fieldset").each(function() {
+	PutSpacers(this);
+  });
+
+ /* HTML DOM variant 
  var fss=document.body.getElementsByTagName("fieldset");
  for(var i=0; i<fss.length; i++) PutSpacers(fss[i]);
+*/
 }
 //-----------------------------------------------
 // Initializes default fields if needed.
@@ -916,6 +1056,7 @@ function SetProgramUsed(desc)
   }
 }
 
+// Set current date for the creation date
 function SetCurrentDate(desc)
 {
 	var date=new Date();
@@ -933,11 +1074,11 @@ function SetCurrentDate(desc)
 
 	var dt=desc.all.diDate;
 	if(dt && dt.value.length==0)
-		dt.value = day+" "+ms[mon - 1]+" "+year;
+		dt.value = day + " " + ms[mon - 1] + " " + year;
 
 	var dv=desc.all.diDateVal;
 	if(dv && dv.value.length==0)
-		dv.value = year +"-"+mon  +"-"+day;
+		dv.value = year + "-" + mon + "-" + day;
 }
 
 
@@ -956,18 +1097,8 @@ function SetupDescription(desc)
 
 	SelectLanguages();
 }
-//-----------------------------------------------
 
-//function InflateParagraphs(e)
-//{
-// var ps = e.getElementsByTagName("P");
-// for(var i=0; i<ps.length; i++) window.external.inflateBlock(ps[i])=true;
-
-// for(var i=0; i<ps.length; i++)
-//  if(ps[i].innerHTML=="") ps[i].innerHTML="&nbsp;";
-//}
-//-----------------------------------------------
-
+// Set property for <p> and his descendants to render empty objects as if they contained text
 function InflateIt(elem) // Seems the same as above...
 {
  if(!elem || elem.nodeType!=1) return;
@@ -986,10 +1117,13 @@ function GetGenre(d)
  var v=window.external.GenrePopup(d, window.event.screenX, window.event.screenY);
  if(v.length>0){ d.parentNode.all.genre.value=v; }
 }
-//--------------------------------------
 
+// Clone element without DIVs children
 function dClone(obj)
 {
+	$qn = $(obj).clone();
+	return $qn.children("DIV").remove();
+/* HML DOM variant
  var qn=obj.cloneNode(true); var cn=qn.firstChild;
 
  while(cn)
@@ -999,12 +1133,32 @@ function dClone(obj)
   cn=nn;
  }
  return qn;
+	*/
 }
 //-------------------
 
 function Remove(obj)
 {
-	var pic_id = "";
+	if(obj.base64data != null) {
+		var pic_id = $(obj).find("input#id").val();
+		if (pic_id === undefined) pic_id = "";
+		
+		// delete
+		var pn=obj.parentNode; 
+		obj.removeNode(true); 
+		PutSpacers(pn);
+		
+		//update image????? src=pic_id??
+		if (pic_id!="") {
+			pic_id = "fbw-internal:#" + pic_id;
+//			$("IMG[src='" + pic_id +"']").remove();
+
+			$("IMG[src='" + pic_id +"']").removeAttr("src").attr("src", pic_id);
+		}
+		// update Cover lists
+		FillLists();
+	}
+/*	var pic_id = "";
 
 	if(obj.base64data != null) // this is a binary object
 	{
@@ -1052,6 +1206,7 @@ function Remove(obj)
 
   FillLists();
  }
+*/
 }
 //-------------------
 
@@ -1071,6 +1226,7 @@ function ChildClone(obj)
 
 //// == DESC == ///////////////////////////////////////////////////////////////////
 
+/// WORKING WITH XMLDocument
 
 var fbNS="http://www.gribuser.ru/xml/fictionbook/2.0";
 var xlNS="http://www.w3.org/1999/xlink";
@@ -1586,12 +1742,14 @@ function PutBinaries(doc)
 }
 
 //// == BODY == ///////////////////////////////////////////////////////////////////
-
+// Don't use!! Same function in code
 function KillDivs(e)
 {
- var divs = e.getElementsByTagName("DIV");
+ 	$(e).find("DIV").contents().unwrap();
+ 	        alert ("111");
+// var divs = e.getElementsByTagName("DIV");
 
- while(divs.length > 0) divs[0].removeNode(false);
+// while(divs.length > 0) divs[0].removeNode(false);
 }
 //-----------------------------------------------
 
@@ -1743,13 +1901,14 @@ function StyleCode(check, cp, range)
 
 function IsCode(cp)
 {
-  while(cp && cp.tagName != "DIV")
+   return ($(cp).parents("SPAN.code").length > 0);
+/*  while(cp && cp.tagName != "DIV")
   {
     if(cp.tagName == "SPAN" && cp.className == "code")
       return true;
     cp = cp.parentElement;
   }
-  return false;
+  return false;*/
 }
 
 function TextIntoHTML(s) {
@@ -1819,64 +1978,6 @@ function AddTitle(cp, check)
     }
   }
 
-//  if(full)
-//  {
-//    var nps = np.nextSibling;
-//    while(nps)
-//    {
-//      nps.removeNode(true);
-//      nps = np.nextSibling;
-//    }
-
-//    switch(targ)
-//    {
-//      case "P":
-//        np.innerText = "";
-//        break;
-//      case "DIV":
-//        while(np)
-//        {
-//          var nps = np.nextSibling;
-//          while(nps)
-//          {
-//            nps.removeNode(true);
-//            nps = np.nextSibling;
-//          }
-
-//          if(np.tagName == "P")
-//          {
-//            var nps = np.nextSibling;
-//            while(nps)
-//            {
-//              nps.removeNode(true);
-//              nps = np.nextSibling;
-//            }
-//            np.innerText = "";
-//            window.external.inflateBlock(np) = true;
-//            break;
-//          }
-//          else
-//            np = np.firstChild;
-//        }
-
-//        if(cp.className == "body")
-//        {
-//          cp = cp.firstChild.nextSibling;
-//          while(np.parentElement && np.parentElement != cp)
-//          {
-//            np.parentElement.removeNode(false);
-//          }
-//        }
-//        else if(cp.className == "section")
-//        {
-//          while(np.parentElement && np.parentElement != cp)
-//          {
-//            np.parentElement.removeNode(false);
-//          }
-//        }
-//        break;
-//    }
-//  }
   if(del)
   {
     sel.text = "";
@@ -2389,37 +2490,6 @@ function SaveBodyScroll()
 	document.ScrollSave=document.body.scrollTop;
 }
 
-function SetExtendedStyle(elem, button_id, change)
-{
-	/*var desc = document.getElementById("fbw_desc");
-	var button = document.getElementById(button_id);
-
-	var ext = window.external.GetExtendedStyle(elem);
-	if(change)
-		ext= !ext;
-
-	if(!desc)
-		return false;
-
-	var all=desc.all;
-	for(var i=0; i<all.length; i++)
-	{
-		if(null != all[i].getAttribute(elem))
-			if(ext)
-				all[i].style.display="inline-block";
-			else
-				all[i].style.display="none";
-	}
-
-	//button.setAttribute("onclick", "SetExtendedStyle(" + !ext + ",'" + elem + "','" + button_id + "')");
-	if(ext)
-		button.value = "<<<<";
-	else
-		button.value = ">>>";
-
-	window.external.SetExtendedStyle(elem, ext);*/
-}
-
 function ShowElement(id, show)
 {
 	if(!id)
@@ -2445,9 +2515,17 @@ function ShowElementsMenu(button)
 	if(elem_id)
 		ShowElement(elem_id, !window.external.GetExtendedStyle(elem_id));
 }
-
+// Show image
 function ShowImageOfBin(binDiv,mode)
 {
+   	var src = $(binDiv).find("INPUT#id").val();
+	if (!src || src=="") return;
+	if (mode=="full") 
+		ShowFullImage("fbw-internal:#"+src);
+	else if (mode=="prev") 
+		ShowPrevImage("fbw-internal:#"+src);
+
+/* HTML DOM variant
 	var inps=binDiv.getElementsByTagName("INPUT");
 	for (var i=0;i<inps.length;i++)
 		if (inps[i].id=="id")
@@ -2456,5 +2534,37 @@ function ShowImageOfBin(binDiv,mode)
    			if (!src || src=="") return;
    			if (mode=="full") ShowFullImage("fbw-internal:#"+src);
    			else if (mode=="prev") ShowPrevImage("fbw-internal:#"+src);
-		} 
+		}
+*/ 
+}
+
+//======================================
+// Internal private functions
+//======================================
+
+function MsgBox(str)
+{
+	window.external.MsgBox(str);
+}
+function AskYesNo(str)
+{
+	return window.external.AskYesNo(str);
+}
+function InputBox(msg, value, result)
+{
+	result.$ = window.external.InputBox(msg, "FBE script message", value);
+	return window.external.GetModalResult();
+}
+//--------------------------------------
+// Our own, less scary error handler
+
+function errorHandler(msg,url,lno)
+{
+	MsgBox("Error at line "+lno+":\n"+msg+" ");
+	return true;
+}
+
+function errCantLoad(xd,file)
+{
+	MsgBox("\""+file+"\" loading error:\n\n"+xd.parseError.reason+"  \nLine: "+xd.parseError.line+", char: "+xd.parseError.linepos+"\n");
 }

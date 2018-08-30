@@ -203,7 +203,8 @@ CSpeller::CSpeller(CString dictPath):
 	m_Dictionaries[LANG_RU].handle = LoadDictionary(dictPath, dicts[LANG_RU].name);
 
 	// don't split on apostrophes
-	splitter = new CSplitter(L"'’\u0301");
+	// changed on unicode values (agavrin-13-08-18)
+	splitter = new CSplitter(L"\u0027\u2019\u0301");
 }
 
 //
@@ -496,7 +497,6 @@ SPELL_RESULT CSpeller::SpellCheck(CString word)
 	if (currDict)
 	{
 		CString checkWord(word);
-
 		if (splitter->AlphaExceptions().Find(word[word.GetLength()-1]) > -1)
 			checkWord.Delete(word.GetLength()-1);
 

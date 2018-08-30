@@ -7,13 +7,13 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "wtl/atlres.h"
+#include <wtl/atlres.h>
 #include "..\..\res1.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Ukrainian (Ukraine) resources
+// Украинский (Украина) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_UKR)
 LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
@@ -104,7 +104,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Перейти до примітки або до посилання", ID_GOTO_FOOTNOTE
         MENUITEM "Перейти до парного тегу",     ID_GOTO_MATCHTAG
-        MENUITEM "Перейти до помилкового тегу", ID_GOTO_WRONGTAG
         MENUITEM SEPARATOR
         MENUITEM "К&лонувати",                  ID_EDIT_CLONE
         MENUITEM "Розр&ізати",                  ID_EDIT_SPLIT
@@ -123,8 +122,6 @@ BEGIN
         MENUITEM "&Опис документу",             ID_VIEW_DESC
         MENUITEM "&Тіло документу",             ID_VIEW_BODY
         MENUITEM "&Код-сирець",                 ID_VIEW_SOURCE
-        MENUITEM SEPARATOR
-        MENUITEM "Прискорений &режим",          ID_VIEW_FASTMODE
     END
     POPUP "В&ставка"
     BEGIN
@@ -1005,7 +1002,7 @@ BEGIN
     IDS_DONT_ASK_AGAIN      "Більше не запитувати"
 END
 
-#endif    // Ukrainian (Ukraine) resources
+#endif    // Украинский (Украина) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
