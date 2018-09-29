@@ -273,6 +273,7 @@
 #define IDS_SETTINGS                    307
 #define IDS_DONT_ASK_AGAIN              308
 #define IDS_NO_UNPAIR_TAGS_FOUND        309
+#define IDS_HOTKEY_FILE_NEW             310
 #define IDC_SPELL_REPLACE               500
 #define ID_VER_ADVANCE                  550
 #define IDS_MB_OK                       600

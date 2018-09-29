@@ -1,6 +1,7 @@
 #include "stdafx.h"
-#include "utils.h"
 
+#include "utils.h"
+#include "XMLSerializer.h"
 const wchar_t* XML_SAVE_ENCODING = L"utf-8";
 
 CXMLSerializer::CXMLSerializer(const CString& sFile, const CString& sAppName, bool bLoad)

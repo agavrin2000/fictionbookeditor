@@ -9,8 +9,6 @@
 #include "utils.h"
 #include "apputils.h"
 
-#include "zip.h"
-
 #include "FBDoc.h"
 #include "Scintilla.h"
 #include "Settings.h"
@@ -102,28 +100,50 @@ HRESULT Doc::InvokeFunc(BSTR FuncName, CComVariant *params, int count, CComVaria
 /// <param name="filePath">Path to file</param>  
 void Doc::RunScript(BSTR filePath)
 {
+	MSHTML::IHTMLDocument2Ptr doc = m_body.Browser()->Document;
+//	doc->parentDocument->createElement;
+//	IHTMLElementPtr head = doc->getElementsByTagName("head");
+	IHTMLElementPtr Script = doc->createElement(_bstr_t(L"script"));
+	CString ttt(L"function helloWorld(filePath) { alert('hello world!') }");
+	MSHTML::IHTMLScriptElementPtr(Script)->put_text(_bstr_t(ttt));
+	
+	MSHTML::IHTMLDOMNodePtr(doc->body)->appendChild(MSHTML::IHTMLDOMNodePtr(Script));
+	/*HtmlElement^ headElement = webBrowser1->Document->GetElementsByTagName("head")[0];
+	HtmlElement^ scriptElement = webBrowser1->Document->CreateElement("script");
+	IHTMLScriptElement^ element = (IHTMLScriptElement^)scriptElement->DomElement;
+	element->text = "function sayHello() { alert('hello') }";
+	headElement->AppendChild(scriptElement);
+	webBrowser1->Document->InvokeScript("sayHello");*/
+
+
 	CComVariant vtResult;
 	CComVariant params(filePath);
-	InvokeFunc(L"apiRunCmd", &params, 1, vtResult);
+	InvokeFunc(L"helloWorld", &params, 1, vtResult);
+
+/*	HTMLWindow: = Doc2.parentWindow;
+	if Assigned(HTMLWindow) then
+		HTMLWindow.execScript('helloWorld()', 'JavaScript')
+
+	CComVariant vtResult;
+	CComVariant params(filePath);
+	InvokeFunc(L"apiRunCmd", &params, 1, vtResult);*/
 }
 
-/// <summary>Load fb2-file into buffer</summary>
-/// <summary>Buffer allocate inside of function! Please, don't forget to deallocate</summary>
+/// <summary>Load fb2-file into buffer.
+/// Buffer allocate inside of function! Please, don't forget to deallocate</summary>
 /// <param name="filename">fb2 filename</param>  
 /// <param name="buffer">buffer ptr</param>  
 /// <returns>buffer size-success, 0 - error</returns>
 size_t Doc::ReadFB2File(const CString& filename, char** buffer)
 {
 	size_t filesize;
+
 	FILE* f = _wfopen(filename, L"rbS");
 
 	// Failed to open file
 	if (f == NULL)
-	{
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, _U_STRINGorID(L"Can't open file " + filename), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
-		return 0;
-	}
-
+		throw(L"Can't open file " + filename);
+	
 	struct _stat fileinfo;
 	_wstat(filename, &fileinfo);
 	filesize = fileinfo.st_size;
@@ -140,11 +160,20 @@ size_t Doc::ReadFB2File(const CString& filename, char** buffer)
 	return filesize + 2;
 }
 
+/// <summary>Prepare ZIP-error message</summary>
+/// <returns>Error string</returns>
+CString Doc::HandleZIPLibError(zip_error_t& error)
+{
+	CString ziperror(zip_error_strerror(&error));
+	zip_error_fini(&error);
+	return ziperror;
+}
+
 /// <summary>Decrypt zip file and load into buffer</summary>
 /// <summary>Buffer allocate inside of function! Please, don't forget to deallocate</summary>
 /// <param name="filename">zip filename</param>  
 /// <param name="buffer">buffer ptr</param>  
-/// <returns>buffer size-success, 0 - error</returns>
+/// <returns>buffer size-success, throw exeptions</returns>
 size_t Doc::ReadZIPFile(const CString& filename, char** buffer)
 {
 	// open zip and read to buffer
@@ -156,25 +185,21 @@ size_t Doc::ReadZIPFile(const CString& filename, char** buffer)
 	zip_error_init(&error);
 	// create source from name 
 	if ((src = zip_source_win32w_create(filename, 0, -1, &error)) == NULL) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, (LPCTSTR)zip_error_strerror(&error), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
-		zip_error_fini(&error);
-		return 0;
+		throw (HandleZIPLibError(error)+ L"\nFile:" + filename);
 	}
 
 	// open zip archive from source
 	if ((z = zip_open_from_source(src, 0, &error)) == NULL) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, (LPCTSTR)zip_error_strerror(&error), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
 		zip_source_free(src);
-		zip_error_fini(&error);
-		return 0;
+		throw (HandleZIPLibError(error) + L"\nFile:" + filename);
 	}
-	zip_error_fini(&error);
-
+	
+	// Check number of files in archive
 	if (zip_get_num_files(z) > 1) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, L"There is more than one file in zip archive", (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
 		zip_close(z);
-		return 0;
+		throw (L"There is more than one file in zip archive.\nFile:" + filename);
 	}
+
 	struct zip_stat file_info; // file info
 	zip_stat_index(z, 0, 0, &file_info);
 	filesize = file_info.size;
@@ -183,18 +208,16 @@ size_t Doc::ReadZIPFile(const CString& filename, char** buffer)
 	struct zip_file *file_in_zip; // file desciptor in archive
 
 	if (!(file_in_zip = zip_fopen_index(z, 0, 0))) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, (LPCTSTR)zip_error_strerror(&error), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
-		zip_error_fini(&error);
 		zip_close(z);
-		return 0;
+		free(buffer);
+		throw (HandleZIPLibError(error) + L"\nFile:" + filename);
 	}
 
 	// читаем содержимое файла
 	if (zip_fread(file_in_zip, *buffer, sizeof(char)*file_info.size + 2) == -1) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, (LPCTSTR)zip_error_strerror(&error), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
-		zip_error_fini(&error);
 		zip_close(z);
-		return 0;
+		free(buffer);
+		throw (HandleZIPLibError(error) + L"\nFile:" + filename);
 	}
 	zip_close(z);
 	// set end of line for unicode strings
@@ -204,61 +227,57 @@ size_t Doc::ReadZIPFile(const CString& filename, char** buffer)
 	return filesize + 2;
 }
 
-/// <summary>Internal function for load fb2-file</summary>
-/// <param name="hWndParent">Main editor window</param>
+/// <summary>Load fb2-file to Body Editor</summary>
+/// <param name="hWndParent">Main editor window</param>  
 /// <param name="filename">fb2 filename</param>  
-/// <returns>true-success, false - error</returns> 
-bool Doc::LoadFromHTML(HWND hWndParent,const CString& filename)
-{
-	char* buffer = NULL;
+/// <returns>true-success, false - error</returns>
+bool Doc::Load(HWND hWndParent,const CString& filename) {
+
+	char* buffer = nullptr;
 	size_t buffersize = 0;
-
-	if (U::GetFileExtension(filename) == L"zip") {
-		buffersize = ReadZIPFile(filename, &buffer);
-	}
-	else
-	{
-		buffersize = ReadFB2File(filename, &buffer);
-	}
 	
-	if (buffersize == 0) {
-		free(buffer);
-		return false;
-	}
+	try {
+	CWaitCursor();
+		if (U::GetFileExtension(filename) == L"zip") {
+			buffersize = ReadZIPFile(filename, &buffer);
+		}
+		else
+		{
+			buffersize = ReadFB2File(filename, &buffer);
+		}
 
+		if (buffersize == 0) {
+			free(buffer);
+			return false;
+		}
 	CString enc = U::GetStringEncoding(buffer);
-		
+
 	CComVariant params[3];
 	params[2] = filename;
 	params[0] = _Settings.GetInterfaceLanguageName();
 	CComVariant res;
-	
+
 	//Encode xml-string
 	int offset = 0;
 	BSTR    ustr;
 
-	if (enc == L"utf-8") {
+	if (enc == L"utf-8" || enc == L"") {
 		if (buffer[0] == '\xEF' && buffer[1] == '\xBB' && buffer[2] == '\xBF')
 		{
 			offset = 3;
 		}
 		DWORD ulen = ::MultiByteToWideChar(CP_UTF8, 0, buffer + offset, buffersize - offset - 1, NULL, 0);
 		ustr = ::SysAllocStringLen(NULL, ulen);
-		if (!ustr) {
-			free(buffer);
-			AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, IDS_OUT_OF_MEM_MSG, (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
-			return false;
-		}
 		::MultiByteToWideChar(CP_UTF8, 0, buffer + offset, buffersize - offset - 1, ustr, ulen);
 		params[1] = ustr;
 	}
-	else if (enc == L"utf-16le" || enc == L"utf-16" || enc == L"utf-16be") {
+	else if (enc == L"utf-16") {
 		if ((buffer[0] == '\xFF' && buffer[1] == '\xFE') || (buffer[0] == '\xFF' && buffer[1] == '\xFE'))
 		{
 			offset = 2;
 		}
 		ustr = ::SysAllocStringLen(NULL, buffersize - offset);
-		ustr = (wchar_t *) (buffer + offset);
+		ustr = (wchar_t *)(buffer + offset);
 		params[1] = ustr;
 	}
 	else
@@ -266,7 +285,7 @@ bool Doc::LoadFromHTML(HWND hWndParent,const CString& filename)
 		params[1] = buffer;
 	}
 
-	// Create ActiveX object = WebBrowser
+	// Create ActiveX object = WebBrowser and load main.html to call jscript function
 	HRESULT	hr;
 	// construct full path to main.html
 	wchar_t path[MAX_PATH + 1];
@@ -274,7 +293,7 @@ bool Doc::LoadFromHTML(HWND hWndParent,const CString& filename)
 	PathRemoveFileSpec(path);
 	wcscat(path, L"\\main.html");
 
-	m_body.Create(hWndParent, CRect(0, 0, 500, 500), _T("{8856F961-340A-11D0-A96B-00C04FD705A2}"));
+	m_body.Create(hWndParent, &CRect(0, 0, 500, 500), _T("{8856F961-340A-11D0-A96B-00C04FD705A2}"));
 	hr = m_body.Browser()->Navigate(path);
 	MSG	  msg;
 	while (!m_body.Loaded() && ::GetMessage(&msg, NULL, 0, 0))
@@ -292,51 +311,36 @@ bool Doc::LoadFromHTML(HWND hWndParent,const CString& filename)
 	// Load fb2-file to body wih XSLT transform
 	InvokeFunc(L"apiLoadFB2_new", params, 3, res);
 
-	// mark unchanged
-    MarkSavePoint();
 	free(buffer);
-
 	// process return value
-	if(res.vt == VT_BOOL)
-	{
-		m_encoding = _Settings.GetDefaultEncoding();
-		return res.boolVal != VARIANT_FALSE;		
-	}
-
-	if(res.vt == VT_BSTR)
-	{
-		m_encoding = res.bstrVal;
-		return true;
-	}
-
-	if(res.vt == VT_EMPTY)
-	{
-		m_encoding = _Settings.GetDefaultEncoding();		
-		return true;
-	}
-
-	return false;
-}
-
-/// <summary>Load fb2-file to Body Editor</summary>
-/// <param name="hWndParent">Main editor window</param>  
-/// <param name="filename">fb2 filename</param>  
-/// <returns>true-success, false - error</returns>
-bool Doc::Load(HWND hWndParent,const CString& filename) {
-
- try {
-	CWaitCursor();
-	if(!LoadFromHTML(hWndParent, filename))
+	if (res.vt == VT_BOOL && res.vt == false)
 	{
 		return false;
 	}
 
-    m_filename = filename;
-    m_namevalid = true;
+	if (res.vt == VT_BSTR)
+	{
+		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, res.bstrVal, (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
+		return false;
+	}
+	m_encoding = enc;
+	// mark unchanged
+	MarkSavePoint();
+	if (filename != L"blank.fb2") {
+		m_filename = filename;
+		m_namevalid = true;
+	}
   }
   catch (_com_error& e) {
-    U::ReportError(e);
+	if (buffer) free(buffer);
+	U::ReportError(e);
     return false;
+  }
+  catch (CString& e)
+  {
+	  if (buffer) free(buffer);
+	  AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, e.GetString(), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
+	  return false;
   }
 
   return true;
@@ -345,7 +349,7 @@ bool Doc::Load(HWND hWndParent,const CString& filename) {
 /// <summary>Load blank fb2-file "blank.fb2" to Body Editor</summary>
 /// <param name="hWndParent">Main editor window</param>  
 void  Doc::CreateBlank(HWND hWndParent) {
-	  LoadFromHTML(hWndParent, L"blank.fb2");
+	  Load(hWndParent, L"blank.fb2");
 }
 
 // indent something
@@ -536,7 +540,7 @@ static MSXML2::IXMLDOMNodePtr	  ProcessP(MSHTML::IHTMLElement *p,
 	baseName=L"th";
   else if (U::scmp(cls,L"td")==0)
 	baseName=L"td";
- 
+  CString tst = p->outerHTML;
   MSHTML::IHTMLDOMNodePtr   hp(p);
 
   // check if it is an empty-line
@@ -556,13 +560,13 @@ static MSXML2::IXMLDOMNodePtr	  ProcessP(MSHTML::IHTMLElement *p,
 				return vNode;
 			}
 			else
-				return doc->createNode(1L, L"empty-line", FBNS);
+				return doc->createNode(1, L"empty-line", FBNS);
 		}
 		return MSXML2::IXMLDOMNodePtr();
 	}
   }
 
-  MSXML2::IXMLDOMElementPtr xp(doc->createNode(1L,baseName,FBNS));
+  MSXML2::IXMLDOMElementPtr xp(doc->createNode(1,baseName,FBNS));
 
   SetID(p,xp,doc);
 
@@ -611,7 +615,8 @@ static MSXML2::IXMLDOMNodePtr	  ProcessDiv(MSHTML::IHTMLElement *div,
 					     int indent)
 {
   _bstr_t		    cls(div->className);
-  
+  CString tst = div->outerHTML;
+
   MSXML2::IXMLDOMElementPtr xdiv(doc->createNode(1L,cls,FBNS));
 
   if (U::scmp(cls,L"image")==0) {
@@ -643,20 +648,21 @@ static MSXML2::IXMLDOMNodePtr	  ProcessDiv(MSHTML::IHTMLElement *div,
   const wchar_t *bn=U::scmp(cls,L"stanza")==0 ? L"v" : L"p";
 
   while ((bool)fc) {
-    _bstr_t	name(fc->nodeName);
+	  _bstr_t	name(fc->nodeName);
     MSHTML::IHTMLElementPtr efc(fc);
+	CString tst2 = efc->outerHTML;
 	// process empty lines
     MSHTML::IHTMLElement3Ptr(efc)->inflateBlock = VARIANT_TRUE;
 
     if (U::scmp(name,L"DIV")==0) {
-      Indent(xdiv,doc,indent+1);
+      Indent(static_cast<MSXML2::IXMLDOMNodePtr>(xdiv),doc,indent+1);
 	  MSXML2::IXMLDOMNodePtr nnp = ProcessDiv(efc,doc,indent+1);
 	  static_cast<MSXML2::IXMLDOMNodePtr>(xdiv)->appendChild(nnp);
     } else if (U::scmp(name,L"P")==0) {
 		MSXML2::IXMLDOMNodePtr  np;
 		try { np = ProcessP(efc,doc,bn); } catch (...) { np = 0; }
       if (np) {
-		Indent(xdiv,doc,indent+1);
+		Indent(static_cast<MSXML2::IXMLDOMNodePtr>(xdiv),doc,indent+1);
 		static_cast<MSXML2::IXMLDOMNodePtr>(xdiv)->appendChild(np);
       }
     }
@@ -664,7 +670,7 @@ static MSXML2::IXMLDOMNodePtr	  ProcessDiv(MSHTML::IHTMLElement *div,
     fc=fc->nextSibling;
   }
 
-  Indent(xdiv,doc,indent);
+  Indent(static_cast<MSXML2::IXMLDOMNodePtr>(xdiv), doc,indent);
 
   return xdiv;
 }
@@ -708,8 +714,8 @@ static void   GetBodies(MSHTML::IHTMLElementPtr	body,
       _bstr_t	  bn(AU::GetAttrB(div,L"fbname"));
       if (bn.length()>0)
 		SetAttr(xb,L"name",FBNS,bn,doc);
-      Indent(doc->documentElement,doc,1);
-	  static_cast<MSXML2::IXMLDOMNodePtr>(doc->documentElement)->appendChild(xb);
+      Indent(static_cast<MSXML2::IXMLDOMNodePtr>(doc->documentElement),doc,1);
+	  static_cast<MSXML2::IXMLDOMNodePtr>(doc->documentElement)->appendChild(static_cast<MSXML2::IXMLDOMNodePtr>(xb));
     }
   }
 }
@@ -822,7 +828,7 @@ MSXML2::IXMLDOMDocument2Ptr Doc::CreateDOMImp(const CString& encoding) {
   // fetch binaries
   CheckError(body.Invoke1(L"GetBinaries",&args[2]));
 
-  Indent(root,ndoc,0);
+  Indent(static_cast<MSXML2::IXMLDOMNodePtr>(root),ndoc,0);
   return ndoc;
 }
 
@@ -843,6 +849,42 @@ MSXML2::IXMLDOMDocument2Ptr Doc::CreateDOM(const CString& encoding)
 bool  Doc::SaveToFile(const CString& filename,bool fValidateOnly,
 		      int *errline,int *errcol)
 {
+	//check on error
+	// берем текст
+	/* ndoc
+	textlen = m_source.SendMessage(SCI_GETLENGTH);
+	buffer = new char[textlen + 1];
+	m_source.SendMessage(SCI_GETTEXT, textlen + 1, (LPARAM)buffer);
+	// конвертим в UTF16
+	DWORD   ulen = ::MultiByteToWideChar(CP_UTF8, 0, buffer, textlen, NULL, 0);
+
+	BSTR    ustr = ::SysAllocStringLen(NULL, ulen);
+	::MultiByteToWideChar(CP_UTF8, 0, buffer, textlen, ustr, ulen);
+
+	CComDispatchDriver	body(m_doc->m_body.Script());
+	CComVariant		    args[1];
+	CComVariant		    ret;
+	args[0] = ustr;
+	CheckError(body.Invoke1(L"XmlFromText", &args[0], &ret));
+	if (ret.vt == VT_DISPATCH)
+	{
+		m_saved_xml = ret.pdispVal;
+		// если вернулся не xml, значит вернулась ошибка
+		if (!(bool)m_saved_xml)
+		{
+			MSXML2::IXMLDOMParseErrorPtr err = ret.pdispVal;
+			if (!(bool)err)
+			{
+				return false;
+			}
+			bstr_t msg = err->reason;
+			int line = err->line;
+			int linepos = err->linepos;
+			::SendMessage(m_doc->m_frame, AU::WM_SETSTATUSTEXT, 0, (LPARAM)(const TCHAR *)msg);
+			SourceGoTo(line, linepos);
+*/
+
+
   try {
     // create a schema collection
     MSXML2::IXMLDOMSchemaCollection2Ptr	scol;
@@ -937,7 +979,7 @@ forcesave:
 	// added by SeNS: replace all nbsp - non-breaking spaces
 	if (_Settings.GetNBSPChar().Compare(L"\u00A0") != 0)
 	{
-		MSXML2::IXMLDOMNodePtr node = ndoc->firstChild;
+		MSXML2::IXMLDOMNodePtr node = static_cast<MSXML2::IXMLDOMNodePtr>(ndoc)->firstChild;
 		CString nbsp = _Settings.GetNBSPChar();
 		while (node && node!=ndoc) 
 		{
@@ -961,7 +1003,6 @@ forcesave:
 		}
 	}
 
-	IStream *pStream = NULL;
 	char *pszBuf = NULL;
 	FILE* f =nullptr;
 	try
@@ -970,15 +1011,14 @@ forcesave:
 		ULONG ulBytesRead;
 		STATSTG stats;
 
-		// Query IStream interface from IXMLDOMDocument.
-		hr = ndoc->QueryInterface(&pStream);
+		IStreamPtr pStream(ndoc);
+		//hr = ndoc->QueryInterface(&pStream);
 		hr = pStream->Stat(&stats, 0);        // get stream status
 											  // Get XML string data out of the stream.
 		dwBufSize = stats.cbSize.LowPart;
 		pszBuf = new char[dwBufSize + 1];
 		pszBuf[dwBufSize] = '\0';
 		hr = pStream->Read((void*)pszBuf, dwBufSize, &ulBytesRead);
-
 		if (U::GetFileExtension(filename) == L"zip") {
 			//Save ZIP
 			SaveZIPFile(filename, (void*)pszBuf, dwBufSize);
@@ -994,14 +1034,21 @@ forcesave:
 	catch (_com_error& e) {
 		// Clean up.
 		if (pszBuf != NULL) { delete pszBuf; }
-		if (pStream != NULL) { pStream->Release(); }
 		if (f) fclose(f);
 		U::ReportError(e);
 		return false;
 	}
+	catch (CString& e)
+	{
+		// Clean up.
+		if (pszBuf != NULL) { delete pszBuf; }
+		if (f) fclose(f);
+		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, e.GetString(), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
+		return false;
+	}
+
 	// Clean up.
 	if (pszBuf != NULL) { delete pszBuf; }
-	if (pStream != NULL) { pStream->Release(); }
 	if (f) fclose(f);
 	
 	wchar_t buf[MAX_LOAD_STRING + 1];
@@ -1052,7 +1099,6 @@ forcesave:
 /// return true on SUCCESS
 bool Doc::SaveZIPFile(const CString& filename, void* buffer, size_t bufsize)
 {
-	size_t filesize;
 	zip_source_t *src;
 	zip_t *z;
 	zip_error_t error;
@@ -1071,38 +1117,27 @@ bool Doc::SaveZIPFile(const CString& filename, void* buffer, size_t bufsize)
 	
 	// create source from name 
 	if ((src = zip_source_win32w_create(filename, 0, -1, &error)) == NULL) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, (LPCTSTR)zip_error_strerror(&error), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
-		zip_error_fini(&error);
-		return false;
+		throw (HandleZIPLibError(error) + L"\nFile:" + filename);
 	}
 
 	// open zip archive from source
 	if ((z = zip_open_from_source(src, ZIP_CREATE, &error)) == NULL) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, (LPCTSTR)zip_error_strerror(&error), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
 		zip_source_free(src);
-		zip_error_fini(&error);
-		return false;
+		throw (HandleZIPLibError(error) + L"\nFile:" + filename);
 	}
-	zip_error_fini(&error);
 
 	// fill zip-buffer
 	if ((source = zip_source_buffer(z, buffer, bufsize, 0)) == NULL) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, (LPCTSTR)zip_error_strerror(&error), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
 		zip_source_free(src);
-		zip_error_fini(&error);
-		return false;
+		throw (HandleZIPLibError(error) + L"\nFile:" + filename);
 	}
-	zip_error_fini(&error);
 	
 	//create internal file
 	int index;
 	if ((index = (int)zip_file_add(z, FB2filename.c_str(), source, ZIP_FL_OVERWRITE)) == -1) {
-		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, (LPCTSTR)zip_error_strerror(&error), (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
 		zip_source_free(src);
-		zip_error_fini(&error);
-		return false;
+		throw (HandleZIPLibError(error) + L"\nFile:" + filename);
 	}
-	zip_error_fini(&error);
 	
 	zip_close(z);
 	
@@ -1665,7 +1700,7 @@ bool  Doc::SetXMLAndValidate(HWND sci,bool fValidateOnly,int& errline,int& errco
 	args[0] = _Settings.GetInterfaceLanguageName();
 	CheckError(body.InvokeN(L"LoadFromDOM", args, 2));
 	m_body.Init();
-
+	
     // mark unchanged
     MarkSavePoint();
   }
@@ -1846,8 +1881,8 @@ bool Doc::TextToXML(BSTR text, MSXML2::IXMLDOMDocument2Ptr* xml)
       if (!eh->m_msg.IsEmpty()) 
 	  {
 		// record error position
-		int errline = eh->m_line;
-		int errcol = eh->m_col;
+		//int errline = eh->m_line;
+		//int errcol = eh->m_col;
 		::MessageBeep(MB_ICONERROR);
 		::SendMessage(m_frame,AU::WM_SETSTATUSTEXT,0,
 		(LPARAM)(const TCHAR *)eh->m_msg);
@@ -1874,8 +1909,8 @@ bool Doc::TextToXML(BSTR text, MSXML2::IXMLDOMDocument2Ptr* xml)
 MSHTML::IHTMLDOMNodePtr Doc::MoveNode(MSHTML::IHTMLDOMNodePtr from, MSHTML::IHTMLDOMNodePtr to, MSHTML::IHTMLDOMNodePtr insertBefore)
 {
 	VARIANT disp;
-	MSHTML::IHTMLElementPtr elem = (MSHTML::IHTMLElementPtr)to;
-	bstr_t text = elem->innerHTML;
+	// MSHTML::IHTMLElementPtr elem = (MSHTML::IHTMLElementPtr)to;
+	// bstr_t text = elem->innerHTML;
 	
 	//  title
 	if((bool)insertBefore)

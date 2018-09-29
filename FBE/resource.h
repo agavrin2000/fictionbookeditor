@@ -15,6 +15,7 @@
 #define IDS_HOTKEY_FILE_SAVE            106
 #define IDS_HOTKEY_FILE_SAVEAS          107
 #define IDS_HOTKEY_FILE_VALIDATE        108
+#define IDS_HOTKEY_FILE_NEW				310
 #define IDS_HOTKEY_GROUP_FILE           109
 #define IDN_ED_TEXT                     110
 #define IDS_HOTKEY_EDIT_ADD_ANNOTATION  110
@@ -282,6 +283,7 @@
 #define IDS_SETTINGS                    307
 #define IDS_DONT_ASK_AGAIN              308
 #define IDS_NO_UNPAIR_TAGS_FOUND        309
+#define IDS_HOTKEY_FILE_NEW             310
 #define IDB_UPD_CHECK1                  400
 #define IDB_UPD_CHECK2                  401
 #define IDB_UPD_CHECK3                  402
@@ -568,6 +570,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        256
 #define _APS_NEXT_COMMAND_VALUE         32912
 #define _APS_NEXT_CONTROL_VALUE         1109
-#define _APS_NEXT_SYMED_VALUE           133
+#define _APS_NEXT_SYMED_VALUE           134
 #endif
 #endif

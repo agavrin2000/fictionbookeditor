@@ -323,3 +323,61 @@ span.image{
 	clear: both;
 	text-align: center;
 }
+/* Image Library*/
+ul.thumbnails {
+  overflow: auto;
+  list-style-image: none;
+  list-style-position: outside;
+  list-style-type: none;
+  padding: 0px;
+  margin: 0px; 
+  }
+  ul.thumbnails li {
+    margin: 20px 20px 20px 20px;
+    float: left; 
+	}
+  div.imagetile {
+		width: 158px;
+		height: 190px;
+		border: 1px solid #dddddd;
+	}
+    div.thumbnail {
+ 		position:relative;
+		width: 150px;
+		height: 140px;
+		border: 1px solid #dddddd;
+		padding: 3px;
+	} 
+    div.thumbnail.selected {
+		border: 3px solid #0088cc;
+		padding: 1px;
+	  }
+
+div.thumbnail .viewoverflow {
+    position: absolute;
+    left: 120px;
+    top: 0px;
+}
+div.imagetile div.container {
+    padding: 2px;
+	width: 100%;
+	background: #f2f2f2;
+	cursor: default;
+}
+
+div.imagetile div.container span.center {
+    display: block;
+    overflow: auto;
+	vertical-align: middle;
+	text-align: center;
+    position: relative;
+	line-height:30px;
+}
+
+div.imagetile div.container .right {
+    float: right;
+}
+
+div.imagetile div.container .left {
+    float: left;
+}

@@ -18,17 +18,7 @@ extern CSettings _Settings;
 
 void BubbleUp(MSHTML::IHTMLDOMNode *node, const wchar_t *name);
 
-static void CenterChildWindow(CWindow parent, CWindow child)
-{
-	RECT rcParent, rcChild;
-	parent.GetWindowRect(&rcParent);
-	child.GetWindowRect(&rcChild);
-	int parentW = rcParent.right - rcParent.left;;
-	int parentH = rcParent.bottom - rcParent.top;
-	int childW = rcChild.right - rcChild.left;
-	int childH = rcChild.bottom - rcChild.top;
-	child.MoveWindow(rcParent.left + parentW/2 - childW/2, rcParent.top + parentH/2 - childH/2, childW, childH);
-}
+static void CenterChildWindow(CWindow parent, CWindow child);
 
 template<class T, int chgID>
 class ATL_NO_VTABLE CHTMLChangeSink: public MSHTML::IHTMLChangeSink
@@ -166,41 +156,28 @@ public:
 	CFindDlgBase*			m_find_dlg;
 	CReplaceDlgBase*		m_replace_dlg;
 
-	SHD::IWebBrowser2Ptr	Browser()
-	{
-		return m_browser;
-	}
-
-	MSHTML::IHTMLDocument2Ptr Document()
-	{
-		return m_hdoc;
-	}
-
-  bool			    HasDoc() { return m_hdoc; }
-  IDispatchPtr	    Script(){ return MSHTML::IHTMLDocumentPtr(m_hdoc)->Script; }
-  CString		    NavURL() { return m_nav_url; }
-
-  bool			    Loaded() { bool cmp=m_complete; m_complete=false; return cmp; }
+	SHD::IWebBrowser2Ptr	Browser();
+	MSHTML::IHTMLDocument2Ptr Document();
+    
+    bool			    HasDoc():
+  IDispatchPtr	    Script();
+  CString		    NavURL();
+  bool			    Loaded();
   void			    Init();
 
-  long			    GetVersionNumber() { return m_mkc ? m_mkc->GetVersionNumber() : -1; }
+  long			    GetVersionNumber();
 
   CAtlList<CString> m_UndoStrings;
-  void			    BeginUndoUnit(const wchar_t *name) 
-  { 
-	  //m_UndoStrings.AddHead(name);
-	  m_mk_srv->BeginUndoUnit((wchar_t *)name); 
-  }
-  void			    EndUndoUnit() 
-  { 
-	  m_mk_srv->EndUndoUnit();
-  }
+  void BeginUndoUnit(const wchar_t *name); 
+  void EndUndoUnit();
 
   DECLARE_WND_SUPERCLASS(NULL, CAxWindow::GetWndClassName())
 
   CFBEView(HWND frame, bool fNorm) : m_frame(frame), m_ignore_changes(0), m_enable_paste(0),
     m_normalize(fNorm), m_complete(false), m_initialized(false), m_startMatch(0), m_endMatch(0),
-    m_form_changed(false), m_form_cp(false), m_find_dlg(0), m_replace_dlg(0), m_file_path(L""), m_file_name(L"") { }
+    m_form_changed(false), m_form_cp(false), m_find_dlg(0), m_replace_dlg(0), m_file_path(L""), m_file_name(L"") 
+  {
+  }
   ~CFBEView();
 
   BOOL PreTranslateMessage(MSG* pMsg);
@@ -270,35 +247,23 @@ public:
 	END_SINK_MAP()
 
   LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-  LRESULT OnFocus(UINT, WPARAM, LPARAM, BOOL&) 
-  {
-    // pass to document
-    if (HasDoc())
-      MSHTML::IHTMLDocument4Ptr(Document())->focus();
-    return 0;
-  }
+  LRESULT OnFocus(UINT, WPARAM, LPARAM, BOOL&); 
 
 	// editing commands
 	LRESULT ExecCommand(int cmd);
 	void QueryStatus(OLECMD *cmd, int ncmd);
 	CString QueryCmdText(int cmd);
 
-	LRESULT OnUndo(WORD, WORD, HWND hWnd, BOOL&) 
-	{ 
-		LRESULT res = ExecCommand(IDM_UNDO);
-		// update tree view
-		::SendMessage(m_frame,WM_COMMAND,MAKELONG(0,IDN_TREE_RESTORE),0);
-		return res;
-	}
-	LRESULT OnRedo(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_REDO); }
-	LRESULT OnCut(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_CUT); }
-	LRESULT OnCopy(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_COPY); }
+    LRESULT OnUndo(WORD, WORD, HWND hWnd, BOOL&); 
+	LRESULT OnRedo(WORD, WORD, HWND, BOOL&);
+	LRESULT OnCut(WORD, WORD, HWND, BOOL&);
+	LRESULT OnCopy(WORD, WORD, HWND, BOOL&);
 	LRESULT OnPaste(WORD, WORD, HWND, BOOL&);
-	LRESULT OnBold(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_BOLD); }
-	LRESULT OnItalic(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_ITALIC); }
-	LRESULT OnStrik(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_STRIKETHROUGH); }
-	LRESULT OnSup(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_SUPERSCRIPT); }
-	LRESULT OnSub(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_SUBSCRIPT); }
+	LRESULT OnBold(WORD, WORD, HWND, BOOL&);
+	LRESULT OnItalic(WORD, WORD, HWND, BOOL&);
+	LRESULT OnStrik(WORD, WORD, HWND, BOOL&);
+	LRESULT OnSup(WORD, WORD, HWND, BOOL&);
+	LRESULT OnSub(WORD, WORD, HWND, BOOL&);
 	LRESULT OnCode(WORD, WORD, HWND, BOOL&);
 
   LRESULT OnFind(WORD, WORD, HWND, BOOL&);
@@ -306,121 +271,40 @@ public:
   LRESULT OnReplace(WORD, WORD, HWND, BOOL&);
   LRESULT OnStyleLink(WORD, WORD, HWND, BOOL&);
   LRESULT OnStyleFootnote(WORD, WORD, HWND, BOOL&);
-  LRESULT OnStyleNolink(WORD, WORD, HWND, BOOL&) { return ExecCommand(IDM_UNLINK); }
-  LRESULT OnStyleNormal(WORD, WORD, HWND, BOOL&)
-  {
-	  BeginUndoUnit(L"normal style");
-	  U::ChangeAttribute(SelectionStructCon(), L"class", L"normal");
-	  EndUndoUnit();
-
-	  return 0;
-  }
-  LRESULT OnStyleTextAuthor(WORD, WORD, HWND, BOOL&) { Call(L"StyleTextAuthor",SelectionStructCon()); return 0; }
-  LRESULT OnStyleSubtitle(WORD, WORD, HWND, BOOL&) { Call(L"StyleSubtitle",SelectionStructCon()); return 0; }
-  LRESULT OnViewHTML(WORD, WORD, HWND, BOOL&) {
-    IOleCommandTargetPtr  ct(m_browser);
-    if (ct)
-      ct->Exec(&CGID_MSHTML, IDM_VIEWSOURCE, 0, NULL, NULL);
-    return 0;
-  }
-	LRESULT OnSelectElement(WORD, WORD, HWND, BOOL&);
-	LRESULT OnEditAddTitle(WORD, WORD, HWND, BOOL&)	{ Call(L"AddTitle", SelectionStructCon()); return 0; }
-	LRESULT OnEditAddEpigraph(WORD, WORD, HWND, BOOL&) { Call(L"AddEpigraph", SelectionStructCon()); return 0; }
-	LRESULT OnEditAddBody(WORD, WORD, HWND, BOOL&) { Call(L"AddBody"); return 0; }
-	LRESULT OnEditAddTA(WORD, WORD, HWND, BOOL&) { Call(L"AddTA",SelectionStructCon()); return 0; }
-	LRESULT OnEditClone(WORD, WORD, HWND, BOOL&) { Call(L"CloneContainer",SelectionStructCon()); return 0; }
-	LRESULT OnEditAddImage(WORD, WORD, HWND, BOOL&) { Call(L"AddImage", SelectionStructCon()); return 0; }
+  LRESULT OnStyleNolink(WORD, WORD, HWND, BOOL&);
+  LRESULT OnStyleNormal(WORD, WORD, HWND, BOOL&);
+  LRESULT OnStyleTextAuthor(WORD, WORD, HWND, BOOL&);
+  LRESULT OnStyleSubtitle(WORD, WORD, HWND, BOOL&);
+  LRESULT OnViewHTML(WORD, WORD, HWND, BOOL&);
+    LRESULT OnSelectElement(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditAddTitle(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditAddEpigraph(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditAddBody(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditAddTA(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditClone(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditAddImage(WORD, WORD, HWND, BOOL&);
 	LRESULT OnEditInsImage(WORD, WORD, HWND, BOOL&);
 	LRESULT OnEditInsInlineImage(WORD, WORD, HWND, BOOL&);
-	LRESULT OnEditAddAnn(WORD, WORD, HWND, BOOL&) { Call(L"AddAnnotation", SelectionStructCon()); return 0; }
-	LRESULT OnEditMerge(WORD, WORD, HWND, BOOL&) { Call(L"MergeContainers", SelectionStructCon()); return 0; }
-	LRESULT OnEditSplit(WORD, WORD, HWND, BOOL&) { SplitContainer(false); return 0; }
-	LRESULT OnEditInsPoem(WORD, WORD, HWND, BOOL&) { InsertPoem(false); return 0; }
-	LRESULT OnEditInsCite(WORD, WORD, HWND, BOOL&) { InsertCite(false); return 0; }
-	LRESULT OnEditRemoveOuter(WORD, WORD, HWND, BOOL&) { Call(L"RemoveOuterContainer",SelectionStructCon()); return 0; }
-	LRESULT OnSaveImageAs(WORD, WORD, HWND, BOOL&)
-	{
-		CString src;
-		MSHTML::IHTMLImgElementPtr image = MSHTML::IHTMLDOMNodePtr(SelectionContainer())->firstChild;
-		src = image->src.GetBSTR();
-		src.Delete(src.Find(L"fbw-internal:#"), 14);
-
-		_variant_t data;
-		try
-		{
-			CComDispatchDriver dd(Script());
-			_variant_t arg(src);
-			if(!SUCCEEDED(dd.Invoke1(L"GetImageData", &arg, &data)) || data.vt == VT_EMPTY)
-				return 0;
-		}
-		catch (_com_error&)
-		{
-			return 0;
-		}
-
-		CFileDialog imgSaveDlg(FALSE, NULL, src);
-		if(m_file_path != L"")
-			imgSaveDlg.m_ofn.lpstrInitialDir = m_file_path;
-
-		// add file types
-		imgSaveDlg.m_ofn.lpstrFilter = L"JPEG files (*.jpg)\0*.jpg\0PNG files (*.png)\0*.png\0All files (*.*)\0*.*\0\0";
-		imgSaveDlg.m_ofn.nFilterIndex = 0;
-		imgSaveDlg.m_ofn.lpstrDefExt = L"jpg";
-		imgSaveDlg.m_ofn.Flags &= ~OFN_ENABLEHOOK;
-		imgSaveDlg.m_ofn.lpfnHook = NULL;
-
-		if(imgSaveDlg.DoModal(m_hWnd) == IDOK)
-		{
-			HANDLE imgFile = ::CreateFile(	imgSaveDlg.m_szFileName,
-											GENERIC_WRITE,
-											NULL,
-											NULL,
-											CREATE_ALWAYS,
-											FILE_ATTRIBUTE_NORMAL,
-											NULL);
-			long elnum = 0;
-			void* pData;
-			::SafeArrayPtrOfIndex(data.parray, &elnum, &pData);
-			long size = 0;
-			::SafeArrayGetUBound(data.parray, 1, &size);
-			DWORD written;
-			::WriteFile(imgFile, pData, size, &written, NULL);
-
-			CloseHandle(imgFile);
-		}
-
-		return 0;
-	}
-
-  // Modification by Pilgrim
-  LRESULT OnEditInsertTable(WORD wNotifyCode, WORD wID, HWND hWndCtl);
+	LRESULT OnEditAddAnn(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditMerge(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditSplit(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditInsPoem(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditInsCite(WORD, WORD, HWND, BOOL&);
+	LRESULT OnEditRemoveOuter(WORD, WORD, HWND, BOOL&);
+	LRESULT OnSaveImageAs(WORD, WORD, HWND, BOOL&);
+    LRESULT OnEditInsertTable(WORD wNotifyCode, WORD wID, HWND hWndCtl);
 
   bool	CheckCommand(WORD wID);
   bool	CheckSetCommand(WORD wID);
 
 	// Searching
-	bool	CanFindNext()
-	{
-		return !m_fo.pattern.IsEmpty();
-	}
+	bool	CanFindNext();
 
 	void	CancelIncSearch();
 	void	StartIncSearch();
 
-	void	StopIncSearch()
-	{
-		if(m_is_start)
-			m_is_start.Release();
-	}
-
-	bool	DoIncSearch(const CString& str, bool fMore)
-	{
-		++m_ignore_changes;
-		m_fo.pattern = str;
-		bool ret = DoSearch(fMore);
-		--m_ignore_changes;
-		return ret;
-	}
+	void	StopIncSearch();
+	bool	DoIncSearch(const CString& str, bool fMore);
 
 	bool DoSearch(bool fMore=true);
 	bool DoSearchStd(bool fMore=true);
@@ -432,19 +316,8 @@ public:
 	BSTR PrepareDefaultId(const CString& filename);
 	void AddImage(const CString& filename,  bool bInline = false);
 
-	CString LastSearchPattern()
-	{
-		return m_fo.pattern;
-	}
-
-	int ReplaceAllRe(const CString& re, const CString& str, MSHTML::IHTMLElementPtr elem = NULL, CString cntTag = L"P")
-	{
-		m_fo.pattern = re;
-		m_fo.replacement = str;
-		m_fo.fRegexp = true;
-		m_fo.flags = 0;
-		return GlobalReplace(elem, cntTag);
-	}
+	CString LastSearchPattern();
+	int ReplaceAllRe(const CString& re, const CString& str, MSHTML::IHTMLElementPtr elem = NULL, CString cntTag = L"P");
 
 	int ReplaceToolWordsRe( const CString& re,
 							const CString& str,
@@ -454,28 +327,15 @@ public:
 							int* pIndex = NULL,
 							int* globIndex = NULL,
 							int replNum = 0
-							)
-	{
-		m_fo.pattern = re;
-		m_fo.replacement = str;
-		m_fo.fRegexp = true;
-		m_fo.flags = FRF_CASE | FRF_WHOLE;
-		m_fo.replNum = replNum;
-		return ToolWordsGlobalReplace(fbw_body, pIndex, globIndex, !replace, cntTag);
-	}
-
+							);
+  
   // searching in scintilla
   bool SciFindNext(HWND src,bool fFwdOnly,bool fBarf);
 
   // utilities
   CString		    SelPath();
   void			    GoTo(MSHTML::IHTMLElement *e,bool fScroll=true);
-  MSHTML::IHTMLElementPtr SelectionContainer()
-  {
-    if (m_cur_sel)
-      return m_cur_sel;
-    return SelectionContainerImp();
-  }
+  MSHTML::IHTMLElementPtr SelectionContainer();
 
   bool GetSelectionInfo(MSHTML::IHTMLElementPtr *begin, MSHTML::IHTMLElementPtr *end, int* begin_char, int* end_char, MSHTML::IHTMLTxtRangePtr range);
 
@@ -553,16 +413,8 @@ public:
 
 	// HTMLTextContainerEvents2
 	VARIANT_BOOL __stdcall OnRealPaste(IDispatch *evt);
-	void __stdcall OnDrop(IDispatch*)
-	{
-		if(m_normalize)
-			Normalize(Document()->body);
-	}
-
-   VARIANT_BOOL __stdcall OnDragDrop(IDispatch*)
-   {
-	    return VARIANT_FALSE;
-   }
+	void __stdcall OnDrop(IDispatch*);
+	VARIANT_BOOL __stdcall OnDragDrop(IDispatch*);
 
   // form changes
   bool	    IsFormChanged();
@@ -577,14 +429,7 @@ public:
 
   // added by SeNS
   long m_elementsNum;
-  bool IsHTMLChanged()
-  {
-	  long newElementsNum = Document()->all->length;
-	  bool b = (newElementsNum != m_elementsNum);
-	  if (b) m_startMatch = m_endMatch = 0;
-	  m_elementsNum = newElementsNum;
-	  return b;
-  }
+  bool IsHTMLChanged();
 
 private:
 	bool ExpandTxtRangeToParagraphs(MSHTML::IHTMLTxtRangePtr &rng, MSHTML::IHTMLElementPtr& begin, MSHTML::IHTMLElementPtr& end)const;

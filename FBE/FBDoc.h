@@ -10,6 +10,7 @@
 #endif // _MSC_VER > 1000
 
 #include "FBEView.h"
+#include "zip.h"
 
 namespace FB // put all FB2 related stuff into its own namespace
 {
@@ -47,7 +48,6 @@ public:
   // loading and saving
   void	  CreateBlank(HWND hWndParent);
   bool	  Load(HWND hWndParent,const CString& filename);
-  bool	  LoadFromHTML(HWND hWndParent,const CString& filename);
   MSXML2::IXMLDOMDocument2Ptr CreateDOM(const CString& encoding);
   HRESULT InvokeFunc(BSTR FuncName, CComVariant *params, int count, CComVariant &vtResult);
   void	  RunScript(BSTR filePath);
@@ -155,6 +155,7 @@ private:
 	size_t ReadFB2File(const CString& filename, char** buffer);
 	size_t ReadZIPFile(const CString& filename, char** buffer);
 	bool SaveZIPFile(const CString& filename, void* buffer, size_t bufsize);
+	CString Doc::HandleZIPLibError(zip_error_t& error);
 };
 
 } // namespace FB

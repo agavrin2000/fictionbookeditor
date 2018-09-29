@@ -1,0 +1,1042 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FBE>
+	<HkGroups>
+		<HkGroup>
+			<GroupName>Tools</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>Add to dictionary</Name>
+					<Accel>1;79</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Spell check</Name>
+					<Accel>1;118</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Toggle highlight</Name>
+					<Accel>5;118</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Ignore</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Words</Name>
+					<Accel>17;87</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+		<HkGroup>
+			<GroupName>Navigation</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>SelectID</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>SelectTableID</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>SelectTree</Name>
+					<Accel>17;81</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>GotoFootnote</Name>
+					<Accel>9;8</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>GotoMatchingTag</Name>
+					<Accel>17;186</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand1</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand2</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand3</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand4</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand5</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand6</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand7</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand8</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Expand9</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse1</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse2</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse3</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse4</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse5</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse6</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse7</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse8</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Collapse9</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>NextItem</Name>
+					<Accel>9;9</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>SelectHref</Name>
+					<Accel>17;72</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>SelectText</Name>
+					<Accel>1;27</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+		<HkGroup>
+			<GroupName>Plugins</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>LastPlugin</Name>
+					<Accel>17;192</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>{E242A6D3-84BF-4285-9FAA-160F95370668}</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+		<HkGroup>
+			<GroupName>View</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>Toggle Tree View</Name>
+					<Accel>9;116</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Body</Name>
+					<Accel>17;113</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Source</Name>
+					<Accel>17;114</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Description</Name>
+					<Accel>17;112</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+		<HkGroup>
+			<GroupName>Edit</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>Redo</Name>
+					<Accel>9;89</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Paste</Name>
+					<Accel>9;86</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>InsertImage</Name>
+					<Accel>9;77</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>InsertInlineImage</Name>
+					<Accel>17;77</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>AddSectionImage</Name>
+					<Accel>21;71</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>InsertPoem</Name>
+					<Accel>21;80</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>InsertTable</Name>
+					<Accel>21;84</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>InsertCite</Name>
+					<Accel>21;67</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Cut</Name>
+					<Accel>9;88</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>AddTextAuthor</Name>
+					<Accel>9;68</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>AddAnnotation</Name>
+					<Accel>21;65</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>AddTitle</Name>
+					<Accel>21;84</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>AddBody</Name>
+					<Accel>21;66</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>AddEpigraph</Name>
+					<Accel>21;69</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Bold</Name>
+					<Accel>9;66</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Replace</Name>
+					<Accel>9;72</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>IncrementalSearch</Name>
+					<Accel>17;73</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Clone</Name>
+					<Accel>9;13</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Copy</Name>
+					<Accel>9;67</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Italic</Name>
+					<Accel>9;73</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Find</Name>
+					<Accel>9;70</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>FindNext</Name>
+					<Accel>1;114</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Undo</Name>
+					<Accel>9;90</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Split</Name>
+					<Accel>5;13</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Merge</Name>
+					<Accel>17;46</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Subscript</Name>
+					<Accel>9;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Superscript</Name>
+					<Accel>13;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>RemoveOuterSection</Name>
+					<Accel>25;32</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+		<HkGroup>
+			<GroupName>Symbols</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>171</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>187</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8212</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8216</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8217</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>176</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>247</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>215</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8226</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8220</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8221</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8222</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8211</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>8230</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>178</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>185</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>179</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>160</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>769</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+		<HkGroup>
+			<GroupName>Scripts</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>LastScript</Name>
+					<Accel>9;192</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\07_10.000.000.000.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\07_Символы\Арабский.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\07_Символы\Валюта.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\01_Регистр\01_Верхний регистр.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\05_Вставить пустую строку за стихом, эпиграфом или цитатой.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\04_Вставить пустую строку перед стихом или цитатой.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\02_Вставить ссылку на midi....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Встроенный таймер.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\02_Генеральная уборка.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\07_Символы\Греческий.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\08_Дефис - Тире.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\08_Дефис — Тире.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\07_Символы\02_Диакритика.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\03_Добавление комментария\02_Добавить комментарий, введя его текст в окошке.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\03_Добавление комментария\01_Добавить комментарий, оставшись на его ссылке.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\03_Добавление комментария\03_Добавить комментарий, перейти к его разделу.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\03_Добавление комментария\06_Добавить последний комментарий, введя его текст в окошке.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\03_Добавление комментария\05_Добавить последний комментарий, оставшись на его ссылке.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\03_Добавление комментария\07_Добавить последний комментарий, перейти к его разделу.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\06_Добавить последнюю сноску, введя ее текст в окошке.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\05_Добавить последнюю сноску, оставшись на ее ссылке.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\07_Добавить последнюю сноску, перейти к ее разделу.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\02_Добавить сноску, введя ее текст в окошке.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\01_Добавить сноску, оставшись на ее ссылке.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\03_Добавить сноску, перейти к ее разделу.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\09_Стихи\02_Драма....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\07_Символы\Древнерусский.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\11_Заголовки картинок в подписи\601_Заголовок картинки в подпись (emphasis).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\11_Заголовки картинок в подписи\600_Заголовок картинки в подпись (strong).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\11_Заголовки картинок в подписи\602_Заголовок картинки в подпись (subtitle).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\11_Заголовки картинок в подписи\604_Заголовок картинки в подпись (subtitle, emphasis).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\11_Заголовки картинок в подписи\603_Заголовок картинки в подпись (subtitle, strong).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\07_Символы\Иврит.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\01_Регистр\05_Капитализация выделения.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\01_Регистр\06_Капитализация первого слова.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\20_Инструменты отладки\03_Код в буфер.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\609_Комментарии из [! !].js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\607_Комментарии из [].js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\610_Комментарии из [~ ~].js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\608_Комментарии из {}.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\612_Комментарии из скобок, заданных простым текстом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\611_Комментарии из скобок, заданных регэкспами.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\03_Латиница в Кириллице.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\01_Регистр\02_Нижний регистр.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\09_Нумерацию в началах строк - надстрочным текстом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\19_Обработка форматирования\Обзор и превращение элементов....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\03_Обновление иллюстраций.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\07_Обрамить верхние индексы скобками [].js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\08_Обрамить верхние индексы скобками {}.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\08_Структура разделов\03_Опустить раздел на один уровень.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\17_Перенос примечаний в скобки\03_Перенос одного примечания в скобки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\17_Перенос примечаний в скобки\01_Перенос примечаний в скобки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\17_Перенос примечаний в скобки\02_Перенос примечаний в скобки (пробел перед открывающей скобкой).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\008_Переход на пред. елочки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\009_Переход на пред. лапки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\011_Переход на пред. прямые кавычки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\013_Переход на пред. прямые кавычки, елочки или лапки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\17_Переход на предыдущее зачеркивание.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\11_Переход на предыдущий абзац с верхним индексом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\07_Переход на предыдущий абзац с жирностью.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\03_Переход на предыдущий абзац с курсивом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\15_Переход на предыдущий абзац с нижним индексом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\19_Переход на предыдущий абзац, содержащий зачеркивание.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\23_Переход на предыдущий абзац, содержащий код.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\09_Переход на предыдущий верхний индекс.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\21_Переход на предыдущий код.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\01_Переход на предыдущий курсив.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\05_Переход на предыдущую жирность.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\13_Переход на предыдующий нижний индекс.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\007_Переход на след. елочки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\010_Переход на след. лапки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\012_Переход на след. прямые кавычки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\014_Переход на след. прямые кавычки, елочки или лапки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\18_Переход на следующее зачеркивание.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\12_Переход на следующий абзац с верхним индексом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\08_Переход на следующий абзац с жирностью.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\04_Переход на следующий абзац с курсивом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\16_Переход на следующий абзац с нижним индексом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\20_Переход на следующий абзац, содержащий зачеркивание.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\24_Переход на следующий абзац, содержащий код.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\10_Переход на следующий верхний индекс.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\22_Переход на следующий код.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\02_Переход на следующий курсив.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\14_Переход на следующий нижний индекс.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\16_Поиск форматирования\06_Переход на следующую жирность.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\21_Поиск и замена\04_Поиск ошибок текста (регекспы от wotti, Roxana, JonVic и др.).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\17_Поиск по набору регэкспов.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\21_Поиск и замена\10_Поиск по набору регэкспов (заготовка).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\21_Поиск и замена\Поиск по набору регэкспов_Slovo.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\21_Поиск и замена\Поиск по набору регэкспов_Znak.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\20_Инструменты отладки\02_Показать весь код.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\10_Статистика\01_Показать все ссылки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\10_Статистика\02_Показать все-все ссылки.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\20_Инструменты отладки\01_Показать код.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\17_Превращение внешних ссылок в текст.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\16_Превращение внешних ссылок в текст.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\01_Регистр\04_Предложение.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\01_Регистр\03_Предложение_alxs.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\603_Примечания из [! !].js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\601_Примечания из [].js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\604_Примечания из [~ ~].js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\602_Примечания из {}.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\606_Примечания из скобок, заданных простым текстом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\04_Примечания и комментарии из скобок\605_Примечания из скобок, заданных регэкспами.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\01_Проверка иллюстраций.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\06_Пустые строки возле иллюстраций....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\08_Структура разделов\02_Разбить документ на разделы....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\13_Подзаголовки, пустые строки\525_Разметка подзаголовков, чистка пустых строк.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\13_Подзаголовки, пустые строки\526_Разметка подзаголовков, чистка пустых строк, удаление жирности в заголовках.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\13_Подзаголовки, пустые строки\528_Разметка подзаголовков, чистка пустых строк, удаление жирности и курсива в заголовках.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\13_Подзаголовки, пустые строки\527_Разметка подзаголовков, чистка пустых строк; удаление жирности в заголовках по запросу.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\08_Разметка подписей к иллюстрациям....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\14_Разрыв предложения.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\001_Расстановка елочек и лапок.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\002_Расстановка елочек и лапок (начиная с 1-го уровня).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\003_Расстановка елочек и лапок (начиная со 2-го уровня).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\004_Расстановка елочек и лапок (с позиции курсора).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\005_Расстановка елочек и лапок (с позиции курсора, начиная с 1-го уровня).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\006_Расстановка елочек и лапок (с позиции курсора, начиная со 2-го уровня).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\12_Обработка кавычек\015_Расстановка только елочек.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\01_Регистр\08_Регистр заголовков и подзаголовков....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\29_Режим чтения.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\08_Структура разделов\04_Сброс структуры разделов.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\09_Сделать обычный рисунок из рисунка в тексте.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\19_Символы win-1252 (буквы)....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\20_Символы win-1252 (слова)....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\05_Слипшиеся слова.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\09_Стихи\03_Слить параграфы.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\09_Стихи\01_Слияние подряд идущих стихов.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\03_Снятие форматирования стихом, цитатой или эпиграфом.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\04_Сохранить вложения на диск.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\07_Символы\01_Спецсимволы.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\10_Статистика\03_Статистика документа.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\20_Тест сносок.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\16_Точка, тире, буква (без поиска многоточий).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\15_Точка, тире, буква....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\10_Точка..js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\12_Удаление возвратов.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\07_Удаление неиспользуемых вложений....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\01_Удаление пробелов.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\18_Мелочи редактирования\06_Удаление пробелов и дефисов.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\21_Удаление тегов style.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\05_Удалить все вложения.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\05_Иллюстрации\02_Унификация вложений и иллюстраций.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\03_Добавление комментария\04_Унификация комментариев.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\03_Добавление комментария\08_Унификация комментариев (с удалением неиспользуемых разделов комментариев).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\04_Унификация сносок.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\02_Добавление примечания\08_Унификация сносок (с удалением неиспользуемых разделов сносок).js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\08_Структура разделов\01_Управление структурой разделов и их заголовками....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\06_Управляемое исправление разрывов абзацев....js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\06_Чистка\04_Фамилия И. О..js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>c:\program files (x86)\fictionbook editor\scripts\01_Регистр\07_Циклическое изменение регистра.js</Name>
+					<Accel>1;0</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+		<HkGroup>
+			<GroupName>Style</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>TextAuthor</Name>
+					<Accel>17;65</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>NoLink</Name>
+					<Accel>9;85</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Normal</Name>
+					<Accel>17;78</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Subtitle</Name>
+					<Accel>17;83</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Note</Name>
+					<Accel>9;87</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Link</Name>
+					<Accel>9;76</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+		<HkGroup>
+			<GroupName>File</GroupName>
+			<Hotkeys>
+				<Hotkey>
+					<Name>New</Name>
+					<Accel>9;78</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Open</Name>
+					<Accel>9;79</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Validate</Name>
+					<Accel>1;119</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>Save</Name>
+					<Accel>9;83</Accel>
+				</Hotkey>
+				<Hotkey>
+					<Name>SaveAs</Name>
+					<Accel>1;123</Accel>
+				</Hotkey>
+			</Hotkeys>
+		</HkGroup>
+	</HkGroups>
+</FBE>

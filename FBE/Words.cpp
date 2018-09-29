@@ -626,15 +626,15 @@ public:
 
 			qsort(idxs.GetData(), idxs.GetSize(), sizeof(int), compare_indexes);
 
-			int count = m_words.GetSize();
+//			int count = m_words.GetSize();
 			for(int i = idxs.GetSize() - 1; i >= 0 ; --i)
 			{
 				int idx = idxs[i];
-				FB::Doc::Word* wi = &m_words[idxs[i]];
+				FB::Doc::Word* wi = &m_words[idx];
 				wi->flags &= ~HASREPL;
 
-				m_excl_words.Add(m_words[idxs[i]]);
-				m_words.RemoveAt(idxs[i]);
+				m_excl_words.Add(m_words[idx]);
+				m_words.RemoveAt(idx);
 			}
 
 			m_lv.SetItemCount(m_words.GetSize());

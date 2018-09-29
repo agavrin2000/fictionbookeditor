@@ -113,9 +113,9 @@ hkIndex CSettingsHotkeysPage::GetCollIndex(ACCEL newAccel)
 	if(newAccel.key == NULL)
 		goto ret;
 
-	for(unsigned int i = 0; i < _Settings.m_hotkey_groups.size(); ++i)
+	for(int i = 0; i < _Settings.m_hotkey_groups.size(); ++i)
 	{
-		for(unsigned int j = 0; j < _Settings.m_hotkey_groups[i].m_hotkeys.size(); ++j)
+		for(int j = 0; j < _Settings.m_hotkey_groups[i].m_hotkeys.size(); ++j)
 		{
 			if(_Settings.m_hotkey_groups[i].m_hotkeys[j].m_accel.fVirt == newAccel.fVirt
 				&& _Settings.m_hotkey_groups[i].m_hotkeys[j].m_accel.key == newAccel.key

@@ -122,6 +122,25 @@ public:
 		return S_FALSE;
 	}
 
+	STDMETHOD(GetInterfaceLanguage)(BSTR *lang)
+	{
+		CString s_lang;
+		switch(_Settings.GetInterfaceLanguageID())
+		{
+			case LANG_RUSSIAN:
+				s_lang = L"rus";
+				break;
+			case LANG_UKRAINIAN:
+				s_lang = L"ukr";
+				break;
+			default:
+				s_lang = L"eng";
+				break;
+		}
+		*lang = s_lang.AllocSysString();
+
+		return S_OK;
+	}
 
 	STDMETHOD(GetNBSP)(BSTR *nbsp)
 	{

@@ -10,15 +10,13 @@
 #include <iostream>
 #include <sstream>
 
-#ifndef NO_EXTRN_SETTINGS
 extern CSettings _Settings;
-#endif
 
 bool VBErr = false;
 
 namespace U
 {
-	CSimpleMap<CString, WORD> keycodes;
+	CSimpleMap<CString, WORD> keycodes; // Keyboard codes names
 
 	void InitKeycodes()
 	{
@@ -126,12 +124,12 @@ namespace U
 
 	void ChangeAttribute(MSHTML::IHTMLElementPtr elem, const wchar_t* attrib, const wchar_t* value)
 	{
-		if(U::scmp(attrib, L"class")) elem->setAttribute(attrib, _variant_t(value), 1);
-		else elem->className = value;
+		if(U::scmp(attrib, L"class")) 
+			elem->setAttribute(attrib, _variant_t(value), 1);
+		else 
+			elem->className = value;
 		// send message to main window
-#ifndef NO_EXTRN_SETTINGS
 		::SendMessage(_Settings.GetMainWindow(), WM_COMMAND, MAKELONG(0,IDN_TREE_RESTORE), 0);
-#endif
 	}
 
 HandleStreamPtr	  NewStream(HANDLE& hf,bool fClose) {
@@ -144,38 +142,38 @@ HandleStreamPtr	  NewStream(HANDLE& hf,bool fClose) {
 }
 
 void  NormalizeInplace(CString& s) {
-  int	  len=s.GetLength();
-  TCHAR	  *p=s.GetBuffer(len);
-  TCHAR	  *r=p;
-  TCHAR	  *q=p;
-  TCHAR	  *e=p+len;
-  int	  state=0;
+	int	  len = s.GetLength();
+	TCHAR	  *p = s.GetBuffer(len);
+	TCHAR	  *r = p;
+	TCHAR	  *q = p;
+	TCHAR	  *e = p + len;
+	int	  state = 0;
 
-  while (p<e) {
-    switch (state) {
-    case 0:
-      if ((unsigned)*p > 32) {
-	*q++=*p;
-	state=1;
-      }
-      break;
-    case 1:
-      if ((unsigned)*p > 32)
-	*q++=*p;
-      else
-	state=2;
-      break;
-    case 2:
-      if ((unsigned)*p > 32) {
-	*q++=_T(' ');
-	*q++=*p;
-	state=1;
-      }
-      break;
-    }
-    ++p;
-  }
-  s.ReleaseBuffer(q-r);
+	while (p < e) {
+		switch (state) {
+		case 0:
+			if ((unsigned)*p > 32) {
+				*q++ = *p;
+				state = 1;
+			}
+			break;
+		case 1:
+			if ((unsigned)*p > 32)
+				*q++ = *p;
+			else
+				state = 2;
+			break;
+		case 2:
+			if ((unsigned)*p > 32) {
+				*q++ = _T(' ');
+				*q++ = *p;
+				state = 1;
+			}
+			break;
+		}
+		++p;
+	}
+	s.ReleaseBuffer(q - r);
 }
 
 void  RemoveSpaces(wchar_t *zstr) {
@@ -201,42 +199,34 @@ int	scmp(const wchar_t *s1,const wchar_t *s2) {
   return wcscmp(s1,s2);
 }
 
+/// <summary>Get MIME type attribute value as CString</summary>
+/// <param name="filename">Filename</param>  
+/// <returns>MIME-type string</returns> 
 CString GetMimeType(const CString& filename)
 {
-	CString fn(filename);
-	int cp = fn.ReverseFind(_T('.'));
-	if(cp < 0)
-os:
-		return _T("application/octet-stream");
-	fn.Delete(0, cp);
+	CString ext = GetFileExtension(filename);
+	if (ext == L"jpg" || ext == L"jpg")
+		return L"image/jpeg";
 
-	CRegKey rk;
-	if(rk.Open(HKEY_CLASSES_ROOT, fn , KEY_READ) != ERROR_SUCCESS)
-		goto os;
+	if (ext == L"png")
+		return L"image/png";
 
-	CString ret;
-	ULONG len = 128;
-	TCHAR* rbuf = ret.GetBuffer(len);
-	rbuf[0] = _T('\0');
-	LONG rv = rk.QueryStringValue(_T("Content Type"), rbuf, &len);
-	ret.ReleaseBuffer();
-
-	if(rv != ERROR_SUCCESS)
-		goto os;
-
-	return ret;
+	return L"application/octet-stream";
 }
-#ifndef NO_EXTRN_SETTINGS
+
+/// <summary>Check string as whitespace string.
+/// <param name="spc">wide string pointer</param>  
+/// <returns>true for whitespace string</returns>
 bool is_whitespace(const wchar_t *spc) {
-  wchar_t nbsp = _Settings.GetNBSPChar()[0];
-  while (*spc) {
-    if (!iswspace(*spc) && *spc!=nbsp)
-      return false;
-    ++spc;
-  }
-  return true;
+	wchar_t nbsp = _Settings.GetNBSPChar()[0];
+	while (*spc) {
+		if (!iswspace(*spc) && *spc != nbsp)
+			return false;
+		++spc;
+	}
+	return true;
 }
-#endif
+
 CString	GetFileTitle(const TCHAR *filename) {
   CString   ret;
   TCHAR	    *buf=ret.GetBuffer(MAX_PATH);
@@ -295,31 +285,13 @@ HFONT	  CreatePtFont(int sizept,const TCHAR *facename,bool fBold,bool fItalic)
   return hFont;
 }
 
-CString	GetCharName(int ch) {
-  CString   num;
-  num.Format(_T("U+%04X"),ch);
-
-#if 0
-  static bool	  fTriedDll;
-  static HMODULE  hDll;
-  if (!hDll) {
-    if (fTriedDll)
-      return num;
-    hDll=LoadLibrary(_T("getuname.dll"));
-    fTriedDll=true;
-    if (!hDll)
-      return num;
-  }
-  int	    cur=num.GetLength();
-  TCHAR	    *buf=num.GetBuffer(cur+101);
-  int	    nch=LoadString(hDll,ch,buf+cur+1,100);
-  if (nch) {
-    buf[cur]=' ';
-    num.ReleaseBuffer(cur+1+nch);
-  } else
-    num.ReleaseBuffer(cur);
-#endif
-  return num;
+/// <summary>Get string representation of unicode character</summary>
+/// <param name="ch">wide character</param>  
+/// <returns>MIME-type string</returns> 
+CString	GetCharName(wchar_t ch) {
+	CString   num;
+	num.Format(_T("U+%04X"), ch);
+	return num;
 }
 
 // path names
@@ -348,13 +320,7 @@ CString	GetFullPathName(const CString& filename) {
   if (!checked) {
     HMODULE hDll=::GetModuleHandle(_T("kernel32.dll"));
     if (hDll) {
-      glpn=(GLPN)::GetProcAddress(hDll,"GetLongPathName"
-#ifdef UNICODE
-	"W"
-#else
-	"A"
-#endif
-	);
+      glpn=(GLPN)::GetProcAddress(hDll,"GetLongPathNameW");
     }
     checked=true;
   }
@@ -781,7 +747,7 @@ void InitSettingsHotkeyGroups()
 		
 		while(currentNode)
 		{
-			BSTR name = currentNode->nodeName;
+//			BSTR name = currentNode->nodeName;
 			if(currentNode == root)
 			{
 				return true;
@@ -812,7 +778,7 @@ void InitSettingsHotkeyGroups()
 		
 		MSXML2::IXMLDOMNodePtr currentNode = root;
 		
-		int size = m_path.size();
+//		int size = m_path.size();
 		for(unsigned int i = 0; i < m_path.size(); ++i)
 		{
 			currentNode = currentNode->firstChild;
@@ -830,7 +796,7 @@ void InitSettingsHotkeyGroups()
 				return 0;
 			}			
 
-			int numb = m_path[i];
+//			int numb = m_path[i];
 			for(int j = 0; j < m_path[i]; ++j)
 			{
 				currentNode = currentNode->nextSibling;
@@ -938,12 +904,12 @@ void InitSettingsHotkeyGroups()
 				return currentNode;
 			}
 
-			MSXML2::IXMLDOMElementPtr foundNode = FindSelectedNodeInXMLDOM(currentNode->firstChild);
+			MSXML2::IXMLDOMElementPtr foundNode = FindSelectedNodeInXMLDOM(static_cast<MSXML2::IXMLDOMNodePtr>(currentNode)->firstChild);
 			if((bool)foundNode)
 			{
 				return foundNode;
 			}
-			currentNode = currentNode->nextSibling;
+			currentNode = static_cast<MSXML2::IXMLDOMNodePtr>(currentNode)->nextSibling;
 		}
 		return 0;
 	}
@@ -955,7 +921,7 @@ void InitSettingsHotkeyGroups()
 			return false;
 		}
 
-		const wchar_t* curpos = xml;
+//		const wchar_t* curpos = xml;
 		const wchar_t* selpos = xml + pos;
 		int virtual_pos = pos;
 		// ищем открывающий тег
@@ -1442,7 +1408,7 @@ void InitSettingsHotkeyGroups()
 		MSHTML::IHTMLDOMNodePtr node(elem->firstChild);
 
 
-		_bstr_t   cls(MSHTML::IHTMLElementPtr(elem)->className);
+//		_bstr_t   cls(MSHTML::IHTMLElementPtr(elem)->className);
 
 		if ((bool)node && node->nodeType==1 && U::scmp(node->nodeName,L"DIV")==0) {
 			_bstr_t   cls(MSHTML::IHTMLElementPtr(node)->className);
@@ -1639,7 +1605,7 @@ void InitSettingsHotkeyGroups()
 	/// <returns>Encoding name</returns> 
 	CString GetStringEncoding(const char * buffer)
 	{
-		CString enc(L"uncknown");
+		CString enc(L"unknown");
 		// Check first bytes at first
 		if (buffer[0] == '\xEF' && buffer[1] == '\xBB' && buffer[2] == '\xBF')
 		{
@@ -1647,11 +1613,11 @@ void InitSettingsHotkeyGroups()
 		}
 		else if (buffer[0] == '\xFF' && buffer[1] == '\xFE')
 		{
-			enc = L"utf-16be";
+			enc = L"utf-16";
 		}
 		else if (buffer[0] == '\xFE' && buffer[1] == '\xFF')
 		{
-			enc = L"utf-16le";
+			enc = L"utf-16";
 		}
 		// Check encoding attribute in xml-header
 		else
@@ -1664,6 +1630,7 @@ void InitSettingsHotkeyGroups()
 				int pos2 = enc.Find(L"\"", pos + 10);
 				enc = enc.Mid(pos + 10, pos2 - pos - 10);
 			}
+			else enc = L"";
 		}
 		return enc;
 	}

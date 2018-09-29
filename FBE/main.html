@@ -1,16 +1,40 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
+﻿<!doctype html>
 <html>
-    <head>
-        <title></title>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <meta http-equiv="MSThemeCompatible" content="yes">
-        <link id="css" rel="Stylesheet" type="text/css" href="main.css">
-        <script language="JavaScript" type="text/javascript" src="main.js"></script>
-        <script id="userCmd" language="JavaScript" type="text/javascript" src=""></script>
-    </head>
-    <body contentEditable="false" oncontextmenu="return false;">
-        <div id="fbw_desc" contentEditable="false"></div>
-        <div id="fbw_body" contentEditable="true" style="overflow-x:visible"></div>
-        <div id="fbw_updater" style="visibility:hidden;display:none">0</div>
-    </body>
+<head>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<link id="css" rel="Stylesheet" type="text/css" href="main.css">
+	<script language="JavaScript" type="text/javascript" src="jquery/jquery.min.js"></script>
+	<link rel="Stylesheet" type="text/css" href="jquery/jquery-ui.min.css">
+	<script language="JavaScript" type="text/javascript" src="jquery/jquery-ui.min.js"></script>
+	<script language="JavaScript" type="text/javascript" src="main.js"></script>
+	<script id="userCmd" language="JavaScript" type="text/javascript" src=""></script>
+</head>
+
+<body contentEditable="false" oncontextmenu="return false;">
+	<div id="fbw_desc" contentEditable="false" onclick="ClickOnDesc();"></div>
+	<div id="fbw_body" contentEditable="true" style="overflow-x:visible"></div>
+	<div id="fbw_updater" style="visibility:hidden;display:none">false</div>
+	<div id="fbw_images" style="visibility:hidden;display:none">
+	<ul class="thumbnails">
+		<li>
+			<div id="dialog">
+				<div class="imagetile">
+					<div class="thumbnail" style="background : url(data:image/png;base64,) no-repeat; background-size : contain; background-position : center;">
+						<input type="image" src="if_view_126581.png" class="viewoverflow" onmouseover="ShowPrevImage1(this.parentNode);"
+						 onmouseout="HidePrevImage();" />
+					</div>
+					<div class="container">
+						<input type="image" class="left" src="if_save_1608823.png" /><input class="right" type="image" src="if_Cancel_1063907.png""/>
+						<span title="
+						 if_126581.svg" class="center">(19*19)</span>
+					</div>
+				</div>
+		</li>
+	</ul>
+	</div>
+	</div>
+</body>
+
 </html>

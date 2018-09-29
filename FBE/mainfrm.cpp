@@ -15,6 +15,67 @@ static const GUID GUID_FB2Dialog =
 	0xcf7c097d, 0xa2d, 0x47ef, { 0x93, 0x9d, 0x17, 0x60, 0xbf, 0x4d, 0x1, 0x54 }
 };
 
+	LRESULT CCustomEdit::OnChar(UINT, WPARAM wParam, LPARAM, BOOL& bHandled)
+	{
+		if(wParam == VK_RETURN)
+			::PostMessage(::GetParent(GetParent()), WM_COMMAND,MAKELONG(GetDlgCtrlID(), IDN_ED_RETURN), (LPARAM)m_hWnd);
+
+		bHandled = FALSE;
+		return S_OK;
+	}
+
+    void CCustomStatic::DoPaint(CDCHandle dc)
+    {		
+      RECT rc;
+      GetClientRect(&rc);
+
+      DWORD dwStyle = GetStyle();
+	  HFONT oldFont = (HFONT)SelectObject(dc, m_font);
+
+      UINT iFlags = DT_SINGLELINE | DT_CENTER | DT_VCENTER;      
+
+      int len = GetWindowTextLength();
+      wchar_t* text = new wchar_t[len+1];
+      GetWindowText(text, len+1);
+
+      dc.SetBkMode(TRANSPARENT);
+	  if(m_enabled)
+	  {
+		  dc.SetTextColor(GetSysColor(COLOR_BTNTEXT));
+	  }
+	  else
+	  {
+		  dc.SetTextColor(GetSysColor(COLOR_GRAYTEXT));
+	  }
+	  dc.DrawText(text, -1, &rc, iFlags);      
+	  SelectObject(dc, oldFont);
+	  delete []text;
+    }
+
+	LRESULT CCustomStatic::OnPaint(UINT, WPARAM wParam, LPARAM, BOOL&)
+	{
+		if(wParam != NULL) {
+         DoPaint((HDC)wParam);
+      }
+      else {
+         CPaintDC dc(m_hWnd);
+         DoPaint(dc.m_hDC);
+      }
+      return 0;
+	}
+	
+	inline void CCustomStatic::SetFont(HFONT pFont)
+	{
+		m_font = pFont;
+	}
+
+	inline void CCustomStatic::SetEnabled(bool Enabled = true)
+	{
+		m_enabled = Enabled;
+		Invalidate();
+	}
+
+
 // utility methods
 bool  CMainFrame::IsBandVisible(int id) {
   int nBandIndex = m_rebar.IdToIndex(id);
@@ -47,23 +108,14 @@ void  CMainFrame::AttachDocument(FB::Doc *doc)
 		m_document_tree.GetDocumentStructure(doc->m_body.Document());
 		m_document_tree.HighlightItemAtPos(doc->m_body.SelectionContainer());
 	}
-	// added by SeNS
-	if (m_Speller && m_Speller->Enabled())
-	{
-		m_Speller->SetFrame(m_hWnd);
-		CString custDictName = _Settings.m_custom_dict;
-		if (custDictName.Compare(ATLPath::FindFileName(custDictName))==0)
-		{
-			custDictName = doc->m_body.m_file_path+custDictName;
-		}
-		m_Speller->SetCustomDictionary(custDictName, _Settings.GetCustomDictCodepage());
-		m_Speller->AttachDocument(doc->m_body.Document());
-	}
-    ShowView(DESC);
+	m_Speller->AttachDocument(doc->m_body.Document());
+
+	ShowView(DESC);
     ShowView(BODY);
 	m_view.ActivateWnd(doc->m_body);
 }
 
+///<summary>Open System open dialog and return filename</summary>
 CString	CMainFrame::GetOpenFileName() 
 {
 	CString strFileName;
@@ -177,6 +229,7 @@ public:
   }
 };
 
+///<summary>Open System Save dialog and return filename</summary>
 CString	CMainFrame::GetSaveFileName(CString& encoding)
 {
 	CString strFileName;
@@ -264,7 +317,7 @@ CString	CMainFrame::GetSaveFileName(CString& encoding)
 }
 
 bool	CMainFrame::DocChanged() {
-	return m_doc && m_doc->DocChanged() || IsSourceActive() && m_source.SendMessage(SCI_GETMODIFY);
+	return (m_doc && m_doc->DocChanged()) || (IsSourceActive() && m_source.SendMessage(SCI_GETMODIFY));
 }
 
 bool CMainFrame::DiscardChanges()
@@ -314,11 +367,12 @@ void  CMainFrame::StopIncSearch(bool fCancel) {
     m_doc->m_body.StopIncSearch();
 }
 
-CMainFrame::FILE_OP_STATUS CMainFrame::SaveFile(bool askname) {
+CMainFrame::FILE_OP_STATUS CMainFrame::SaveFile(bool askname)
+{
   ATLASSERT(m_doc!=NULL);
 
   // force consistent html view
-  if ((IsSourceActive() && !SourceToHTML()) || m_bad_xml) // added by SeNS: do not save bad xml! TO_DO Say anything to user before exit!!!!!!
+  if ((IsSourceActive() && !SourceToHTML())) // added by SeNS: do not save bad xml! TO_DO Say anything to user before exit!!!!!!
     return FAIL;
 
   if (askname || !m_doc->m_namevalid) { // ask user about save file name
@@ -355,7 +409,6 @@ CMainFrame::FILE_OP_STATUS CMainFrame::SaveFile(bool askname) {
 	return FAIL;
   }
 }
-
 
 CMainFrame::FILE_OP_STATUS  CMainFrame::LoadFile(const wchar_t *initfilename)
 {
@@ -395,7 +448,7 @@ CMainFrame::FILE_OP_STATUS  CMainFrame::LoadFile(const wchar_t *initfilename)
   m_file_age = FileAge(filename);
   delete m_doc;
   m_doc=doc;
-  m_bad_xml = false;
+//  m_bad_xml = false;
 
   m_spShellItem.Release();
   PIDLIST_ABSOLUTE pidl = { 0 };
@@ -478,6 +531,15 @@ void  CMainFrame::UIUpdateViewCmd(CFBEView& view, WORD wID, OLECMD& oc, const wc
 	UISetText(wID, fbuf);
 	UIEnable(wID, (oc.cmdf & OLECMDF_ENABLED) != 0);
 }
+  inline void  CMainFrame::UIUpdateViewCmd(CFBEView& view,WORD wID)
+  {
+      UIEnable(wID,view.CheckCommand(wID)); 
+  }
+
+  inline void CMainFrame::UISetCheckCmd(CFBEView& view, WORD wID)
+  {
+	  UISetCheck(wID, view.CheckSetCommand(wID));
+  }
 
 BOOL CMainFrame::OnIdle()
 {	
@@ -1047,9 +1109,10 @@ BOOL CMainFrame::OnIdle()
 
 	// added by SeNS
 	// detect page scrolling, run a background spellcheck if necessary
-	if (m_Speller && m_Speller->Enabled() && m_current_view == BODY) 
+	// hide\show spellcheck toolbar button
+	if (m_current_view == BODY) 
 	{
-		if (!m_Speller->Available())
+		if (!m_Speller->Enabled())
 			UIEnable(ID_TOOLS_SPELLCHECK, false, true);
 		else
 		{
@@ -1057,7 +1120,8 @@ BOOL CMainFrame::OnIdle()
 			m_Speller->CheckScroll();
 		}
 	}
-	else UIEnable(ID_TOOLS_SPELLCHECK, false, true);
+	else 
+		UIEnable(ID_TOOLS_SPELLCHECK, false, true);
 
 	// update UI
 	UIUpdateToolBar();
@@ -1130,8 +1194,8 @@ BOOL CMainFrame::OnIdle()
 		m_need_title_update = false;
 		m_change_state = DocChanged();
 		CString tt(U::GetFileTitle(m_doc->m_filename));
-		tt += m_change_state ? L" +" : L" -";
-		SetWindowText(tt + L" FB Editor");
+//		tt = m_change_state ? L" +" : L" -" + tt;
+		SetWindowText((m_change_state ? L"*" : L"") + tt + L"-FB Editor");
 	}
 
 	return FALSE;
@@ -1525,17 +1589,15 @@ LRESULT CMainFrame::OnCreate(UINT, WPARAM, LPARAM, BOOL&)
   m_status.SetPaneWidth (399, 20);
   m_status.SetPaneWidth (ID_PANE_INS, 30);
 
-	// load insert/overwrite abbreviations  
-	::LoadString(_Module.GetResourceInstance(), IDS_PANE_INS, strINS, MAX_LOAD_STRING);
-	::LoadString(_Module.GetResourceInstance(), IDS_PANE_OVR, strOVR, MAX_LOAD_STRING);
+// load insert/overwrite abbreviations  
+  ::LoadString(_Module.GetResourceInstance(), IDS_PANE_INS, strINS, MAX_LOAD_STRING);
+  ::LoadString(_Module.GetResourceInstance(), IDS_PANE_OVR, strOVR, MAX_LOAD_STRING);
 
   // create splitter
   m_hWndClient = m_splitter.Create(m_hWnd,rcDefault,NULL,WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN);
   m_splitter.SetSplitterExtendedStyle(0);
 
   // create splitter contents
-//  m_document_tree.Create(m_splitter);
-//  m_document_tree.SetTitle(L"Document Tree");
   m_view.Create(m_splitter,rcDefault,NULL,WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN);
 
   // create a tree
@@ -1546,18 +1608,19 @@ LRESULT CMainFrame::OnCreate(UINT, WPARAM, LPARAM, BOOL&)
   m_dummy_pane.SetSplitterPane(0,m_document_tree);
   m_dummy_pane.SetSinglePaneMode(SPLIT_PANE_LEFT);*/
 
-  // create a source view
-  m_source.Create(_T("Scintilla"),m_view,rcDefault,NULL,WS_CHILD|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,0);
+  // create a source view (Scintilla editor)
+  m_source.Create(_T("Scintilla"), m_view, rcDefault, NULL, WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0);
   m_view.AttachWnd(m_source);
   SetupSci();
   SetSciStyles();
 
   // initialize a new blank document
-  m_doc=new FB::Doc(*this);
+  m_doc = new FB::Doc(*this);
   FB::Doc::m_active_doc = m_doc;
-  bool start_with_params = false;
+  
   // load a command line arg if it was provided
-  if (_ARGV.GetSize()>0 && !_ARGV[0].IsEmpty()) 
+  bool start_with_params = false;
+  if (_ARGV.GetSize()>0 && !_ARGV[0].IsEmpty())
   { 
     if (m_doc->Load(m_view,_ARGV[0]))
 	{
@@ -1566,26 +1629,17 @@ LRESULT CMainFrame::OnCreate(UINT, WPARAM, LPARAM, BOOL&)
 	}
     else
 	{
-		// added by SeNS: create blank document, and load incorrect XML to Scintilla
 		delete m_doc;
 		m_doc=new FB::Doc(*this);
 		FB::Doc::m_active_doc = m_doc;
 		m_doc->CreateBlank(m_view);
 		m_file_age = ~0;
-		m_bad_xml = true;
 	}
   } else 
   {
 	m_doc->CreateBlank(m_view);
 	m_file_age = ~0;
   }
-  /*
-  if (_Settings.m_fast_mode) {
-		m_doc->SetFastMode(true);
-		UISetCheck(ID_VIEW_FASTMODE, TRUE);
-  } else
-    m_doc->SetFastMode(false);
-	*/
   AttachDocument(m_doc);
   UISetCheck(ID_VIEW_BODY,1);
 
@@ -1687,19 +1741,21 @@ LRESULT CMainFrame::OnCreate(UINT, WPARAM, LPARAM, BOOL&)
   }
   
   // added by SeNS: create blank document, and load incorrect XML to Scintilla
-  if (m_bad_xml)
-	if (!LoadToScintilla(_ARGV[0])) return -1;
+/*  if (m_bad_xml)
+	if (!LoadToScintilla(_ARGV[0])) return -1;*/
 
   // Added by SeNS
-  if (m_Speller && m_Speller->Enabled())
+  if (_Settings.m_usespell_check)
   {
-	if (!m_Speller->Available())
-		UIEnable(ID_TOOLS_SPELLCHECK, false, true);
-	else
-		UIEnable(ID_TOOLS_SPELLCHECK, true, true);
-	m_Speller->SetHighlightMisspells(_Settings.m_highlght_check);
+	  UIEnable(ID_TOOLS_SPELLCHECK, true, true);
+	  CString custDictName = _Settings.m_custom_dict;
+	  if (!custDictName.IsEmpty())
+		  m_Speller->SetCustomDictionary(U::GetProgDir() + custDictName);
+
+	  m_Speller->Enable(true);
   }
-  else UIEnable(ID_TOOLS_SPELLCHECK, false, true);
+  else 
+	  UIEnable(ID_TOOLS_SPELLCHECK, false, true);
 
   // Restore scripts toolbar layout and position
   m_ScriptsToolbar.RestoreState(HKEY_CURRENT_USER, L"SOFTWARE\\FBETeam\\FictionBook Editor\\Toolbars", L"ScriptsToolbar");
@@ -1718,12 +1774,8 @@ LRESULT CMainFrame::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/,
 {
   if (DiscardChanges()) 
   {
-	// added by SeNS
-	if (m_Speller) 
-	{
-		m_Speller->EndDocumentCheck();
-		m_Speller->SetEnabled(false);
-	}
+	m_Speller->EndDocumentCheck();
+	m_Speller->Enable(false);
 	_Settings.SetViewStatusBar(m_status.IsWindowVisible() != 0);
 	//_Settings.SetViewDocumentTree(IsSourceActive() ? m_document_tree.IsWindowVisible()==0 : !m_save_sp_mode);
     _Settings.SetSplitterPos(m_splitter.GetSplitterPos());	
@@ -1791,6 +1843,12 @@ LRESULT CMainFrame::OnPostCreate(UINT, WPARAM, LPARAM, BOOL&)
 	return 0;
 }
 
+  inline LRESULT CMainFrame::OnSettingChange(UINT, WPARAM, LPARAM, BOOL&) {
+    if (m_doc)
+      m_doc->ApplyConfChanges();
+    return 0;
+  }
+  
 // Fill current menu with accelerators' text
 void CMainFrame::FillMenuWithHkeys(HMENU menu)
 {
@@ -2027,6 +2085,31 @@ public:
   }
 };
 
+CMainFrame::CMainFrame() : m_doc(0), m_cb_updated(false),
+    m_doc_changed(false), m_sel_changed(false), m_want_focus(0),
+    m_ignore_cb_changes(false), m_incsearch(0), m_cb_last_images(false),
+    m_last_ie_ovr(true), m_last_sci_ovr(true), m_saved_xml(0), m_sci_find_dlg(0), m_sci_replace_dlg(0),
+	m_last_script(0), m_last_plugin(0), m_restore_pos_cmdline(false), m_bad_xml(false), m_strSuggestions(nullptr)
+{ 
+	TCHAR prgPath[MAX_PATH];
+	::GetModuleFileName(_Module.GetModuleInstance(), prgPath, MAX_PATH);
+    PathRemoveFileSpec(prgPath);
+	CString DictPath = CString(prgPath) + L"\\dict\\";
+	m_Speller = new CSpeller(DictPath);
+	m_Speller->SetFrame(m_hWnd);
+}
+
+inline CFBEView& CMainFrame::ActiveView() 
+{
+	  return m_doc->m_body;
+}
+
+inline bool CMainFrame::IsSourceActive() 
+{ 
+  return m_current_view == SOURCE; 
+}
+
+
 CMainFrame::~CMainFrame()
 { 
 	delete m_doc; 
@@ -2038,7 +2121,41 @@ CMainFrame::~CMainFrame()
 	{		  
 		delete m_sci_find_dlg;
 	}
+    delete m_Speller;
 }
+
+  LRESULT CMainFrame::OnContextMenu(UINT, WPARAM, LPARAM lParam, BOOL&) 
+  {
+	HMENU menu, popup;
+	RECT rect;
+	CPoint ptMousePos = (CPoint)lParam;
+	ScreenToClient(&ptMousePos);
+	// find clicked toolbar
+	REBARBANDINFO rbi;
+	ZeroMemory((void*)&rbi, sizeof(rbi));
+	rbi.cbSize = sizeof(REBARBANDINFO);
+	rbi.fMask = RBBIM_ID;
+	m_selBandID = -1;
+	for (unsigned int i=0; i< m_rebar.GetBandCount(); i++)
+	{
+		m_rebar.GetRect(i, &rect);
+		if (PtInRect(&rect,ptMousePos))
+		{
+			m_rebar.GetBandInfo(i, &rbi);
+			m_selBandID = rbi.wID;
+			break;
+		}
+	}
+	// display context menu for command & script toolbars only
+	if ((m_selBandID == ATL_IDW_BAND_FIRST+1) || (m_selBandID == ATL_IDW_BAND_FIRST+2))
+	{
+		menu = ::LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCEW(IDR_TOOLBAR_MENU));
+		popup = ::GetSubMenu(menu, 0);
+		ClientToScreen(&ptMousePos);
+		::TrackPopupMenu(popup, TPM_LEFTALIGN, ptMousePos.x, ptMousePos.y, 0, *this, 0);
+	}
+	return 0;
+  }
 
 LRESULT CMainFrame::OnUnhandledCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -2149,6 +2266,72 @@ LRESULT CMainFrame::OnUnhandledCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	return 0;
 }
 
+  LRESULT CMainFrame::OnSetFocus(UINT, WPARAM, LPARAM, BOOL&) {
+    m_view.SetFocus();
+	UpdateViewSizeInfo();
+    return 0;
+  }
+
+  inline LRESULT CMainFrame::OnSetStatusText(UINT, WPARAM, LPARAM lParam, BOOL&) {
+    m_status_msg=(const TCHAR *)lParam;
+    return 0;
+  }
+
+
+  /// <summary>WM Handler(WM_TRACKPOPUPMENU) Prepare and display popup menu in editor</summary>
+  /// <param name="lParam">Contain popup menu structure</param>  
+  /// <returns>0</returns>
+  LRESULT CMainFrame::OnTrackPopupMenu(UINT, WPARAM, LPARAM lParam, BOOL&)
+	{
+		AU::TRACKPARAMS* tp = (AU::TRACKPARAMS*)lParam;
+		// add speller menu
+		if (m_Speller) {
+			//get suggestions for current selected word
+			m_strSuggestions = m_Speller->GetSuggestions();
+            if(m_strSuggestions) {
+				int numSuggestions = m_strSuggestions->GetSize();
+				if(numSuggestions>0) {
+                    // limit up to MAX_POPUP_SUGGESTION suggestion
+                    numSuggestions = min(MAX_POPUP_SUGGESTION, numSuggestions);
+                    ::AppendMenu(tp->hMenu, MF_SEPARATOR, 0, NULL);
+                    
+					for (int i = 0; i < numSuggestions; i++)
+                        ::AppendMenu(tp->hMenu, MF_STRING, IDC_SPELL_REPLACE + i, (*m_strSuggestions)[i]);
+					
+					// add standard spellcheck items
+                    if (numSuggestions > 0)
+                        ::AppendMenu(tp->hMenu, MF_SEPARATOR, 0, NULL);
+                    CString itemName;
+                    itemName.LoadString(IDC_SPELL_IGNOREALL);
+                    ::AppendMenu(tp->hMenu, MF_STRING, IDC_SPELL_IGNOREALL, itemName);
+
+                    itemName.LoadString(IDC_SPELL_ADD2DICT);
+                    ::AppendMenu(tp->hMenu, MF_STRING, IDC_SPELL_ADD2DICT, itemName);
+                }
+            }
+        }
+		m_MenuBar.TrackPopupMenu(tp->hMenu, tp->uFlags, tp->x, tp->y);
+		return 0;
+	}
+
+	LRESULT CMainFrame::OnPreCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+	{
+		bHandled = FALSE;
+		if((HIWORD(wParam) == 0 || HIWORD(wParam) == 1) && LOWORD(wParam) != ID_EDIT_INCSEARCH)
+		StopIncSearch(true);
+		return 0;
+	}
+
+	LRESULT CMainFrame::OnFileExit(WORD, WORD, HWND, BOOL&)
+	{
+		// close (possible) opened in script modeless dialogs
+		PostMessage(WM_CLOSEDIALOG);
+		PostMessage(WM_CLOSE);
+		return 0;
+	}
+    
+    
+    
 LRESULT CMainFrame::OnDropFiles(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
   HDROP	  hDrop=(HDROP)wParam;
@@ -2208,7 +2391,32 @@ LRESULT CMainFrame::OnNavigate(WORD, WORD, HWND, BOOL&)
   return 0;
 }
 
+	LRESULT CMainFrame::OnCbSetFocus(WORD, WORD, HWND, BOOL&)
+	{
+		if(!m_cb_updated)
+		{
+			m_ignore_cb_changes = true;
+
+			CString str(U::GetWindowText(m_href));
+
+			m_href_box.ResetContent();
+			m_href.SetWindowText(str);
+			m_href.SetSel(0, str.GetLength() + 1);
+			m_ignore_cb_changes = false;
+
+			if(m_cb_last_images)
+				m_doc->BinIDsToComboBox(m_href_box);
+			else
+				m_doc->ParaIDsToComboBox(m_href_box); 
+			m_cb_updated = true;
+		}
+
+		return 0;
+	}
+
+
 // commands
+
 LRESULT CMainFrame::OnFileNew(WORD, WORD, HWND, BOOL&)
 {
   if (!DiscardChanges())
@@ -2304,18 +2512,32 @@ LRESULT CMainFrame::OnViewStatusBar(WORD, WORD, HWND, BOOL&)
   UpdateLayout();
   return 0;
 }
-/*
+
 LRESULT CMainFrame::OnViewFastMode(WORD, WORD, HWND, BOOL&)
 {
-	bool mode = m_doc->GetFastMode();
+/*	bool mode = m_doc->GetFastMode();
     mode = !mode;
 	m_doc->SetFastMode(mode);
 	_Settings.SetFastMode(m_doc->GetFastMode(), true);
 	UISetCheck(ID_VIEW_FASTMODE, mode);
-	UpdateLayout();
+	UpdateLayout();*/
 	return 0;
 }
-*/
+
+  inline LRESULT CMainFrame::OnViewDesc(WORD, WORD, HWND, BOOL&) {
+    ShowView(DESC);
+    return 0;
+  }
+  inline LRESULT CMainFrame::OnViewBody(WORD, WORD, HWND, BOOL&) {
+    ShowView(BODY);
+    return 0;
+  }
+  inline LRESULT CMainFrame::OnViewSource(WORD, WORD, HWND, BOOL&) {
+    ShowView(SOURCE);
+    return 0;
+  }
+
+
 LRESULT CMainFrame::OnViewTree(WORD, WORD, HWND, BOOL&)
 {
 	if(IsSourceActive())
@@ -2462,7 +2684,7 @@ LRESULT CMainFrame::OnToolsExport(WORD, WORD wID, HWND, BOOL&)
 					filename = (const TCHAR*)tmp;
 				}
 				if (dom)
-					CheckError(epl->Export((long)m_hWnd, filename, dom));
+					CheckError(epl->Export((long)m_hWnd, filename, IDispatchPtr(dom)));
 			}
 			else
 			{
@@ -2607,6 +2829,39 @@ LRESULT CMainFrame::OnToolsScript(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL
   return 0;
 }
 
+  LRESULT CMainFrame::OnHideToolbar(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl, BOOL& bHandled)
+  {
+	  return OnViewToolBar(wNotifyCode, m_selBandID, hWndCtl, bHandled);
+  }
+
+  LRESULT CMainFrame::OnToolCustomize(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& /*bHandled*/)
+  {
+	  if (m_selBandID == ATL_IDW_BAND_FIRST+1) m_CmdToolbar.Customize(); else
+	  if (m_selBandID == ATL_IDW_BAND_FIRST+2) m_ScriptsToolbar.Customize();
+
+	  return 0;
+  }
+
+	LRESULT CMainFrame::OnLastScript(WORD, WORD, HWND, BOOL&)
+	{
+		if(m_last_script != 0 && !IsSourceActive())
+		{
+			m_doc->RunScript((*m_last_script).path.GetBuffer());
+		}
+		return 0;
+	}
+
+
+	LRESULT CMainFrame::OnEditFind(WORD, WORD, HWND, BOOL& bHandled)
+	{
+		if(m_current_view == DESC)
+			ShowView(BODY);
+
+		bHandled = FALSE;
+		return 0;
+	}
+
+
 LRESULT CMainFrame::OnEditInsSymbol(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	static int symHkGroup = -1;
@@ -2635,7 +2890,7 @@ LRESULT CMainFrame::OnEditInsSymbol(WORD wNotifyCode, WORD wID, HWND hWndCtl, BO
 
 	if(c)
 	{
-		HWND aw = ::GetFocus();
+		//HWND aw = ::GetFocus();
 		::SendMessage(::GetFocus(), WM_CHAR, c, NULL);
 
 		/*IServiceProviderPtr ServiceProvider;
@@ -2658,6 +2913,53 @@ LRESULT CMainFrame::OnEditInsSymbol(WORD wNotifyCode, WORD wID, HWND hWndCtl, BO
 
 	return 0;
 }
+
+	/// <summary>WM Handler(ID_TOOLS_SPELLCHECK) Start spellcheck</summary>
+	LRESULT CMainFrame::OnSpellCheck(WORD, WORD, HWND, BOOL& b)
+	{
+		if (m_current_view == BODY)
+			m_Speller->StartDocumentCheck(m_doc->m_body.m_mk_srv);
+		return S_OK;
+	}
+
+	/// <summary>WM Handler(ID_TOOLS_SPELLCHECK_HIGHLIGHT) Toggle misspell highlights</summary>
+	LRESULT CMainFrame::OnToggleHighlight(WORD, WORD, HWND, BOOL&)
+	{
+		if (m_current_view == BODY)
+		{
+			_Settings.SetHighlightMisspells(!_Settings.m_highlght_check);
+		}
+		return S_OK;
+	}
+
+	/// <summary>WM Handler(IDC_SPELL_REPLACE+x) Replace spell from menu item</summary>
+	/// <param name="wID">Menu identifier (IDM_*)</param>  
+	/// <returns>0</returns>
+	LRESULT CMainFrame::OnSpellReplace(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+	{
+		m_doc->m_body.BeginUndoUnit(L"replace word");
+		CString replace = (*m_strSuggestions)[wID - IDC_SPELL_REPLACE]; //index=menu position
+		m_Speller->Replace(replace);
+		m_doc->m_body.EndUndoUnit();
+		return 0;
+	}
+	inline LRESULT CMainFrame::OnSpellIgnoreAll(WORD, WORD, HWND, BOOL&) 
+	{ 
+		m_Speller->IgnoreAll();
+		return 0; 
+	}
+	inline LRESULT CMainFrame::OnSpellAddToDict(WORD, WORD, HWND, BOOL&) 
+	{ 
+		m_Speller->AddToDictionary();
+		return 0; 
+	}
+
+	inline LRESULT CMainFrame::OnVersionAdvance(WORD delta, WORD, HWND, BOOL&)
+	{
+		m_doc->AdvanceDocVersion(delta);
+		return 0;
+	}
+
 
 LRESULT CMainFrame::OnAppAbout(WORD, WORD, HWND, BOOL&)
 {
@@ -2745,7 +3047,7 @@ LRESULT CMainFrame::OnSelectCtl(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& 
 			break;
 	}
 
-	return 0;
+	return S_OK;
 }
 
 LRESULT CMainFrame::OnNextItem(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
@@ -2753,6 +3055,32 @@ LRESULT CMainFrame::OnNextItem(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& b
   ShowView(NEXT);
   return 1;
 }
+
+  LRESULT CMainFrame::OnEdSelChange(WORD, WORD, HWND hWndCtl, BOOL&) {
+    m_sel_changed=true;
+    StopIncSearch(true);
+	DisplayCharCode();
+    return S_OK;
+  }
+  LRESULT CMainFrame::OnFastModeChange(WORD, WORD mode, HWND hWndCtl, BOOL&) 
+  {
+	  UISetCheck(ID_VIEW_FASTMODE, mode);
+	  return S_OK;
+  }
+  LRESULT CMainFrame::OnEdStatusText(WORD, WORD, HWND hWndCtl, BOOL&) {
+    StopIncSearch(true);
+    m_status.SetText(ID_DEFAULT_PANE,(const TCHAR *)hWndCtl);
+    return S_OK;
+  }
+  LRESULT CMainFrame::OnEdWantFocus(WORD, WORD wID, HWND, BOOL&) {
+    m_want_focus=wID;
+    return S_OK;
+  }
+  LRESULT CMainFrame::OnEdReturn(WORD, WORD, HWND, BOOL&) {
+    m_view.SetFocus();
+    return S_OK;
+  }
+
 
 // editor notifications
 LRESULT CMainFrame::OnCbEdChange(WORD code, WORD wID, HWND hWndCtl, BOOL& bHandled)
@@ -2952,6 +3280,15 @@ LRESULT CMainFrame::OnCbEdChange(WORD code, WORD wID, HWND hWndCtl, BOOL& bHandl
   return 0;
 }
 
+  inline LRESULT CMainFrame::OnCbSelEndOk(WORD code, WORD wID, HWND hWnd, BOOL&) {
+    PostMessage(WM_COMMAND,MAKELONG(wID,CBN_EDITCHANGE),(LPARAM)hWnd);
+    return 0;
+  }
+
+  inline LRESULT CMainFrame::OnEdKillFocus(WORD, WORD, HWND, BOOL&) {
+    StopIncSearch(true);
+    return 0;
+  }
 // tree view notifications 
 LRESULT CMainFrame::OnTreeReturn(WORD, WORD, HWND, BOOL&)
 {
@@ -3467,7 +3804,7 @@ bool  CMainFrame::SourceToHTML()
 	SysFreeString(ustr);
 	
 	
-	MSXML2::IXMLDOMNodeListPtr ChildNodes = m_saved_xml->documentElement->childNodes;
+	MSXML2::IXMLDOMNodeListPtr ChildNodes = MSXML2::IXMLDOMNodePtr(m_saved_xml->documentElement)->childNodes;
 	MSXML2::IXMLDOMNodePtr body;
 
 	MSXML2::IXMLDOMElementPtr selectedElementBegin = path_begin.GetNodeFromXMLDOM(m_saved_xml);
@@ -3621,6 +3958,7 @@ bool CMainFrame::ShowSource(bool saveSelection)
 	}
 
 	// если документ изменился, то заново строим XMLDOM
+	// TO-DO Проверить изменения в документе!
 	{
 		if(m_doc->DocRelChanged() || !(bool)m_saved_xml)
 		{
@@ -3745,7 +4083,6 @@ void  CMainFrame::ShowView(VIEW_TYPE vt)
 
   // added by SeNS
   if (vt != BODY)
-	if (m_Speller) 
 		m_Speller->EndDocumentCheck();
 
   if (vt == NEXT)
@@ -3798,7 +4135,7 @@ void  CMainFrame::ShowView(VIEW_TYPE vt)
 
   if (prev!=vt && prev==SOURCE) {
 	  // added by SeNS: special trick for incorrect XML
-	  if (m_bad_xml)
+/*	  if (m_bad_xml)
 	  {
 			int col,line;
 			bool fv;
@@ -3817,7 +4154,7 @@ void  CMainFrame::ShowView(VIEW_TYPE vt)
 				m_doc->m_namevalid = true;
 				m_bad_xml = false;
 			}
-	  }
+	  }*/
 
     /*if (!SourceToHTML())
       return;*/
@@ -3870,8 +4207,10 @@ void  CMainFrame::ShowView(VIEW_TYPE vt)
 			}
 			m_status.SetPaneText(ID_PANE_INS, m_last_ie_ovr ? strOVR : strINS);
 
-			if (m_Speller) 
-				m_Speller->SetDocumentLanguage();
+			// detect document language (based on FB2 document settings)
+			MSHTML::IHTMLSelectElementPtr elem = MSHTML::IHTMLDocument3Ptr(m_doc->m_body.Document())->getElementById(L"tiLang");
+			if (elem)
+				m_Speller->SetDocumentLanguage((LPWSTR)elem->value);
 	  }	
     break;
   case DESC:
@@ -3932,8 +4271,10 @@ void  CMainFrame::ShowView(VIEW_TYPE vt)
     break;
   case SOURCE:
 	// added by SeNS: display line numbers
-	if (_Settings.m_show_line_numbers) m_source.SendMessage(SCI_SETMARGINWIDTHN,0,64);
-	else m_source.SendMessage(SCI_SETMARGINWIDTHN,0,0);
+	if (_Settings.m_show_line_numbers) 
+		m_source.SendMessage(SCI_SETMARGINWIDTHN,0,64);
+	else 
+		m_source.SendMessage(SCI_SETMARGINWIDTHN,0,0);
 
     UISetCheck(ID_VIEW_SOURCE, 1);
     m_view.HideActiveWnd();
@@ -3965,6 +4306,18 @@ void  CMainFrame::ShowView(VIEW_TYPE vt)
     return DESC;
   return SOURCE;
 }*/
+  LRESULT CMainFrame::OnGoToFootnote(WORD wNotifyCode, WORD wID, HWND hWndCtl)
+  {
+	  if (!m_doc->m_body.GoToFootnote(false))
+		m_doc->m_body.GoToReference(false);
+	  return 0;
+  }
+
+  LRESULT CMainFrame::OnGoToReference(WORD wNotifyCode, WORD wID, HWND hWndCtl)
+  {
+	  m_doc->m_body.GoToReference(false);
+	  return 0;
+  }
 
 void  CMainFrame::SetSciStyles() {
   m_source.SendMessage(SCI_STYLERESETDEFAULT);
@@ -4012,6 +4365,45 @@ void  CMainFrame::SetSciStyles() {
       m_source.SendMessage(SCI_STYLESETFORE,styles[i].style,styles[i].color);
 }
 
+  LRESULT CMainFrame::OnSciModified(int id,NMHDR *hdr,BOOL& bHandled) {
+    if (hdr->hwndFrom!=m_source) {
+      bHandled=FALSE;
+      return 0;
+    }
+    SciModified(*(SCNotification*)hdr);
+    return 0;
+  }
+
+  LRESULT CMainFrame::OnSciMarginClick(int id,NMHDR *hdr,BOOL& bHandled) {
+    if (hdr->hwndFrom!=m_source) {
+      bHandled=FALSE;
+      return 0;
+    }
+    SciMarginClicked(*(SCNotification*)hdr);
+    return 0;
+  }
+
+  LRESULT CMainFrame::OnSciUpdateUI(int id,NMHDR *hdr,BOOL& bHandled) 
+  {
+    if (m_current_view == SOURCE)
+		SciUpdateUI(false);
+	return 0;
+  }
+
+  LRESULT CMainFrame::OnGoToMatchTag(WORD wNotifyCode, WORD wID, HWND hWndCtl)
+  {
+    if (m_current_view == SOURCE)
+		SciUpdateUI(true);
+	return 0;
+  }
+
+  LRESULT CMainFrame::OnGoToWrongTag(WORD wNotifyCode, WORD wID, HWND hWndCtl)
+  {
+    if (m_current_view == SOURCE)
+//		SciGotoWrongTag();
+	return 0;
+  }
+  
 LRESULT CMainFrame::OnFileValidate(WORD, WORD, HWND, BOOL&) {
   int col,line;
   bool fv;
@@ -4741,34 +5133,15 @@ void CMainFrame::ApplyConfChanges()
 	// added by SeNS
 	if (_Settings.m_usespell_check)
 	{
-		if (!m_Speller)
-		{
-			TCHAR prgPath[MAX_PATH];
-			DWORD pathlen = ::GetModuleFileName(_Module.GetModuleInstance(), prgPath, MAX_PATH);
-			PathRemoveFileSpec(prgPath);
-			m_Speller = new CSpeller(CString(prgPath)+L"\\dict\\");
-			m_Speller->SetEnabled(false);
-		}
+		CString custDictName = _Settings.m_custom_dict;
+		if (!custDictName.IsEmpty())
+			m_Speller->SetCustomDictionary(U::GetProgDir() + custDictName);
 		if (!m_Speller->Enabled())
-		{
-			m_Speller->SetFrame(m_hWnd);
-			m_Speller->AttachDocument(m_doc->m_body.Document());
-			m_Speller->SetEnabled(true);
-		}
+			m_Speller->Enable(true);
 	}
 	// don't use spellchecker
-	else if (m_Speller) m_Speller->SetEnabled(false);
-
-	if (m_Speller && m_Speller->Enabled())
-	{
-		m_Speller->SetHighlightMisspells(_Settings.m_highlght_check);
-		CString custDictName = _Settings.m_custom_dict;
-		if (custDictName.Compare(ATLPath::FindFileName(custDictName))==0)
-		{
-			custDictName = m_doc->m_body.m_file_path+custDictName;
-		}
-		m_Speller->SetCustomDictionary(custDictName, _Settings.GetCustomDictCodepage());
-	}
+	else if (m_Speller) 
+		m_Speller->Enable(false);
 
 	// added by SeNS: issue 17: process nbsp change
 	if (_Settings.GetOldNBSPChar().Compare (_Settings.GetNBSPChar()) != 0)
@@ -4843,13 +5216,15 @@ void CMainFrame::RestartProgram()
 		wchar_t filename[MAX_PATH];
 		::GetModuleFileName(_Module.GetModuleInstance(), filename, MAX_PATH);
 		CString ofn = m_doc->GetOpenFileName();
+		ofn = L"\"" + ofn + L"\"";
 //		if(wcschr(filename, L' '))
-		ofn.Format(L"\"%s\"", m_doc->GetOpenFileName());
-		HINSTANCE hInst = ShellExecute(0, L"open", filename, ofn, 0, SW_SHOW);
+		// ofn.Format(L"\"%s\"", m_doc->GetOpenFileName());
+		//HINSTANCE hInst = 
+			ShellExecute(0, L"open", filename, ofn, 0, SW_SHOW);
 	}
 }
 
-void CMainFrame::CollectScripts(CString path, TCHAR* mask, int lastid, CString refid)
+void CMainFrame::CollectScripts(CString path, TCHAR * mask, int lastid, CString refid) 
 {
 	if(U::HasFilesWithExt(path, mask))
 	{
@@ -5326,6 +5701,25 @@ void CMainFrame::RemoveLastUndo()
 	}
 }
 
+  LRESULT CMainFrame::OnEdChange(WORD, WORD, HWND hWnd, BOOL& b) {
+    StopIncSearch(true);
+	m_doc_changed=true;
+    m_cb_updated=false;
+
+	// added by SeNS: update 
+	UpdateViewSizeInfo();
+	// added by SeNS - process nbsp
+	if (_Settings.GetNBSPChar().Compare(L"\u00A0") != 0)
+		ChangeNBSP(m_doc->m_body.SelectionContainer());
+
+	// added by SeNS: do spellcheck
+	if (m_current_view == BODY && m_Speller->Enabled())
+			m_Speller->CheckElement(m_doc->m_body.SelectionContainer(), m_doc->m_body.IsHTMLChanged());
+
+	return S_OK;
+  }
+
+
 // added by SeNS: try to load incorrect XML directly to Scintilla
 bool CMainFrame::LoadToScintilla(CString filename)
 {
@@ -5382,7 +5776,7 @@ bool CMainFrame::LoadToScintilla(CString filename)
 		m_source.SendMessage(SCI_EMPTYUNDOBUFFER);
 		m_source.SendMessage(SCI_SETSAVEPOINT);
 
-		m_bad_xml = true;
+//		m_bad_xml = true;
 		m_bad_filename = filename;
 		m_doc->m_encoding = enc;
 
@@ -5400,10 +5794,10 @@ void CMainFrame::DisplayCharCode()
 		// The long complicated way to get unicode character from Scintilla!
 		char buf[5] = {0,0,0,0,0};
 		int pos = m_source.SendMessage(SCI_GETCURRENTPOS);
-		buf[0] = m_source.SendMessage(SCI_GETCHARAT, pos);
+		buf[0] = (char) m_source.SendMessage(SCI_GETCHARAT, pos);
 		int len = UTF8_CHAR_LEN(buf[0]);
 		for (int i=1; i<len && i<5; i++)
-			buf[i] = m_source.SendMessage(SCI_GETCHARAT, pos+i);
+			buf[i] = (char) m_source.SendMessage(SCI_GETCHARAT, pos+i);
 		CA2W str (buf, CP_UTF8);
 		CString s;
 		s.Format(L"  U+%.4X", str[0]);
@@ -5424,3 +5818,36 @@ void CMainFrame::DisplayCharCode()
 	}
 	else m_status.SetPaneText(ID_PANE_CHAR, L"");
 }
+	// added by SeNS - paste pictures
+	bool CMainFrame::BitmapInClipboard()
+	{
+		bool result = false;
+		if (OpenClipboard())
+		{
+			if ( IsClipboardFormatAvailable(CF_BITMAP)) result = true;
+			CloseClipboard();
+		}
+		return result;
+	}
+
+	void CMainFrame::UpdateViewSizeInfo()
+	{
+		if (m_doc && m_doc->m_body)
+			if (m_doc->m_body.Document())
+			{
+				MSHTML::IHTMLElement2Ptr m_scrollElement = MSHTML::IHTMLDocument3Ptr(m_doc->m_body.Document())->documentElement;
+				if (m_scrollElement)
+				{
+					_Settings.SetViewWidth (m_scrollElement->clientWidth);
+					_Settings.SetViewHeight(m_scrollElement->clientHeight);
+					_Settings.SetMainWindow(m_hWnd);
+				}
+			}
+	}
+
+	LRESULT CMainFrame::OnSize(UINT, WPARAM, LPARAM, BOOL& bHandled)
+	{
+		UpdateViewSizeInfo();
+		bHandled = FALSE;
+		return 0;
+	}

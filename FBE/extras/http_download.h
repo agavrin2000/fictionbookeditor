@@ -662,7 +662,7 @@ public:
 
         if (task_info.m_proxy_ip.GetLength())
         {
-            CString   s ;
+            CString  s;
             s.Format(_T("%s:%d"), task_info.m_proxy_ip, task_info.m_proxy_port) ;
             m_session = InternetOpen (task_info.m_user_agent, INTERNET_OPEN_TYPE_PROXY, s, NULL, 0) ;
         }

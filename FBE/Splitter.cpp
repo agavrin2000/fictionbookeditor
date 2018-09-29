@@ -23,16 +23,19 @@ void CSplitter::Init()
 
 void CSplitter::Split(CString *src, CWords *words)
 {
-	int j=0, size = src->GetLength();
+	int j = 0, size = src->GetLength();
 	words->RemoveAll();
-	for (int i=0; i<size; i++)
+	for (int i = 0; i < size; i++)
 	{
 		if (!isAlpha[src->GetAt(i)])
 		{
-			if (i-j) words->Add(j,src->Mid(j, i-j));
-			j=i+1;
+			if (i - j) 
+				words->Add(j, src->Mid(j, i - j));
+			j = i + 1;
 		}
+
 		// add last word
-		else if (i+1==size) words->Add(j,src->Mid(j, i-j+1));
+		else if (i + 1 == size) 
+			words->Add(j, src->Mid(j, i - j + 1));
 	}
 }

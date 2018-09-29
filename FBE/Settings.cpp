@@ -61,7 +61,7 @@ const wchar_t VIEW_DOCUMENT_TREE_KEY[]	= L"ViewDocumentTree";
 const wchar_t SPLITTER_POS_KEY[]		= L"SplitterPos";
 const wchar_t TOOLBARS_SETTINGS_KEY[]	= L"Toolbars";
 const wchar_t RESTORE_FILE_POS_KEY[]	= L"RestoreFilePosition";
-const wchar_t INTERFACE_LANG_KEY[]		= L"IntefaceLangID";
+const wchar_t INTERFACE_LANG_KEY[]		= L"InterfaceLangID";
 const wchar_t SCRIPTS_FOLDER_KEY[]		= L"ScriptsFolder";
 
 // Added by SeNS
@@ -142,491 +142,495 @@ void CSettings::Init()
 	m_key_path += appname;
 	m_key.Create(HKEY_CURRENT_USER, m_key_path);
 }
-
+/// <summary>Init hotkeygroups by default, also read from "symbols.ini"</summary>
 void CSettings::InitHotkeyGroups()
 {
 	// File group hotkeys
-	CHotkeysGroup file_hotkeys_group(L"File", IDS_HOTKEY_GROUP_FILE);
+		CHotkeysGroup file_hotkeys_group(L"File", IDS_HOTKEY_GROUP_FILE);
 
-	// Open
-	CHotkey FileOpen(L"Open", IDS_HOTKEY_FILE_OPEN, FCONTROL, ID_FILE_OPEN, U::StringToKeycode(L"O"));
-	file_hotkeys_group.m_hotkeys.push_back(FileOpen);
+		// New
+		CHotkey FileNew(L"New", IDS_HOTKEY_FILE_NEW, FCONTROL, ID_FILE_NEW, U::StringToKeycode(L"N"));
+		file_hotkeys_group.m_hotkeys.push_back(FileNew);
 
-	// Save
-	CHotkey FileSave(L"Save", IDS_HOTKEY_FILE_SAVE, NULL, ID_FILE_SAVE, VK_F2);
-	file_hotkeys_group.m_hotkeys.push_back(FileSave);
+		// Open
+		CHotkey FileOpen(L"Open", IDS_HOTKEY_FILE_OPEN, FCONTROL, ID_FILE_OPEN, U::StringToKeycode(L"O"));
+		file_hotkeys_group.m_hotkeys.push_back(FileOpen);
 
-	// Save as...
-	CHotkey FileSaveAs(L"SaveAs", IDS_HOTKEY_FILE_SAVEAS, FSHIFT, ID_FILE_SAVE_AS, VK_F2);
-	file_hotkeys_group.m_hotkeys.push_back(FileSaveAs);
+		// Save
+		CHotkey FileSave(L"Save", IDS_HOTKEY_FILE_SAVE, FCONTROL, ID_FILE_SAVE, U::StringToKeycode(L"S"));
+		file_hotkeys_group.m_hotkeys.push_back(FileSave);
 
-	// Validate
-	CHotkey FileValidate(L"Validate", IDS_HOTKEY_FILE_VALIDATE, NULL, ID_FILE_VALIDATE, VK_F8);
-	file_hotkeys_group.m_hotkeys.push_back(FileValidate);
+		// Save as...
+		CHotkey FileSaveAs(L"SaveAs", IDS_HOTKEY_FILE_SAVEAS, NULL, ID_FILE_SAVE_AS, VK_F12);
+		file_hotkeys_group.m_hotkeys.push_back(FileSaveAs);
 
+		// Validate
+		CHotkey FileValidate(L"Validate", IDS_HOTKEY_FILE_VALIDATE, NULL, ID_FILE_VALIDATE, VK_F8);
+		file_hotkeys_group.m_hotkeys.push_back(FileValidate);
+	// End File group hotkeys
+	
 	//Edit group hotkeys
-	CHotkeysGroup edit_hotkeys_group(L"Edit", IDS_HOTKEY_GROUP_EDIT);
+		CHotkeysGroup edit_hotkeys_group(L"Edit", IDS_HOTKEY_GROUP_EDIT);
 
-	// Add annotation
-	CHotkey EditAddAnnotation(L"AddAnnotation",
-								IDS_HOTKEY_EDIT_ADD_ANNOTATION,
-								FCONTROL,
-								ID_EDIT_ADD_ANN,
-								U::StringToKeycode(L"J"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditAddAnnotation);
+		// Add body
+		CHotkey EditAddBody(L"AddBody", IDS_HOTKEY_EDIT_ADD_BODY, FALT + FSHIFT, ID_EDIT_ADD_BODY, U::StringToKeycode(L"B"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditAddBody);
 
-	// Add body
-	CHotkey EditAddBody(L"AddBody", IDS_HOTKEY_EDIT_ADD_BODY, FALT+FSHIFT, ID_EDIT_ADD_BODY, U::StringToKeycode(L"B"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditAddBody);
+		// Add title
+		CHotkey EditAddTitle(L"AddTitle", IDS_HOTKEY_EDIT_ADD_TITLE, FALT + FSHIFT, ID_EDIT_ADD_TITLE, U::StringToKeycode(L"T"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditAddTitle);
 
-	// Add epigraph
-	CHotkey EditAddEpigraph(L"AddEpigraph",
-							IDS_HOTKEY_EDIT_ADD_EPIGRAPH,
-							FCONTROL,
-							ID_EDIT_ADD_EPIGRAPH,
-							U::StringToKeycode(L"N"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditAddEpigraph);
+		// Add epigraph
+		CHotkey EditAddEpigraph(L"AddEpigraph",
+			IDS_HOTKEY_EDIT_ADD_EPIGRAPH,
+			FALT + FSHIFT,
+			ID_EDIT_ADD_EPIGRAPH,
+			U::StringToKeycode(L"E"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditAddEpigraph);
 
-	// Add section image
-	CHotkey EditAddSectionImage(L"AddSectionImage", IDS_HOTKEY_EDIT_ADD_IMAGE, FCONTROL, ID_EDIT_ADD_IMAGE,
-		U::StringToKeycode(L"G"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditAddSectionImage);
+		// Add annotation
+		CHotkey EditAddAnnotation(L"AddAnnotation",
+									IDS_HOTKEY_EDIT_ADD_ANNOTATION,
+									FALT + FSHIFT,
+									ID_EDIT_ADD_ANN,
+									U::StringToKeycode(L"A"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditAddAnnotation);
 
-	// Add text author
-	CHotkey EditAddTextAuthor(L"AddTextAuthor", IDS_HOTKEY_EDIT_ADD_TA, FCONTROL, ID_EDIT_ADD_TA, U::StringToKeycode(L"D"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditAddTextAuthor);
+		// Add text author
+		CHotkey EditAddTextAuthor(L"AddTextAuthor", IDS_HOTKEY_EDIT_ADD_TA, FCONTROL, ID_EDIT_ADD_TA, U::StringToKeycode(L"D"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditAddTextAuthor);
 
-	// Add title
-	CHotkey EditAddTitle(L"AddTitle", IDS_HOTKEY_EDIT_ADD_TITLE, FCONTROL, ID_EDIT_ADD_TITLE,U::StringToKeycode(L"T"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditAddTitle);
+		// Insert image
+		CHotkey EditInsertImage(L"InsertImage",
+			IDS_HOTKEY_EDIT_INSERT_IMAGE,
+			FCONTROL,
+			ID_EDIT_INS_IMAGE,
+			U::StringToKeycode(L"M"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditInsertImage);
 
-	// Bold
-	CHotkey EditBold(L"Bold", IDS_HOTKEY_EDIT_BOLD, FCONTROL, ID_EDIT_BOLD, U::StringToKeycode(L"B"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditBold);
+		// Insert inline image - added by SeNS
+		CHotkey EditInsertInlineImage(L"InsertInlineImage",
+			IDS_HOTKEY_EDIT_INSERT_INLINEIMAGE,
+			FALT,
+			ID_EDIT_INS_INLINEIMAGE,
+			U::StringToKeycode(L"M"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditInsertInlineImage);
 
-	// Clone
-	CHotkey EditClone(L"Clone", IDS_HOTKEY_EDIT_CLONE, FCONTROL, ID_EDIT_CLONE, VK_RETURN);
-	edit_hotkeys_group.m_hotkeys.push_back(EditClone);
+		// Insert poem
+		CHotkey EditInsertPoem(L"InsertPoem",
+			IDS_HOTKEY_EDIT_INSERT_POEM,
+			FALT + FSHIFT,
+			ID_EDIT_INS_POEM,
+			U::StringToKeycode(L"P"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditInsertPoem);
 
-	// Copy
-	CHotkey EditCopy(L"Copy", IDS_HOTKEY_EDIT_COPY, FCONTROL, ID_EDIT_COPY, U::StringToKeycode(L"C"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditCopy);
+		// Insert cite
+		CHotkey EditInsertCite(L"InsertCite",
+			IDS_HOTKEY_EDIT_INSERT_CITE,
+			FALT + FSHIFT,
+			ID_EDIT_INS_CITE,
+			U::StringToKeycode(L"C"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditInsertCite);
 
-	// Cut
-	CHotkey EditCut(L"Cut", IDS_HOTKEY_EDIT_CUT, FCONTROL, ID_EDIT_CUT, U::StringToKeycode(L"X"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditCut);
+		// Insert table
+		CHotkey EditInsertTable(L"InsertTable",
+			IDS_HOTKEY_EDIT_INSERT_TABLE,
+			FALT + FSHIFT,
+			ID_INSERT_TABLE,
+			U::StringToKeycode(L"T"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditInsertTable);
 
-	// Find
-	CHotkey EditFind(L"Find", IDS_HOTKEY_EDIT_FIND, FCONTROL, ID_EDIT_FIND, U::StringToKeycode(L"F"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditFind);
+		// Add section image
+		CHotkey EditAddSectionImage(L"AddSectionImage", IDS_HOTKEY_EDIT_ADD_IMAGE, FALT + FSHIFT, ID_EDIT_ADD_IMAGE,
+			U::StringToKeycode(L"G"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditAddSectionImage);
 
-	// Find next
-	CHotkey EditFindNext(L"FindNext", IDS_HOTKEY_EDIT_FIND_NEXT, NULL, ID_EDIT_FINDNEXT, VK_F3);
-	edit_hotkeys_group.m_hotkeys.push_back(EditFindNext);
+		// Undo
+		CHotkey EditUndo(L"Undo", IDS_HOTKEY_EDIT_UNDO, FCONTROL, ID_EDIT_UNDO, U::StringToKeycode(L"Z"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditUndo);
 
-	// Incremental search
-	CHotkey EditIncrementalSearch(L"IncrementalSearch",
-									IDS_HOTKEY_EDIT_INCREMENTAL_SEARCH,
-									FALT,
-									ID_EDIT_INCSEARCH,
-									U::StringToKeycode(L"I"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditIncrementalSearch);
+		// Redo
+		CHotkey EditRedo(L"Redo", IDS_HOTKEY_EDIT_REDO, FCONTROL, ID_EDIT_REDO, U::StringToKeycode(L"Y"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditRedo);
 
-	// Insert cite
-	CHotkey EditInsertCite(L"InsertCite",
-							IDS_HOTKEY_EDIT_INSERT_CITE,
-							FALT,
-							ID_EDIT_INS_CITE,
-							U::StringToKeycode(L"C"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditInsertCite);
+		// Cut
+		CHotkey EditCut(L"Cut", IDS_HOTKEY_EDIT_CUT, FCONTROL, ID_EDIT_CUT, U::StringToKeycode(L"X"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditCut);
 
-	// Insert image
-	CHotkey EditInsertImage(L"InsertImage",
-							IDS_HOTKEY_EDIT_INSERT_IMAGE,
-							FCONTROL,
-							ID_EDIT_INS_IMAGE,
-							U::StringToKeycode(L"M"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditInsertImage);
+		// Copy
+		CHotkey EditCopy(L"Copy", IDS_HOTKEY_EDIT_COPY, FCONTROL, ID_EDIT_COPY, U::StringToKeycode(L"C"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditCopy);
 
+		// Paste
+		CHotkey EditPaste(L"Paste", IDS_HOTKEY_EDIT_PASTE, FCONTROL, ID_EDIT_PASTE, U::StringToKeycode(L"V"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditPaste);
 
-	// Insert inline image - added by SeNS
-	CHotkey EditInsertInlineImage(L"InsertInlineImage",
-							IDS_HOTKEY_EDIT_INSERT_INLINEIMAGE,
-							FALT,
-							ID_EDIT_INS_INLINEIMAGE,
-							U::StringToKeycode(L"M"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditInsertInlineImage);
+		// Find
+		CHotkey EditFind(L"Find", IDS_HOTKEY_EDIT_FIND, FCONTROL, ID_EDIT_FIND, U::StringToKeycode(L"F"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditFind);
 
+		// Find next
+		CHotkey EditFindNext(L"FindNext", IDS_HOTKEY_EDIT_FIND_NEXT, NULL, ID_EDIT_FINDNEXT, VK_F3);
+		edit_hotkeys_group.m_hotkeys.push_back(EditFindNext);
 
-	// Insert poem
-	CHotkey EditInsertPoem(L"InsertPoem",
-							IDS_HOTKEY_EDIT_INSERT_POEM,
-							FCONTROL,
-							ID_EDIT_INS_POEM,
-							U::StringToKeycode(L"P"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditInsertPoem);
+		// Replace
+		CHotkey EditReplace(L"Replace", IDS_HOTKEY_EDIT_REPLACE, FCONTROL, ID_EDIT_REPLACE, U::StringToKeycode(L"H"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditReplace);
 
-	// Italic
-	CHotkey EditItalic(L"Italic", IDS_HOTKEY_EDIT_ITALIC, FCONTROL, ID_EDIT_ITALIC, U::StringToKeycode(L"I"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditItalic);
+		// Incremental search
+		CHotkey EditIncrementalSearch(L"IncrementalSearch",
+			IDS_HOTKEY_EDIT_INCREMENTAL_SEARCH,
+			FALT,
+			ID_EDIT_INCSEARCH,
+			U::StringToKeycode(L"I"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditIncrementalSearch);
 
-	// Merge
-	CHotkey EditMerge(L"Merge", IDS_HOTKEY_EDIT_MERGE, FALT, ID_EDIT_MERGE, VK_DELETE);
-	edit_hotkeys_group.m_hotkeys.push_back(EditMerge);
+		// Clone
+		CHotkey EditClone(L"Clone", IDS_HOTKEY_EDIT_CLONE, FCONTROL, ID_EDIT_CLONE, VK_RETURN);
+		edit_hotkeys_group.m_hotkeys.push_back(EditClone);
 
-	// Added by SeNS
-	CHotkey EditSub(L"Subscript", IDS_HOTKEY_EDIT_SUB, NULL, ID_EDIT_SUB, NULL);
-	edit_hotkeys_group.m_hotkeys.push_back(EditSub);
+		// Merge
+		CHotkey EditMerge(L"Merge", IDS_HOTKEY_EDIT_MERGE, FALT, ID_EDIT_MERGE, VK_DELETE);
+		edit_hotkeys_group.m_hotkeys.push_back(EditMerge);
 
-	CHotkey EditSup(L"Superscript", IDS_HOTKEY_EDIT_SUP, NULL, ID_EDIT_SUP, NULL);
-	edit_hotkeys_group.m_hotkeys.push_back(EditSup);
+		// Split
+		CHotkey EditSplit(L"Split", IDS_HOTKEY_EDIT_SPLIT, FSHIFT, ID_EDIT_SPLIT, VK_RETURN);
+		edit_hotkeys_group.m_hotkeys.push_back(EditSplit);
 
-	// Paste : changed by SeNS
-	CHotkey EditPaste(L"Paste", IDS_HOTKEY_EDIT_PASTE, FSHIFT, ID_EDIT_PASTE, VK_INSERT);
-	edit_hotkeys_group.m_hotkeys.push_back(EditPaste);
+		// Remove outer section
+		CHotkey RemoveOuterSection(L"RemoveOuterSection",
+			IDS_HOTKEY_EDIT_REMOVE_OUTER_SECTION,
+			FALT | FCONTROL,
+			ID_EDIT_REMOVE_OUTER_SECTION,
+			VK_SPACE);
+		edit_hotkeys_group.m_hotkeys.push_back(RemoveOuterSection);
 
-	// Redo
-	CHotkey EditRedo(L"Redo", IDS_HOTKEY_EDIT_REDO, FCONTROL, ID_EDIT_REDO, U::StringToKeycode(L"Y"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditRedo);
+		// Bold
+		CHotkey EditBold(L"Bold", IDS_HOTKEY_EDIT_BOLD, FCONTROL, ID_EDIT_BOLD, U::StringToKeycode(L"B"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditBold);
 
-	// Replace
-	CHotkey EditReplace(L"Replace", IDS_HOTKEY_EDIT_REPLACE, FCONTROL, ID_EDIT_REPLACE, U::StringToKeycode(L"H"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditReplace);
+		// Italic
+		CHotkey EditItalic(L"Italic", IDS_HOTKEY_EDIT_ITALIC, FCONTROL, ID_EDIT_ITALIC, U::StringToKeycode(L"I"));
+		edit_hotkeys_group.m_hotkeys.push_back(EditItalic);
 
-	// Split
-	CHotkey EditSplit(L"Split", IDS_HOTKEY_EDIT_SPLIT, FSHIFT, ID_EDIT_SPLIT, VK_RETURN);
-	edit_hotkeys_group.m_hotkeys.push_back(EditSplit);
+		// Subscript
+		CHotkey EditSub(L"Subscript", IDS_HOTKEY_EDIT_SUB, FCONTROL, ID_EDIT_SUB, U::StringToKeycode(L"="));
+		edit_hotkeys_group.m_hotkeys.push_back(EditSub);
 
-	// Undo
-	CHotkey EditUndo(L"Undo", IDS_HOTKEY_EDIT_UNDO, FCONTROL, ID_EDIT_UNDO, U::StringToKeycode(L"Z"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditUndo);
+		// Superscript
+		CHotkey EditSup(L"Superscript", IDS_HOTKEY_EDIT_SUP, FCONTROL + FSHIFT, ID_EDIT_SUP, U::StringToKeycode(L"="));
+		edit_hotkeys_group.m_hotkeys.push_back(EditSup);
 
-	// Insert table
-	CHotkey EditInsertTable(L"InsertTable",
-							IDS_HOTKEY_EDIT_INSERT_TABLE,
-							FALT,
-							ID_INSERT_TABLE,
-							U::StringToKeycode(L"T"));
-	edit_hotkeys_group.m_hotkeys.push_back(EditInsertTable);
-
-	// Remove outer section
-	CHotkey RemoveOuterSection(L"RemoveOuterSection",
-		IDS_HOTKEY_EDIT_REMOVE_OUTER_SECTION,
-		FALT | FCONTROL,
-		ID_EDIT_REMOVE_OUTER_SECTION,
-		VK_SPACE);
-	edit_hotkeys_group.m_hotkeys.push_back(RemoveOuterSection);
+	//End Edit group hotkeys
 
 	//Navigation group hotkeys
-	CHotkeysGroup navigation_hotkeys_group(L"Navigation", IDS_HOTKEY_GROUP_NAVIGATION);
+		CHotkeysGroup navigation_hotkeys_group(L"Navigation", IDS_HOTKEY_GROUP_NAVIGATION);
 
-	// Goto reference
-	CHotkey NavigationGotoFootnote (L"GotoFootnote",
-									IDS_HOTKEY_NAVIGATION_GOTO_FOOTNOTE,
-									FCONTROL,
-									ID_GOTO_FOOTNOTE,
-									VK_BACK);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationGotoFootnote);
+		// Goto reference
+		CHotkey NavigationGotoFootnote (L"GotoFootnote",
+										IDS_HOTKEY_NAVIGATION_GOTO_FOOTNOTE,
+										FCONTROL,
+										ID_GOTO_FOOTNOTE,
+										VK_BACK);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationGotoFootnote);
 
-	// Goto matched tag
-	CHotkey NavigationGotoMatchingTag (L"GotoMatchingTag",
-								  		IDS_HOTKEY_NAVIGATION_GOTO_MATCHTAG,
-										FALT,
-									    ID_GOTO_MATCHTAG,
-										U::StringToKeycode(L":"));
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationGotoMatchingTag);
+		// Goto matched tag
+		CHotkey NavigationGotoMatchingTag (L"GotoMatchingTag",
+								  			IDS_HOTKEY_NAVIGATION_GOTO_MATCHTAG,
+											FALT,
+											ID_GOTO_MATCHTAG,
+											U::StringToKeycode(L":"));
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationGotoMatchingTag);
 
-	// Goto wrong tag
-	CHotkey NavigationGotoWrongTag (L"GotoWrongTag",
-								  	 IDS_HOTKEY_NAVIGATION_GOTO_WRONGTAG,
-									 FCONTROL,
-									 ID_GOTO_WRONGTAG,
-									 U::StringToKeycode(L":"));
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationGotoWrongTag);
 
-	// Next item
-	CHotkey NavigationNextItem(L"NextItem",
-									IDS_HOTKEY_NAVIGATION_NEXT_ITEM,
-									FCONTROL,
-									ID_NEXT_ITEM,
-									VK_TAB);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationNextItem);
+		// Next item
+		CHotkey NavigationNextItem(L"NextItem",
+										IDS_HOTKEY_NAVIGATION_NEXT_ITEM,
+										FCONTROL,
+										ID_NEXT_ITEM,
+										VK_TAB);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationNextItem);
 
-	// Collapse tree 1 level
-	CHotkey NavigationCollapse1(L"Collapse1",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE1,
-		NULL,
-		ID_SCI_COLLAPSE1,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse1);
+		// Collapse tree 1 level
+		CHotkey NavigationCollapse1(L"Collapse1",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE1,
+			NULL,
+			ID_SCI_COLLAPSE1,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse1);
 
-	// Collapse tree 2 levels
-	CHotkey NavigationCollapse2(L"Collapse2",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE2,
-		NULL,
-		ID_SCI_COLLAPSE2,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse2);
+		// Collapse tree 2 levels
+		CHotkey NavigationCollapse2(L"Collapse2",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE2,
+			NULL,
+			ID_SCI_COLLAPSE2,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse2);
 
-	// Collapse tree 3 levels
-	CHotkey NavigationCollapse3(L"Collapse3",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE3,
-		NULL,
-		ID_SCI_COLLAPSE3,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse3);
+		// Collapse tree 3 levels
+		CHotkey NavigationCollapse3(L"Collapse3",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE3,
+			NULL,
+			ID_SCI_COLLAPSE3,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse3);
 
-	// Collapse tree 4 levels
-	CHotkey NavigationCollapse4(L"Collapse4",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE4,
-		NULL,
-		ID_SCI_COLLAPSE4,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse4);
+		// Collapse tree 4 levels
+		CHotkey NavigationCollapse4(L"Collapse4",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE4,
+			NULL,
+			ID_SCI_COLLAPSE4,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse4);
 
-	// Collapse tree 5 levels
-	CHotkey NavigationCollapse5(L"Collapse5",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE5,
-		NULL,
-		ID_SCI_COLLAPSE5,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse5);
+		// Collapse tree 5 levels
+		CHotkey NavigationCollapse5(L"Collapse5",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE5,
+			NULL,
+			ID_SCI_COLLAPSE5,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse5);
 
-	// Collapse tree 6 levels
-	CHotkey NavigationCollapse6(L"Collapse6",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE6,
-		NULL,
-		ID_SCI_COLLAPSE6,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse6);
+		// Collapse tree 6 levels
+		CHotkey NavigationCollapse6(L"Collapse6",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE6,
+			NULL,
+			ID_SCI_COLLAPSE6,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse6);
 
-	// Collapse tree 7 levels
-	CHotkey NavigationCollapse7(L"Collapse7",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE7,
-		NULL,
-		ID_SCI_COLLAPSE7,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse7);
+		// Collapse tree 7 levels
+		CHotkey NavigationCollapse7(L"Collapse7",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE7,
+			NULL,
+			ID_SCI_COLLAPSE7,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse7);
 
-	// Collapse tree 8 levels
-	CHotkey NavigationCollapse8(L"Collapse8",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE8,
-		NULL,
-		ID_SCI_COLLAPSE8,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse8);
+		// Collapse tree 8 levels
+		CHotkey NavigationCollapse8(L"Collapse8",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE8,
+			NULL,
+			ID_SCI_COLLAPSE8,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse8);
 
-	// Collapse tree 9 levels
-	CHotkey NavigationCollapse9(L"Collapse9",
-		IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE9,
-		NULL,
-		ID_SCI_COLLAPSE9,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse9);
+		// Collapse tree 9 levels
+		CHotkey NavigationCollapse9(L"Collapse9",
+			IDS_HOTKEY_NAVIGATION_SCI_COLLAPSE9,
+			NULL,
+			ID_SCI_COLLAPSE9,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationCollapse9);
 
-	// Expand tree 1 level
-	CHotkey NavigationExpand1(L"Expand1",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND1,
-		NULL,
-		ID_SCI_EXPAND1,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand1);
+		// Expand tree 1 level
+		CHotkey NavigationExpand1(L"Expand1",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND1,
+			NULL,
+			ID_SCI_EXPAND1,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand1);
 
-	// Expand tree 2 levels
-	CHotkey NavigationExpand2(L"Expand2",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND2,
-		NULL,
-		ID_SCI_EXPAND2,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand2);
+		// Expand tree 2 levels
+		CHotkey NavigationExpand2(L"Expand2",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND2,
+			NULL,
+			ID_SCI_EXPAND2,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand2);
 
-	// Expand tree 3 levels
-	CHotkey NavigationExpand3(L"Expand3",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND3,
-		NULL,
-		ID_SCI_EXPAND3,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand3);
+		// Expand tree 3 levels
+		CHotkey NavigationExpand3(L"Expand3",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND3,
+			NULL,
+			ID_SCI_EXPAND3,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand3);
 
-	// Expand tree 4 levels
-	CHotkey NavigationExpand4(L"Expand4",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND4,
-		NULL,
-		ID_SCI_EXPAND4,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand4);
+		// Expand tree 4 levels
+		CHotkey NavigationExpand4(L"Expand4",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND4,
+			NULL,
+			ID_SCI_EXPAND4,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand4);
 
-	// Expand tree 5 levels
-	CHotkey NavigationExpand5(L"Expand5",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND5,
-		NULL,
-		ID_SCI_EXPAND5,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand5);
+		// Expand tree 5 levels
+		CHotkey NavigationExpand5(L"Expand5",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND5,
+			NULL,
+			ID_SCI_EXPAND5,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand5);
 
-	// Expand tree 6 levels
-	CHotkey NavigationExpand6(L"Expand6",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND6,
-		NULL,
-		ID_SCI_EXPAND6,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand6);
+		// Expand tree 6 levels
+		CHotkey NavigationExpand6(L"Expand6",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND6,
+			NULL,
+			ID_SCI_EXPAND6,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand6);
 
-	// Expand tree 7 levels
-	CHotkey NavigationExpand7(L"Expand7",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND7,
-		NULL,
-		ID_SCI_EXPAND7,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand7);
+		// Expand tree 7 levels
+		CHotkey NavigationExpand7(L"Expand7",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND7,
+			NULL,
+			ID_SCI_EXPAND7,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand7);
 
-	// Expand tree 8 levels
-	CHotkey NavigationExpand8(L"Expand8",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND8,
-		NULL,
-		ID_SCI_EXPAND8,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand8);
+		// Expand tree 8 levels
+		CHotkey NavigationExpand8(L"Expand8",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND8,
+			NULL,
+			ID_SCI_EXPAND8,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand8);
 
-	// Expand tree 9 levels
-	CHotkey NavigationExpand9(L"Expand9",
-		IDS_HOTKEY_NAVIGATION_SCI_EXPAND9,
-		NULL,
-		ID_SCI_EXPAND9,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand9);
+		// Expand tree 9 levels
+		CHotkey NavigationExpand9(L"Expand9",
+			IDS_HOTKEY_NAVIGATION_SCI_EXPAND9,
+			NULL,
+			ID_SCI_EXPAND9,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationExpand9);
 
-	// Select href
-	CHotkey NavigationSelectHref(L"SelectHref",
-		IDS_HOTKEY_NAVIGATION_SELECT_HREF,
-		FALT,
-		ID_SELECT_HREF,
-		U::StringToKeycode(L"H"));
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectHref);
+		// Select href
+		CHotkey NavigationSelectHref(L"SelectHref",
+			IDS_HOTKEY_NAVIGATION_SELECT_HREF,
+			FALT,
+			ID_SELECT_HREF,
+			U::StringToKeycode(L"H"));
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectHref);
 
-	// Select ID
-	CHotkey NavigationSelectID(L"SelectID",
-		IDS_HOTKEY_NAVIGATION_SELECT_ID,
-		NULL,
-		ID_SELECT_ID,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectID);
+		// Select ID
+		CHotkey NavigationSelectID(L"SelectID",
+			IDS_HOTKEY_NAVIGATION_SELECT_ID,
+			NULL,
+			ID_SELECT_ID,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectID);
 
-	// Select table ID
-	CHotkey NavigationSelectTableID(L"SelectTableID",
-		IDS_HOTKEY_NAVIGATION_SELECT_ID_TABLE,
-		NULL,
-		ID_SELECT_IDT,
-		NULL);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectTableID);
+		// Select table ID
+		CHotkey NavigationSelectTableID(L"SelectTableID",
+			IDS_HOTKEY_NAVIGATION_SELECT_ID_TABLE,
+			NULL,
+			ID_SELECT_IDT,
+			NULL);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectTableID);
 
-	// Select text
-	CHotkey NavigationSelectText(L"SelectText",
-		IDS_HOTKEY_NAVIGATION_SELECT_TEXT,
-		NULL,
-		ID_SELECT_TEXT,
-		VK_ESCAPE);
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectText);
+		// Select text
+		CHotkey NavigationSelectText(L"SelectText",
+			IDS_HOTKEY_NAVIGATION_SELECT_TEXT,
+			NULL,
+			ID_SELECT_TEXT,
+			VK_ESCAPE);
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectText);
 
-	// Select tree
-	CHotkey NavigationSelectTree(L"SelectTree",
-		IDS_HOTKEY_NAVIGATION_SELECT_TREE,
-		FALT,
-		ID_SELECT_TREE,
-		U::StringToKeycode(L"Q"));
-	navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectTree);
+		// Select tree
+		CHotkey NavigationSelectTree(L"SelectTree",
+			IDS_HOTKEY_NAVIGATION_SELECT_TREE,
+			FALT,
+			ID_SELECT_TREE,
+			U::StringToKeycode(L"Q"));
+		navigation_hotkeys_group.m_hotkeys.push_back(NavigationSelectTree);
+	//End Navigation group hotkeys
 
 	//Style group hotkeys
-	CHotkeysGroup style_hotkeys_group(L"Style", IDS_HOTKEY_GROUP_STYLE);
+		CHotkeysGroup style_hotkeys_group(L"Style", IDS_HOTKEY_GROUP_STYLE);
 
-	// Link
-	CHotkey StyleLink(L"Link", IDS_HOTKEY_STYLE_LINK, FCONTROL, ID_STYLE_LINK, U::StringToKeycode(L"L"));
-	style_hotkeys_group.m_hotkeys.push_back(StyleLink);
+		// Link
+		CHotkey StyleLink(L"Link", IDS_HOTKEY_STYLE_LINK, FCONTROL, ID_STYLE_LINK, U::StringToKeycode(L"L"));
+		style_hotkeys_group.m_hotkeys.push_back(StyleLink);
 
-	// No link
-	CHotkey StyleNoLink(L"NoLink", IDS_HOTKEY_STYLE_NO_LINK, FCONTROL, ID_STYLE_NOLINK, U::StringToKeycode(L"U"));
-	style_hotkeys_group.m_hotkeys.push_back(StyleNoLink);
+		// No link
+		CHotkey StyleNoLink(L"NoLink", IDS_HOTKEY_STYLE_NO_LINK, FCONTROL, ID_STYLE_NOLINK, U::StringToKeycode(L"U"));
+		style_hotkeys_group.m_hotkeys.push_back(StyleNoLink);
 
-	// Normal
-	CHotkey StyleNormal(L"Normal", IDS_HOTKEY_STYLE_NORMAL, FALT, ID_STYLE_NORMAL, U::StringToKeycode(L"N"));
-	style_hotkeys_group.m_hotkeys.push_back(StyleNormal);
+		// Normal
+		CHotkey StyleNormal(L"Normal", IDS_HOTKEY_STYLE_NORMAL, FALT, ID_STYLE_NORMAL, U::StringToKeycode(L"N"));
+		style_hotkeys_group.m_hotkeys.push_back(StyleNormal);
 
-	// Note
-	CHotkey StyleNote(L"Note", IDS_HOTKEY_STYLE_NOTE, FCONTROL, ID_STYLE_NOTE, U::StringToKeycode(L"W"));
-	style_hotkeys_group.m_hotkeys.push_back(StyleNote);
+		// Note
+		CHotkey StyleNote(L"Note", IDS_HOTKEY_STYLE_NOTE, FCONTROL, ID_STYLE_NOTE, U::StringToKeycode(L"W"));
+		style_hotkeys_group.m_hotkeys.push_back(StyleNote);
 
-	// Subtitle
-	CHotkey StyleSubtitle(L"Subtitle", IDS_HOTKEY_STYLE_SUBTITLE, FALT, ID_STYLE_SUBTITLE, U::StringToKeycode(L"S"));
-	style_hotkeys_group.m_hotkeys.push_back(StyleSubtitle);
+		// Subtitle
+		CHotkey StyleSubtitle(L"Subtitle", IDS_HOTKEY_STYLE_SUBTITLE, FALT, ID_STYLE_SUBTITLE, U::StringToKeycode(L"S"));
+		style_hotkeys_group.m_hotkeys.push_back(StyleSubtitle);
 
-	// Text author
-	CHotkey StyleTextAuthor(L"TextAuthor",
-								IDS_HOTKEY_STYLE_TEXT_AUTHOR,
-								FALT,
-								ID_STYLE_TEXTAUTHOR,
-								U::StringToKeycode(L"A"));
-	style_hotkeys_group.m_hotkeys.push_back(StyleTextAuthor);
+		// Text author
+		CHotkey StyleTextAuthor(L"TextAuthor",
+									IDS_HOTKEY_STYLE_TEXT_AUTHOR,
+									FALT,
+									ID_STYLE_TEXTAUTHOR,
+									U::StringToKeycode(L"A"));
+		style_hotkeys_group.m_hotkeys.push_back(StyleTextAuthor);
+	//End Style group hotkeys
 
 	// View group hotkeys
-	CHotkeysGroup view_hotkeys_group(L"View", IDS_HOTKEY_GROUP_VIEW);
+		CHotkeysGroup view_hotkeys_group(L"View", IDS_HOTKEY_GROUP_VIEW);
 
-	// View body
-	CHotkey ViewBody(L"Body", IDS_HOTKEY_VIEW_BODY, FALT, ID_VIEW_BODY, VK_F2);
-	view_hotkeys_group.m_hotkeys.push_back(ViewBody);
+		// View body
+		CHotkey ViewBody(L"Body", IDS_HOTKEY_VIEW_BODY, FALT, ID_VIEW_BODY, VK_F2);
+		view_hotkeys_group.m_hotkeys.push_back(ViewBody);
 
-	// View description
-	CHotkey ViewDescription(L"Description", IDS_HOTKEY_VIEW_DESCRIPTION, FALT, ID_VIEW_DESC, VK_F1);
-	view_hotkeys_group.m_hotkeys.push_back(ViewDescription);
+		// View description
+		CHotkey ViewDescription(L"Description", IDS_HOTKEY_VIEW_DESCRIPTION, FALT, ID_VIEW_DESC, VK_F1);
+		view_hotkeys_group.m_hotkeys.push_back(ViewDescription);
 
-	// View source
-	CHotkey ViewSource(L"Source", IDS_HOTKEY_VIEW_SOURCE, FALT, ID_VIEW_SOURCE, VK_F3);
-	view_hotkeys_group.m_hotkeys.push_back(ViewSource);
+		// View source
+		CHotkey ViewSource(L"Source", IDS_HOTKEY_VIEW_SOURCE, FALT, ID_VIEW_SOURCE, VK_F3);
+		view_hotkeys_group.m_hotkeys.push_back(ViewSource);
 
-	// View tree
-	CHotkey ViewTree(L"Toggle Tree View", IDS_HOTKEY_TREEVIEW, FCONTROL, ID_VIEW_TREE, VK_F5);
-	view_hotkeys_group.m_hotkeys.push_back(ViewTree);
+		// View tree
+		CHotkey ViewTree(L"Toggle Tree View", IDS_HOTKEY_TREEVIEW, FCONTROL, ID_VIEW_TREE, VK_F5);
+		view_hotkeys_group.m_hotkeys.push_back(ViewTree);
+	// End group hotkeys
 
 	// Scripts group hotkeys
-	CHotkeysGroup scripts_hotkeys_group(L"Scripts", IDS_HOTKEY_GROUP_SCRIPTS);
+		CHotkeysGroup scripts_hotkeys_group(L"Scripts", IDS_HOTKEY_GROUP_SCRIPTS);
 
-	// Last script
-	CHotkey ScriptsLastScript(L"LastScript",
-								IDS_HOTKEY_SCRIPTS_LAST_SCRIPT,
-								FCONTROL,
-								ID_LAST_SCRIPT,
-								VK_OEM_3);
-	scripts_hotkeys_group.m_hotkeys.push_back(ScriptsLastScript);
+		// Last script
+		CHotkey ScriptsLastScript(L"LastScript",
+									IDS_HOTKEY_SCRIPTS_LAST_SCRIPT,
+									FCONTROL,
+									ID_LAST_SCRIPT,
+									VK_OEM_3);
+		scripts_hotkeys_group.m_hotkeys.push_back(ScriptsLastScript);
+	// End Scripts group hotkeys
 
 	// Plugins group hotkeys
-	CHotkeysGroup plugins_hotkeys_group(L"Plugins", IDS_HOTKEY_GROUP_PLUGINS);
+		CHotkeysGroup plugins_hotkeys_group(L"Plugins", IDS_HOTKEY_GROUP_PLUGINS);
 
-	// Last plugin
-	CHotkey PluginsLastPlugin(L"LastPlugin",
-		IDS_HOTKEY_PLUGINS_LAST_PLUGIN,
-		FALT,
-		ID_LAST_PLUGIN,
-		VK_OEM_3);
-	plugins_hotkeys_group.m_hotkeys.push_back(PluginsLastPlugin);
+		// Last plugin
+		CHotkey PluginsLastPlugin(L"LastPlugin",
+			IDS_HOTKEY_PLUGINS_LAST_PLUGIN,
+			FALT,
+			ID_LAST_PLUGIN,
+			VK_OEM_3);
+		plugins_hotkeys_group.m_hotkeys.push_back(PluginsLastPlugin);
+	// End Plugins group hotkeys
 
 	// Tools group hotkeys
-	CHotkeysGroup tools_hotkeys_group(L"Tools", IDS_HOTKEY_GROUP_TOOLS);
+		CHotkeysGroup tools_hotkeys_group(L"Tools", IDS_HOTKEY_GROUP_TOOLS);
 
-	// Words
-	CHotkey ToolsWords(L"Words", IDS_HOTKEY_TOOLS_WORDS, FALT, ID_TOOLS_WORDS, U::StringToKeycode(L"W"));
-	tools_hotkeys_group.m_hotkeys.push_back(ToolsWords);
+		// Words
+		CHotkey ToolsWords(L"Words", IDS_HOTKEY_TOOLS_WORDS, FALT, ID_TOOLS_WORDS, U::StringToKeycode(L"W"));
+		tools_hotkeys_group.m_hotkeys.push_back(ToolsWords);
 
-	// Added by SeNS
-	CHotkey ToolsSpell(L"Spell check", IDS_HOTKEY_TOOLS_SPELL, NULL, ID_TOOLS_SPELLCHECK, VK_F7);
-	tools_hotkeys_group.m_hotkeys.push_back(ToolsSpell);
+		// Added by SeNS
+		CHotkey ToolsSpell(L"Spell check", IDS_HOTKEY_TOOLS_SPELL, NULL, ID_TOOLS_SPELLCHECK, VK_F7);
+		tools_hotkeys_group.m_hotkeys.push_back(ToolsSpell);
 
-	CHotkey ToolsSpellHighlight(L"Toggle highlight", IDS_HOTKEY_TOOLS_SPELLHIGHLIGHT, FSHIFT, ID_TOOLS_SPELLCHECK_HIGHLIGHT, VK_F7);
-	tools_hotkeys_group.m_hotkeys.push_back(ToolsSpellHighlight);
+		CHotkey ToolsSpellHighlight(L"Toggle highlight", IDS_HOTKEY_TOOLS_SPELLHIGHLIGHT, FSHIFT, ID_TOOLS_SPELLCHECK_HIGHLIGHT, VK_F7);
+		tools_hotkeys_group.m_hotkeys.push_back(ToolsSpellHighlight);
+		CHotkey ToolsSpellAddToDict(L"Add to dictionary", IDC_SPELL_ADD2DICT, NULL, IDC_SPELL_ADD2DICT, NULL);
+		tools_hotkeys_group.m_hotkeys.push_back(ToolsSpellAddToDict);
 
-	CHotkey ToolsSpellAddToDict(L"Add to dictionary", IDC_SPELL_ADD2DICT, NULL, IDC_SPELL_ADD2DICT, NULL);
-	tools_hotkeys_group.m_hotkeys.push_back(ToolsSpellAddToDict);
-
-	CHotkey ToolsSpellIgnore(L"Ignore", IDC_SPELL_IGNOREALL, NULL, IDC_SPELL_IGNOREALL, NULL);
-	tools_hotkeys_group.m_hotkeys.push_back(ToolsSpellIgnore);
+		CHotkey ToolsSpellIgnore(L"Ignore", IDC_SPELL_IGNOREALL, NULL, IDC_SPELL_IGNOREALL, NULL);
+		tools_hotkeys_group.m_hotkeys.push_back(ToolsSpellIgnore);
+	// End Tools group hotkeys
 
 	// Symbols group hotkeys
 	CHotkeysGroup symbols_hotkeys_group(L"Symbols", IDS_HOTKEY_GROUP_SYMBOLS);
@@ -1232,7 +1236,7 @@ bool CSettings::SetPropertyValue(const CString& sProperty, CProperty& sValue)
 
 	return false;
 }
-
+ 
 bool CSettings::HasMultipleInstances()
 {
 	return false;
@@ -1910,11 +1914,7 @@ void CSettings::SaveWords()
 		MSXML2::IXMLDOMElementPtr pXMLRootElem = pXMLDoc->GetdocumentElement();
 		MSXML2::IXMLDOMProcessingInstructionPtr pXMLProcessingNode = pXMLDoc->createProcessingInstruction(L"xml", L" version='1.0' encoding='UTF-8'");
 
-		_variant_t vtObject;
-		vtObject.vt = VT_DISPATCH;
-		vtObject.pdispVal = pXMLRootElem;
-		vtObject.pdispVal->AddRef();
-		static_cast<MSXML2::IXMLDOMNodePtr>(pXMLDoc)->insertBefore(pXMLProcessingNode, vtObject);
+		static_cast<MSXML2::IXMLDOMNodePtr>(pXMLDoc)->insertBefore(pXMLProcessingNode, _variant_t(IDispatchPtr(pXMLRootElem), true));
 
 		CString fileName(U::GetSettingsDir()+WORDS_XML_FILE);
 		pXMLDoc->save(fileName.AllocSysString());

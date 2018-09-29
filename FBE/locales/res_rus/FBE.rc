@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include <wtl/atlres.h>
+#include "atlres.h"
 #include "..\..\res1.h"
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -426,25 +426,23 @@ BEGIN
     PUSHBUTTON      "Заменить",IDC_WORDS_FR_BTN_REPL,299,296,43,14,WS_DISABLED
 END
 
-IDD_SPELL_CHECK DIALOGEX 0, 0, 273, 135
+IDD_SPELL_CHECK DIALOGEX 0, 0, 273, 112
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Орфография"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Отмена",IDCANCEL,216,112,50,14
+    DEFPUSHBUTTON   "Отмена",IDCANCEL,215,94,50,14
     LTEXT           "Нет в словаре:",IDC_STATIC,7,14,64,8
     EDITTEXT        IDC_SPELL_BEDWORD,72,12,194,12,ES_AUTOHSCROLL
     LTEXT           "Изменить на:",IDC_STATIC,8,30,46,8
     EDITTEXT        IDC_SPELL_REPLACEMENT,72,29,194,12,ES_AUTOHSCROLL
     LTEXT           "Варианты:",IDC_STATIC,7,47,46,8
-    LISTBOX         IDC_SPELL_SUGG_LIST,7,58,145,68,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Пропустить",IDC_SPELL_IGNORE,159,58,50,14
-    PUSHBUTTON      "Пропуск всех",IDC_SPELL_IGNOREALL,216,58,50,14
+    LISTBOX         IDC_SPELL_SUGG_LIST,7,58,145,51,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Далее",IDC_SPELL_IGNORE,159,57,50,14
+    PUSHBUTTON      "Пропуск всех",IDC_SPELL_IGNOREALL,216,57,50,14
     PUSHBUTTON      "Заменить",IDC_SPELL_CHANGE,159,76,50,14
     PUSHBUTTON      "Замена всех",IDC_SPELL_CHANGEALL,216,76,50,14
     PUSHBUTTON      "Добавить",IDC_SPELL_ADD,159,94,50,14
-    PUSHBUTTON      "Вариант",IDC_SPELL_SUGGEST,216,94,50,14,WS_DISABLED
-    PUSHBUTTON      "Вернуть",IDC_SPELL_UNDO,159,112,50,14,WS_DISABLED
 END
 
 
@@ -985,7 +983,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDC_SPELL_IGNORE        "Пропустить"
+    IDC_SPELL_IGNORE        "Далее"
 END
 
 STRINGTABLE
@@ -1000,6 +998,7 @@ BEGIN
     IDS_ENCODING            "Кодировка:"
     IDS_SETTINGS            "Настройки"
     IDS_DONT_ASK_AGAIN      "Больше не спрашивать"
+    IDS_HOTKEY_FILE_NEW     "Создать"
 END
 
 #endif    // Русский (Россия) resources

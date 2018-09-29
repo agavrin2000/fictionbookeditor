@@ -38,6 +38,8 @@
 
 typedef CWinTraits<WS_CHILD|WS_VISIBLE|ES_AUTOHSCROLL|ES_LEFT,WS_EX_CLIENTEDGE> CCustomEditWinTraits;
 
+const int MAX_POPUP_SUGGESTION = 8;
+
 class CCustomEdit : public CWindowImpl<CCustomEdit,CEdit,CCustomEditWinTraits>, public CEditCommands<CCustomEdit>
 {
 public:
@@ -50,14 +52,7 @@ public:
 		CHAIN_MSG_MAP_ALT(CEditCommands<CCustomEdit>, 1)
 	END_MSG_MAP()
 
-	LRESULT OnChar(UINT, WPARAM wParam, LPARAM, BOOL& bHandled)
-	{
-		if(wParam == VK_RETURN)
-			::PostMessage(::GetParent(GetParent()), WM_COMMAND,MAKELONG(GetDlgCtrlID(), IDN_ED_RETURN), (LPARAM)m_hWnd);
-
-		bHandled = FALSE;
-		return 0;
-	}
+	LRESULT OnChar(UINT, WPARAM wParam, LPARAM, BOOL& bHandled);
 };
 
 class CCustomStatic : public CWindowImpl<CCustomStatic,CStatic/*,CCustomStaticWinTraits*/>
@@ -68,62 +63,11 @@ private:
 public:
 	CCustomStatic():m_font(0), m_enabled(0){}
 
-	void DoPaint(CDCHandle dc)
-    {		
-      RECT rc;
-      GetClientRect(&rc);
-	  /*HBRUSH hBr = GetSysColorBrush(COLOR_3DFACE);
-	  HPEN pen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DFACE));
-	  HBRUSH oldBrush = (HBRUSH)SelectObject(dc, hBr);
-	  HPEN oldPen = (HPEN)SelectObject(dc, pen);
-	  Rectangle(dc, rc.left, rc.top, rc.right, rc.bottom);
-	  SelectObject(dc, oldBrush);
-	  SelectObject(dc, oldPen);*/
-      DWORD dwStyle = GetStyle();
-	  HFONT oldFont = (HFONT)SelectObject(dc, m_font);
-
-      UINT iFlags = DT_SINGLELINE | DT_CENTER | DT_VCENTER;      
-
-      int len = GetWindowTextLength();
-      wchar_t* text = new wchar_t[len+1];
-      GetWindowText(text, len+1);
-
-      dc.SetBkMode(TRANSPARENT);
-	  if(m_enabled)
-	  {
-		  dc.SetTextColor(GetSysColor(COLOR_BTNTEXT));
-	  }
-	  else
-	  {
-		  dc.SetTextColor(GetSysColor(COLOR_GRAYTEXT));
-	  }
-	  dc.DrawText(text, -1, &rc, iFlags);      
-	  SelectObject(dc, oldFont);
-	  delete []text;
-    }
-
-	LRESULT OnPaint(UINT, WPARAM wParam, LPARAM, BOOL&)
-	{
-		if(wParam != NULL) {
-         DoPaint((HDC)wParam);
-      }
-      else {
-         CPaintDC dc(m_hWnd);
-         DoPaint(dc.m_hDC);
-      }
-      return 0;
-	}
+	void DoPaint(CDCHandle dc);
+	LRESULT OnPaint(UINT, WPARAM wParam, LPARAM, BOOL&);
 	
-	void SetFont(HFONT pFont)
-	{
-		m_font = pFont;
-	}
-
-	void SetEnabled(bool Enabled = true)
-	{
-		m_enabled = Enabled;
-		Invalidate();
-	}
+	void SetFont(HFONT pFont);
+	void SetEnabled(bool Enabled);
 
 	BEGIN_MSG_MAP(CCustomStatic)
 		//MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -139,6 +83,8 @@ public:
 
   END_UPDATE_UI_MAP()
 };
+
+
 
 class CMainFrame :	public CFrameWindowImpl<CMainFrame>,
 					public CCustomizableToolBarCommands<CMainFrame>,
@@ -231,7 +177,7 @@ public:
   bool			  m_change_state:1;
   bool			  m_need_title_update:1;
 
-  MSXML2::IXMLDOMDocumentPtr		m_saved_xml;
+  MSXML2::IXMLDOMDocumentPtr m_saved_xml;
 
   CComPtr<IShellItem> m_spShellItem;
 
@@ -276,52 +222,27 @@ public:
 	  ICON	  
   };
 
-  CSimpleArray<ScrInfo>	 m_scripts;
+  CSimpleArray<ScrInfo>	 m_scripts; //array of scripts 
   CSimpleMap<unsigned int, HBITMAP> m_scripts_images;
   void CollectScripts(CString path, TCHAR* mask, int lastid, CString refid);
-  int GrabScripts(CString, TCHAR*, CString);
+  int GrabScripts(CString path, TCHAR* mask, CString refid);
   void AddScriptsSubMenu(HMENU, CString, CSimpleArray<ScrInfo>&);
   void QuickScriptsSort(CSimpleArray<ScrInfo>&, int, int);
   void UpScriptsFolders(CSimpleArray<ScrInfo>&);
   ScrInfo* m_last_script;
   void InitScriptHotkey(CMainFrame::ScrInfo&);
-
+  
   // contruction/destruction
-  CMainFrame() : m_doc(0), m_cb_updated(false),
-    m_doc_changed(false), m_sel_changed(false), m_want_focus(0),
-    m_ignore_cb_changes(false), m_incsearch(0), m_cb_last_images(false),
-    m_last_ie_ovr(true), m_last_sci_ovr(true), m_saved_xml(0), m_sci_find_dlg(0), m_sci_replace_dlg(0),
-	m_last_script(0), m_last_plugin(0), m_restore_pos_cmdline(false), m_bad_xml(false)
-	// added by SeNS
-	{ 
-		TCHAR prgPath[MAX_PATH];
-		DWORD pathlen = ::GetModuleFileName(_Module.GetModuleInstance(), prgPath, MAX_PATH);
-		PathRemoveFileSpec(prgPath);
-		if (_Settings.m_usespell_check)
-		{
-			m_Speller = new CSpeller(CString(prgPath)+L"\\dict\\");
-		}
-		else
-		{
-			m_Speller = NULL;
-		}
-	}
+  CMainFrame();
   ~CMainFrame(); 
+  
   // toolbars
   bool	  IsBandVisible(int id);
   
   // browser controls
   void	  AttachDocument(FB::Doc *doc);
-  CFBEView& ActiveView() {
-/*    return m_doc->m_desc==m_view.GetActiveWnd() ?
-	      m_doc->m_desc : m_doc->m_body;*/
-	  return m_doc->m_body;
-  }
-  //bool	  IsSourceActive() { return m_source==m_view.GetActiveWnd(); }
-  bool	  IsSourceActive() 
-  { 
-	  return m_current_view == SOURCE; 
-  }
+  CFBEView& ActiveView();
+  bool	 IsSourceActive(); 
 
   // document structure
   void	  GetDocumentStructure();
@@ -334,7 +255,7 @@ public:
   bool	  SaveToFile(const CString& filename);
   bool	  DiscardChanges();
 
-  FILE_OP_STATUS	  SaveFile(bool askname);
+  FILE_OP_STATUS  SaveFile(bool askname);
   FILE_OP_STATUS	  LoadFile(const wchar_t *initfilename=NULL);
 
   // show a specific view
@@ -366,16 +287,13 @@ public:
 	UINT m_last_plugin;
 
   void AddTbButton(HWND hWnd, const TCHAR *text, const int idCommand = 0, const BYTE bState = 0, const HICON icon = 0);
-  void		AddStaticText(CCustomStatic &st, HWND toolbarHwnd, int id, const TCHAR *text, HFONT hFont);
+  void AddStaticText(CCustomStatic &st, HWND toolbarHwnd, int id, const TCHAR *text, HFONT hFont);
 
 
   // ui updating
   void	  UIUpdateViewCmd(CFBEView& view,WORD wID,OLECMD& oc,const TCHAR *hk);
-  void	  UIUpdateViewCmd(CFBEView& view,WORD wID) { UIEnable(wID,view.CheckCommand(wID)); }
-  void	  UISetCheckCmd(CFBEView& view, WORD wID)
-  {
-	  UISetCheck(wID, view.CheckSetCommand(wID));
-  }
+  void	  UIUpdateViewCmd(CFBEView& view,WORD wID);
+  void	  UISetCheckCmd(CFBEView& view, WORD wID);
 
   void	  StopIncSearch(bool fCancel);
   void	  SetIsText();
@@ -412,6 +330,7 @@ public:
 		UPDATE_ELEMENT(ATL_IDW_BAND_FIRST+5, UPDUI_MENUPOPUP)
 
 		UPDATE_ELEMENT(ID_VIEW_STATUS_BAR, UPDUI_MENUPOPUP)
+		UPDATE_ELEMENT(ID_VIEW_FASTMODE, UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_VIEW_TREE, UPDUI_MENUPOPUP)
 		UPDATE_ELEMENT(ID_VIEW_DESC, UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_VIEW_BODY, UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
@@ -469,9 +388,7 @@ public:
 		// added by SeNS: toolbar customization menu
 		MESSAGE_HANDLER(WM_CONTEXTMENU, OnContextMenu)
 
-		#if _WIN32_WINNT>=0x0501
-			MESSAGE_HANDLER(WM_THEMECHANGED, OnSettingChange)
-		#endif
+		MESSAGE_HANDLER(WM_THEMECHANGED, OnSettingChange)
 		MESSAGE_HANDLER(WM_DROPFILES, OnDropFiles)
 		MESSAGE_HANDLER(AU::WM_SETSTATUSTEXT, OnSetStatusText)
 		MESSAGE_HANDLER(AU::WM_TRACKPOPUPMENU, OnTrackPopupMenu)
@@ -545,6 +462,7 @@ public:
 		COMMAND_ID_HANDLER(ATL_IDW_BAND_FIRST+7, OnViewToolBar)
 		COMMAND_ID_HANDLER(ATL_IDW_BAND_FIRST+8, OnViewToolBar)
 		COMMAND_ID_HANDLER(ID_VIEW_STATUS_BAR, OnViewStatusBar)
+		COMMAND_ID_HANDLER(ID_VIEW_FASTMODE, OnViewFastMode)
 		COMMAND_ID_HANDLER(ID_VIEW_TREE, OnViewTree)
 		COMMAND_ID_HANDLER(ID_VIEW_DESC, OnViewDesc)
 		COMMAND_ID_HANDLER(ID_VIEW_BODY, OnViewBody)
@@ -594,6 +512,7 @@ public:
 		COMMAND_CODE_HANDLER(EN_KILLFOCUS, OnEdKillFocus)
 		COMMAND_CODE_HANDLER(CBN_EDITCHANGE, OnCbEdChange)
 		COMMAND_CODE_HANDLER(CBN_SELENDOK, OnCbSelEndOk)
+		COMMAND_CODE_HANDLER(IDN_FAST_MODE_CHANGE, OnFastModeChange)
 		COMMAND_HANDLER(IDC_HREF,CBN_SETFOCUS, OnCbSetFocus)
 
 		// source code editor notifications
@@ -608,6 +527,7 @@ public:
 		COMMAND_ID_HANDLER_EX(ID_GOTO_FOOTNOTE, OnGoToFootnote)
 		COMMAND_ID_HANDLER_EX(ID_GOTO_REFERENCE, OnGoToReference)
 		COMMAND_ID_HANDLER_EX(ID_GOTO_MATCHTAG, OnGoToMatchTag);
+		COMMAND_ID_HANDLER_EX(ID_GOTO_WRONGTAG, OnGoToWrongTag);
 
 		// chain commands to active view
 		MESSAGE_HANDLER(WM_COMMAND, OnUnhandledCommand)
@@ -621,84 +541,21 @@ public:
   LRESULT OnClose(UINT, WPARAM, LPARAM, BOOL&);
   LRESULT OnDestroy(UINT, WPARAM, LPARAM, BOOL&);
   LRESULT OnPostCreate(UINT, WPARAM, LPARAM, BOOL&);
-  LRESULT OnSettingChange(UINT, WPARAM, LPARAM, BOOL&) {
-    if (m_doc)
-      m_doc->ApplyConfChanges();
-    return 0;
-  }
+  LRESULT OnSettingChange(UINT, WPARAM, LPARAM, BOOL&);
 
   int m_selBandID;
 
-  LRESULT OnContextMenu(UINT, WPARAM, LPARAM lParam, BOOL&) 
-  {
-	HMENU menu, popup;
-	RECT rect;
-	CPoint ptMousePos = (CPoint)lParam;
-	ScreenToClient(&ptMousePos);
-	// find clicked toolbar
-	REBARBANDINFO rbi;
-	ZeroMemory((void*)&rbi, sizeof(rbi));
-	rbi.cbSize = sizeof(REBARBANDINFO);
-	rbi.fMask = RBBIM_ID;
-	m_selBandID = -1;
-	for (unsigned int i=0; i< m_rebar.GetBandCount(); i++)
-	{
-		m_rebar.GetRect(i, &rect);
-		if (PtInRect(&rect,ptMousePos))
-		{
-			m_rebar.GetBandInfo(i, &rbi);
-			m_selBandID = rbi.wID;
-			break;
-		}
-	}
-	// display context menu for command & script toolbars only
-	if ((m_selBandID == ATL_IDW_BAND_FIRST+1) || (m_selBandID == ATL_IDW_BAND_FIRST+2))
-	{
-		menu = ::LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCEW(IDR_TOOLBAR_MENU));
-		popup = ::GetSubMenu(menu, 0);
-		ClientToScreen(&ptMousePos);
-		::TrackPopupMenu(popup, TPM_LEFTALIGN, ptMousePos.x, ptMousePos.y, 0, *this, 0);
-	}
-	return 0;
-  }
-
+  LRESULT OnContextMenu(UINT, WPARAM, LPARAM lParam, BOOL&);
   LRESULT OnUnhandledCommand(UINT, WPARAM, LPARAM, BOOL&);
-  LRESULT OnSetFocus(UINT, WPARAM, LPARAM, BOOL&) {
-    m_view.SetFocus();
-	UpdateViewSizeInfo();
-    return 0;
-  }
+  LRESULT OnSetFocus(UINT, WPARAM, LPARAM, BOOL&);
   LRESULT OnDropFiles(UINT, WPARAM, LPARAM, BOOL&);
-  LRESULT OnSetStatusText(UINT, WPARAM, LPARAM lParam, BOOL&) {
-    m_status_msg=(const TCHAR *)lParam;
-    return 0;
-  }
+  LRESULT OnSetStatusText(UINT, WPARAM, LPARAM lParam, BOOL&);
 
-	LRESULT OnTrackPopupMenu(UINT, WPARAM, LPARAM lParam, BOOL&)
-	{
-		AU::TRACKPARAMS* tp = (AU::TRACKPARAMS*)lParam;
-		// added by SeNS
-		if (m_Speller) m_Speller->AppendSpellMenu(tp->hMenu);
-		m_MenuBar.TrackPopupMenu(tp->hMenu, tp->uFlags, tp->x, tp->y);
-		return 0;
-	}
+  LRESULT OnTrackPopupMenu(UINT, WPARAM, LPARAM lParam, BOOL&);
 
 	LRESULT OnChar(UINT, WPARAM, LPARAM, BOOL&);
-	LRESULT OnPreCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-	{
-		bHandled = FALSE;
-		if((HIWORD(wParam) == 0 || HIWORD(wParam) == 1) && LOWORD(wParam) != ID_EDIT_INCSEARCH)
-		StopIncSearch(true);
-		return 0;
-	}
-
-	LRESULT OnFileExit(WORD, WORD, HWND, BOOL&)
-	{
-		// close (possible) opened in script modeless dialogs
-		PostMessage(WM_CLOSEDIALOG);
-		PostMessage(WM_CLOSE);
-		return 0;
-	}
+	LRESULT OnPreCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnFileExit(WORD, WORD, HWND, BOOL&);
 	LRESULT OnFileNew(WORD, WORD, HWND, BOOL&);
 	LRESULT OnFileOpen(WORD, WORD, HWND, BOOL&);
 	LRESULT OnFileOpenMRU(WORD, WORD, HWND, BOOL&);
@@ -711,172 +568,53 @@ public:
 
 	LRESULT OnEditIncSearch(WORD, WORD, HWND, BOOL&);
 	LRESULT OnEditAddBinary(WORD, WORD, HWND, BOOL&);
-	LRESULT OnEditFind(WORD, WORD, HWND, BOOL& bHandled)
-	{
-		if(m_current_view == DESC)
-			ShowView(BODY);
-
-		bHandled = FALSE;
-		return 0;
-	}
+	LRESULT OnEditFind(WORD, WORD, HWND, BOOL&);
 	LRESULT OnEditInsSymbol(WORD, WORD, HWND, BOOL&);
 
-	// added by SeNS
-	LRESULT OnSpellReplace(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
-	{ 
-		if (m_Speller)
-		{
-			m_doc->m_body.BeginUndoUnit(L"replace word");
-			m_Speller->Replace (wID - IDC_SPELL_REPLACE);
-			m_doc->m_body.EndUndoUnit();
-		}
-		return 0; 
-	}
-	LRESULT OnSpellIgnoreAll(WORD, WORD, HWND, BOOL&) 
-	{ 
-		if (m_Speller) m_Speller->IgnoreAll();
-		return 0; 
-	}
-	LRESULT OnSpellAddToDict(WORD, WORD, HWND, BOOL&) 
-	{ 
-		if (m_Speller) m_Speller->AddToDictionary();
-		return 0; 
-	}
-
-	LRESULT OnVersionAdvance(WORD delta, WORD, HWND, BOOL&)
-	{
-		m_doc->AdvanceDocVersion(delta);
-		return 0;
-	}
+	LRESULT OnSpellReplace(WORD, WORD, HWND, BOOL&);
+	LRESULT OnSpellIgnoreAll(WORD, WORD, HWND, BOOL&); 
+	LRESULT OnSpellAddToDict(WORD, WORD, HWND, BOOL&); 
+	LRESULT OnVersionAdvance(WORD delta, WORD, HWND, BOOL&);
 
   LRESULT OnViewToolBar(WORD, WORD, HWND, BOOL&);
   LRESULT OnViewStatusBar(WORD, WORD, HWND, BOOL&);
+  LRESULT OnViewFastMode(WORD, WORD, HWND, BOOL&);
   LRESULT OnViewTree(WORD, WORD, HWND, BOOL&);
-  LRESULT OnViewDesc(WORD, WORD, HWND, BOOL&) {
-    ShowView(DESC);
-    return 0;
-  }
-  LRESULT OnViewBody(WORD, WORD, HWND, BOOL&) {
-    ShowView(BODY);
-    return 0;
-  }
-  LRESULT OnViewSource(WORD, WORD, HWND, BOOL&) {
-    ShowView(SOURCE);
-    return 0;
-  }
+  LRESULT OnViewDesc(WORD, WORD, HWND, BOOL&);
+  LRESULT OnViewBody(WORD, WORD, HWND, BOOL&);
+  
+  LRESULT OnViewSource(WORD, WORD, HWND, BOOL&);
   LRESULT OnViewOptions(WORD, WORD, HWND, BOOL&);
 
   LRESULT OnToolsWords(WORD, WORD, HWND, BOOL&);
   LRESULT OnToolsOptions(WORD, WORD, HWND, BOOL&);
   LRESULT OnToolsScript(WORD, WORD, HWND, BOOL&);
 
-  LRESULT OnHideToolbar(WORD wNotifyCode, WORD /*wID*/, HWND hWndCtl, BOOL& bHandled)
-  {
-	  return OnViewToolBar(wNotifyCode, m_selBandID, hWndCtl, bHandled);
-  }
-
-  LRESULT OnToolCustomize(WORD /*wNotifyCode*/, WORD /*wID*/, HWND hWndCtl, BOOL& /*bHandled*/)
-  {
-	  if (m_selBandID == ATL_IDW_BAND_FIRST+1) m_CmdToolbar.Customize(); else
-	  if (m_selBandID == ATL_IDW_BAND_FIRST+2) m_ScriptsToolbar.Customize();
-
-	  return 0;
-  }
-
-	LRESULT OnLastScript(WORD, WORD, HWND, BOOL&)
-	{
-		if(m_last_script != 0 && !IsSourceActive())
-		{
-			m_doc->RunScript((*m_last_script).path.GetBuffer());
-		}
-		return 0;
-	}
+  LRESULT OnHideToolbar(WORD, WORD, HWND, BOOL&);
+  LRESULT OnToolCustomize(WORD, WORD, HWND, BOOL&);
+  LRESULT OnLastScript(WORD, WORD, HWND, BOOL&);
 
   LRESULT OnAppAbout(WORD, WORD, HWND, BOOL&);
 
   LRESULT OnSelectCtl(WORD, WORD, HWND, BOOL&);
   LRESULT OnNextItem(WORD, WORD, HWND, BOOL&);
 
-  LRESULT OnEdSelChange(WORD, WORD, HWND hWndCtl, BOOL&) {
-    m_sel_changed=true;
-    StopIncSearch(true);
-	DisplayCharCode();
-    return 0;
-  }
-/*  LRESULT OnFastModeChange(WORD, WORD mode, HWND hWndCtl, BOOL&) 
-  {
-	  UISetCheck(ID_VIEW_FASTMODE, mode);
-	  return 0;
-  }*/
-  LRESULT OnEdStatusText(WORD, WORD, HWND hWndCtl, BOOL&) {
-    StopIncSearch(true);
-    m_status.SetText(ID_DEFAULT_PANE,(const TCHAR *)hWndCtl);
-    return 0;
-  }
-  LRESULT OnEdWantFocus(WORD, WORD wID, HWND, BOOL&) {
-    m_want_focus=wID;
-    return 0;
-  }
-  LRESULT OnEdReturn(WORD, WORD, HWND, BOOL&) {
-    m_view.SetFocus();
-    return 0;
-  }
+  LRESULT OnEdSelChange(WORD, WORD, HWND, BOOL&);
+  LRESULT OnFastModeChange(WORD, WORD, HWND, BOOL&);
+  LRESULT OnEdStatusText(WORD, WORD, HWND, BOOL&);
+  LRESULT OnEdWantFocus(WORD, WORD, HWND, BOOL&);
+  LRESULT OnEdReturn(WORD, WORD, HWND, BOOL&);
   LRESULT OnNavigate(WORD, WORD, HWND, BOOL&);
 
-	LRESULT OnCbSetFocus(WORD, WORD, HWND, BOOL&)
-	{
-		if(!m_cb_updated)
-		{
-			m_ignore_cb_changes = true;
-
-			CString str(U::GetWindowText(m_href));
-
-			m_href_box.ResetContent();
-			m_href.SetWindowText(str);
-			m_href.SetSel(0, str.GetLength() + 1);
-			m_ignore_cb_changes = false;
-
-			if(m_cb_last_images)
-				m_doc->BinIDsToComboBox(m_href_box);
-			else
-				m_doc->ParaIDsToComboBox(m_href_box); 
-			m_cb_updated = true;
-		}
-
-		return 0;
-	}
+	LRESULT OnCbSetFocus(WORD, WORD, HWND, BOOL&);
 
   void ChangeNBSP(MSHTML::IHTMLElementPtr elem);
   void RemoveLastUndo();
 
-  LRESULT OnEdChange(WORD, WORD, HWND hWnd, BOOL& b) {
-    StopIncSearch(true);
-	m_doc_changed=true;
-    m_cb_updated=false;
-
-	// added by SeNS: update 
-	UpdateViewSizeInfo();
-	// added by SeNS - process nbsp
-	if (_Settings.GetNBSPChar().Compare(L"\u00A0") != 0)
-		ChangeNBSP(m_doc->m_body.SelectionContainer());
-
-	// added by SeNS: do spellcheck
-	if (m_Speller && m_current_view == BODY)
-		if (m_Speller->Enabled() && _Settings.m_highlght_check)
-			m_Speller->CheckElement(m_doc->m_body.SelectionContainer(), -1, m_doc->m_body.IsHTMLChanged());
-
-	return 0;
-  }
+  LRESULT OnEdChange(WORD, WORD, HWND hWnd, BOOL& b);
   LRESULT OnCbEdChange(WORD, WORD, HWND, BOOL&);
-  LRESULT OnCbSelEndOk(WORD code, WORD wID, HWND hWnd, BOOL&) {
-    PostMessage(WM_COMMAND,MAKELONG(wID,CBN_EDITCHANGE),(LPARAM)hWnd);
-    return 0;
-  }
-
-  LRESULT OnEdKillFocus(WORD, WORD, HWND, BOOL&) {
-    StopIncSearch(true);
-    return 0;
-  }
+  LRESULT OnCbSelEndOk(WORD code, WORD wID, HWND hWnd, BOOL&);
+  LRESULT OnEdKillFocus(WORD, WORD, HWND, BOOL&);
 
   LRESULT OnTreeReturn(WORD, WORD, HWND, BOOL&);
   LRESULT OnTreeClick(WORD, WORD, HWND, BOOL&);
@@ -892,51 +630,16 @@ public:
   LRESULT OnTreeMerge(WORD, WORD, HWND, BOOL&);
   LRESULT OnTreeUpdate(WORD, WORD, HWND, BOOL&);
   LRESULT OnTreeRestore(WORD, WORD, HWND, BOOL&);
+  void GoToSelectedTreeItem();
 
-  LRESULT OnGoToFootnote(WORD wNotifyCode, WORD wID, HWND hWndCtl)
-  {
-	  if (!m_doc->m_body.GoToFootnote(false))
-		m_doc->m_body.GoToReference(false);
-	  return 0;
-  }
+  LRESULT OnGoToFootnote(WORD wNotifyCode, WORD wID, HWND hWndCtl);
+  LRESULT OnGoToReference(WORD wNotifyCode, WORD wID, HWND hWndCtl);
 
-  LRESULT OnGoToReference(WORD wNotifyCode, WORD wID, HWND hWndCtl)
-  {
-	  m_doc->m_body.GoToReference(false);
-	  return 0;
-  }
-
-  LRESULT OnSciModified(int id,NMHDR *hdr,BOOL& bHandled) {
-    if (hdr->hwndFrom!=m_source) {
-      bHandled=FALSE;
-      return 0;
-    }
-    SciModified(*(SCNotification*)hdr);
-    return 0;
-  }
-
-  LRESULT OnSciMarginClick(int id,NMHDR *hdr,BOOL& bHandled) {
-    if (hdr->hwndFrom!=m_source) {
-      bHandled=FALSE;
-      return 0;
-    }
-    SciMarginClicked(*(SCNotification*)hdr);
-    return 0;
-  }
-
-  LRESULT OnSciUpdateUI(int id,NMHDR *hdr,BOOL& bHandled) 
-  {
-    if (m_current_view == SOURCE)
-		SciUpdateUI(false);
-	return 0;
-  }
-
-  LRESULT OnGoToMatchTag(WORD wNotifyCode, WORD wID, HWND hWndCtl)
-  {
-    if (m_current_view == SOURCE)
-		SciUpdateUI(true);
-	return 0;
-  }
+  LRESULT OnSciModified(int id,NMHDR *hdr,BOOL& bHandled);
+  LRESULT OnSciMarginClick(int id,NMHDR *hdr,BOOL& bHandled);
+  LRESULT OnSciUpdateUI(int id,NMHDR *hdr,BOOL& bHandled); 
+  LRESULT OnGoToMatchTag(WORD wNotifyCode, WORD wID, HWND hWndCtl);
+  LRESULT OnGoToWrongTag(WORD wNotifyCode, WORD wID, HWND hWndCtl);
 
 	LRESULT OnSciCollapse(WORD cose, WORD wID, HWND, BOOL&);  
 	LRESULT OnSciExpand(WORD cose, WORD wID, HWND, BOOL&);  
@@ -944,15 +647,13 @@ public:
 	void SciModified(const SCNotification& scn);
 	void SciMarginClicked(const SCNotification& scn);
 	bool SciUpdateUI(bool gotoTag);
-	void SciGotoWrongTag();
+//	void SciGotoWrongTag();
 	void SciCollapse(int level2Collapse, bool mode);
 
-	void GoToSelectedTreeItem();
 	MSHTML::IHTMLDOMNodePtr MoveRightElementWithoutChildren(MSHTML::IHTMLDOMNodePtr node);
 	MSHTML::IHTMLDOMNodePtr MoveRightElement(MSHTML::IHTMLDOMNodePtr node);
 	MSHTML::IHTMLDOMNodePtr MoveLeftElement(MSHTML::IHTMLDOMNodePtr node);
 	MSHTML::IHTMLDOMNodePtr RecoursiveMoveRightElement(CTreeItem item);
-
 	MSHTML::IHTMLDOMNodePtr GetFirstChildSection(MSHTML::IHTMLDOMNodePtr node);
 	MSHTML::IHTMLDOMNodePtr GetNextSiblingSection(MSHTML::IHTMLDOMNodePtr node);
 	MSHTML::IHTMLDOMNodePtr GetPrevSiblingSection(MSHTML::IHTMLDOMNodePtr node);
@@ -960,7 +661,9 @@ public:
 	bool IsNodeSection(MSHTML::IHTMLDOMNodePtr node);
 	bool IsEmptySection(MSHTML::IHTMLDOMNodePtr section);
 	MSHTML::IHTMLDOMNodePtr CreateNestedSection(MSHTML::IHTMLDOMNodePtr section);
-	bool IsEmptyText(BSTR text);
+
+	bool IsEmptyText(BSTR text); //??
+    
 	void SourceGoTo(int line, int linePos);
 	unsigned __int64 FileAge(LPCTSTR FileName);
 	bool CheckFileTimeStamp();
@@ -971,67 +674,25 @@ public:
 	void RestartProgram();
 	void FillMenuWithHkeys(HMENU);
 
-	// added by SeNS
     CSpeller *m_Speller;
-	LRESULT OnSpellCheck(WORD, WORD, HWND, BOOL& b)
-	{
-		if (m_Speller && m_current_view == BODY)
-			m_Speller->StartDocumentCheck(m_doc->m_body.m_mk_srv);
-		return S_OK;
-	}
+	LRESULT OnSpellCheck(WORD, WORD, HWND, BOOL& b);
 
-	LRESULT OnToggleHighlight(WORD, WORD, HWND, BOOL&)
-	{
-		if (m_Speller && m_current_view == BODY)
-		{
-			_Settings.SetHighlightMisspells(!_Settings.m_highlght_check);
-			m_Speller->SetHighlightMisspells(_Settings.m_highlght_check);
-		}
-		return S_OK;
-	}
+	LRESULT OnToggleHighlight(WORD, WORD, HWND, BOOL&);
 
-	// added by SeNS - paste pictures
-	bool BitmapInClipboard()
-	{
-		bool result = false;
-		if (OpenClipboard())
-		{
-			if ( IsClipboardFormatAvailable(CF_BITMAP)) result = true;
-			CloseClipboard();
-		}
-		return result;
-	}
+	bool BitmapInClipboard();
 
     // added by SeNS
-	void UpdateViewSizeInfo()
-	{
-		if (m_doc && m_doc->m_body)
-			if (m_doc->m_body.Document())
-			{
-				MSHTML::IHTMLElement2Ptr m_scrollElement = MSHTML::IHTMLDocument3Ptr(m_doc->m_body.Document())->documentElement;
-				if (m_scrollElement)
-				{
-					_Settings.SetViewWidth (m_scrollElement->clientWidth);
-					_Settings.SetViewHeight(m_scrollElement->clientHeight);
-					_Settings.SetMainWindow(m_hWnd);
-				}
-			}
-	}
+	void UpdateViewSizeInfo();
+	LRESULT OnSize(UINT, WPARAM, LPARAM, BOOL& bHandled);
 
-	LRESULT OnSize(UINT, WPARAM, LPARAM, BOOL& bHandled)
-	{
-		UpdateViewSizeInfo();
-		bHandled = FALSE;
-		return 0;
-	}
-
-	// added by SeNS: incorrect XML file flag
-	bool m_bad_xml;
+	
+	bool m_bad_xml; // added by SeNS: incorrect XML file flag
 	CString m_bad_filename;
 	bool LoadToScintilla(CString filename);
 
-	// added by SeNS: issue #127
-	void DisplayCharCode();
+	void DisplayCharCode(); // added by SeNS: issue #127
+	private: 
+		CStrings* m_strSuggestions;
 };
 
 int	StartScript(CMainFrame* mainframe);

@@ -6,76 +6,17 @@
 #include <atlutil.h>
 #include "utils.h"
 #include "ModelessDialog.h"
-#include "Splitter.h"
 
 // Hunspell API function prototypes
-#ifdef __cplusplus
 extern "C" {
-#endif
 #include <hunspell/hunspell.h>
-#ifdef __cplusplus
 }
-#endif
-
-enum SPELL_RESULT
-{
-	SPELL_MISSPELL = 0,
-	SPELL_OK = 1,
-	SPELL_IGNORE,
-	SPELL_IGNOREALL,
-	SPELL_CHANGE,
-	SPELL_CHANGEALL,
-	SPELL_ADD,
-	SPELL_UNDO,
-	SPELL_CANCEL
-};
-
-// TODO: hardcoded set of dictionaries should be changed
-enum SPELL_LANG
-{
-	LANG_EN = 0,
-	LANG_RU,
-	LANG_DE,
-	LANG_FR,
-	LANG_ES,
-	LANG_UA,
-	LANG_CZ,
-	LANG_BY,
-	LANG_BG,
-	LANG_PL,
-	LANG_IT,
-	LANG_NONE
-};
-
-struct DICT
-{
-	Hunhandle* handle;
-	SPELL_LANG lang;
-	CString name;
-	int codepage;
-};
-
-// currently supported dictionaries
-const DICT dicts[] = { 
-	{0, LANG_EN, CString("en_US"), CP_UTF8},	// UTF-8
-	{0, LANG_RU, CString("ru_RU"), 20866},		// KOI8-R
-	{0, LANG_DE, CString("de_DE"), 28591},		// ISO 8859-1 Latin 1
-	{0, LANG_FR, CString("fr_FR"), CP_UTF8},	// UTF-8
-	{0, LANG_ES, CString("es_ES"), 28591},		// ISO 8859-1 Latin 1
-	{0, LANG_UA, CString("uk_UA"), CP_UTF8},	// UTF-8
-	{0, LANG_CZ, CString("cs_CZ"), 28592},		// ISO 8859-1 Latin 2
-	{0, LANG_BY, CString("be_BY"), 1251},		// Win-1251
-	{0, LANG_BG, CString("bg_BG"), 1251},		// Win-1251
-	{0, LANG_PL, CString("pl_PL"), 28592},		// ISO 8859-1 Latin 2
-	{0, LANG_IT, CString("it_IT"), 28605},		// ISO 8859-15 Latin 9
-	{0, LANG_NONE, CString(""), 0}				// unsupported language
-};
 
 typedef CSimpleArray<CString> CStrings;
 
 class CSpeller;
 
-class CSpellDialog: public CModelessDialogImpl<CSpellDialog>
+class CSpellDialog : public CModelessDialogImpl<CSpellDialog>
 {
 public:
 	enum { IDD = IDD_SPELL_CHECK };
@@ -84,17 +25,16 @@ public:
 	CString m_sReplacement;
 	CStrings* m_strSuggestions;
 
-	CSpellDialog(CSpeller* parent): m_Speller(parent), m_strSuggestions(NULL) {}
+	CSpellDialog(CSpeller* parent) : m_Speller(parent), m_strSuggestions(NULL) {}
 
 	BEGIN_MSG_MAP(CSpellDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
-		MESSAGE_HANDLER(WM_ACTIVATE, OnActivate)
+		MESSAGE_HANDLER(WM_ACTIVATE, OnActivate) 
 		COMMAND_ID_HANDLER(IDC_SPELL_IGNORE, OnIgnore)
 		COMMAND_ID_HANDLER(IDC_SPELL_IGNOREALL, OnIgnoreAll)
 		COMMAND_ID_HANDLER(IDC_SPELL_CHANGE, OnChange)
 		COMMAND_ID_HANDLER(IDC_SPELL_CHANGEALL, OnChangeAll)
 		COMMAND_ID_HANDLER(IDC_SPELL_ADD, OnAdd)
-		COMMAND_ID_HANDLER(IDC_SPELL_UNDO, OnUndo)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCancel)
 		COMMAND_HANDLER(IDC_SPELL_REPLACEMENT, EN_CHANGE, OnEditChange)
 		COMMAND_HANDLER(IDC_SPELL_SUGG_LIST, LBN_SELCHANGE, OnSelChange)
@@ -104,7 +44,7 @@ public:
 	LRESULT UpdateData();
 
 private:
-	CSpeller* m_Speller;
+	CSpeller * m_Speller;
 	int m_RetCode;
 
 	bool m_WasSuspended;
@@ -122,7 +62,6 @@ private:
 	LRESULT OnChange(WORD, WORD wID, HWND, BOOL&);
 	LRESULT OnChangeAll(WORD, WORD wID, HWND, BOOL&);
 	LRESULT OnAdd(WORD, WORD wID, HWND, BOOL&);
-	LRESULT OnUndo(WORD, WORD wID, HWND, BOOL&);
 	LRESULT OnSelChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	LRESULT OnSelDblClick(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
 	LRESULT OnEditChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
@@ -132,124 +71,47 @@ private:
 typedef std::pair<long, MSHTML::IHighlightSegmentPtr> HIGHLIGHT;
 typedef std::multimap<long, MSHTML::IHighlightSegmentPtr> HIGHLIGHTS;
 
-// tokens to tokenize string to separate words
-const CString Tokens(L" .,?–!—…\r\n\t\"«»“”‘’:;<>(){}[]\u00A0\u2003\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u202F\u205F\u2060\u3000\u2012\u2013\u2014\u00BA\u25A1\u25AB\u25E6\u201e\u201c");
-																																														   
-class CSpeller																																											   
-{																																														   
+class CSpeller
+{
+// Dictionary info
+struct DICT
+{
+	Hunhandle* handle;
+	CString lang;
+	CString filename;
+};
 public:
-	CSpeller(CString dictPath = L"..\\dict");
+	CSpeller(CString&);
 	~CSpeller();
+	void CSpeller::getAvailDictionary();
 	void AttachDocument(MSHTML::IHTMLDocumentPtr doc);
 	void SetFrame(HWND frame) { m_frame = frame; }
-	inline bool Available() { return (m_Dictionaries[m_Lang].handle != NULL); }
-	inline bool Enabled() { return m_Enabled; }
-	void SetDocumentLanguage();
-	void SetEnabled (bool Enabled)
-	{ 
-		if (m_Enabled != Enabled)
-		{
-			m_Enabled = Enabled;
-			if (!m_Enabled)
-				ClearAllMarks();
-			else
-				HighlightMisspells();
-		}
-	}
-	void SetCustomDictionary(CString pathToDictionary, UINT codePage)
-	{
-		m_CustomDictPath = pathToDictionary;
-		m_CustomDictCodepage = codePage;
-		LoadCustomDict();
-	}
-	
-	void StartDocumentCheck(MSHTML::IMarkupServices2Ptr undoSrv = NULL);
+	bool Enabled() { return m_Enabled; }
+	void Enable(bool state);
+	void SetDocumentLanguage(CString lang);
+	void SetCustomDictionary(CString pathToDictionary);
+	void StartDocumentCheck(MSHTML::IMarkupServices2Ptr undoSrv = nullptr);
 	void ContinueDocumentCheck();
 	void EndDocumentCheck(bool bCancel = true);
-
-	// undo support
-	void Undo()
-	{
-		if (m_browser)
-		{
-			IOleCommandTargetPtr ct(m_browser);
-			if (ct)
-				ct->Exec(&CGID_MSHTML, IDM_UNDO, 0, NULL, NULL);
-		}
-	}
-	bool GetUndoState()
-	{
-		bool stat = false;
-		if (m_browser)
-		{
-			static OLECMD cmd[] = {IDM_UNDO};
-			IOleCommandTargetPtr ct(m_browser);
-			if (ct)
-			{
-				ct->QueryStatus(&CGID_MSHTML, 1, cmd, NULL);
-				stat = (cmd[0].cmdf != 1);
-			}
-		}
-		return stat;
-	}
-	void BeginUndoUnit(const wchar_t *name)
-	{
-		ATLASSERT(m_undoSrv);
-		m_undoSrv->BeginUndoUnit((wchar_t *)name);
-	}
-	void EndUndoUnit()
-	{
-		ATLASSERT(m_undoSrv);
-		m_undoSrv->EndUndoUnit();
-	}
+	
+	void Undo();
+	bool GetUndoState();
+	void BeginUndoUnit(const wchar_t *name);
+	void EndUndoUnit();
 
 	void CheckScroll();
-	void CheckElement(MSHTML::IHTMLElementPtr elem, long uniqID, bool HTMLChanged);
-	void CheckCurrentPage();
-	// main function
-	SPELL_RESULT SpellCheck(CString word);
-	CStrings* GetSuggestions(CString word);
-	void MarkElement(MSHTML::IHTMLElementPtr elem, long uniqID, CString word, int pos);
-	void ClearMarks(int elemID);
-	void ClearAllMarks();
-	// SeNS
-	void SetHighlightMisspells(bool Enabled)
-	{
-		if (Enabled != m_HighlightMisspells)
-		{
-			m_HighlightMisspells = Enabled;
-			if (!m_HighlightMisspells) 
-				ClearAllMarks();
-			else
-				HighlightMisspells();
-		}
-	}
-	void HighlightMisspells();
-	void AdvanceVersionNumber(int delta)
-	{
-		::PostMessage(m_frame, WM_COMMAND,MAKELONG(ID_VER_ADVANCE,delta), 0);
-	}
+	void CheckElement(MSHTML::IHTMLElementPtr elem, bool HTMLChanged);
+	void doSpellCheck();
 
-	// popup menu service
-	void AppendSpellMenu (HMENU menu);
-	void Replace(int nIndex);
+	CStrings* GetSuggestions();
 	void Replace(CString word);
-	void IgnoreAll(CString word = CString(""));
-	void AddToDictionary();
-	void AddToDictionary(CString word);
+	void ReplaceAll(CString badWord, CString goodWord);
+	void IgnoreAll(CString word = L"");
+	void AddToDictionary(CString word = L"");
 
-	void AddReplacement(CString badWord, CString goodWord)
-	{
-		m_ChangeWords.Add(badWord);
-		m_ChangeWordsTo.Add(goodWord);
-	}
-
-protected:
+private:
 	SHD::IWebBrowser2Ptr m_browser;
 	MSHTML::IHTMLDocument2Ptr m_doc2;
-	MSHTML::IHTMLDocument3Ptr m_doc3;
-	MSHTML::IHTMLDocument4Ptr m_doc4;
-	MSHTML::IHTMLElementPtr m_fbw_body;
 	MSHTML::IHTMLElement2Ptr m_scrollElement;
 	MSHTML::IHTMLRenderStylePtr m_irs;
 	MSHTML::IMarkupContainer2Ptr m_mkc;
@@ -263,34 +125,40 @@ protected:
 	MSHTML::IMarkupPointerPtr m_impStart;
 	MSHTML::IMarkupPointerPtr m_impEnd;
 	MSHTML::IMarkupServices2Ptr m_undoSrv;
+	std::set<long> m_uniqIDs;
 
 	CSpellDialog* m_spell_dlg;
 
 	bool m_Enabled;
-	bool m_HighlightMisspells;
-	int m_prevY, m_codePage, m_numAphChanged;
-	HWND m_frame;
-	SPELL_LANG m_Lang;
-	CSimpleArray<DICT> m_Dictionaries;
-	CStrings m_IgnoreWords;
-	CStrings m_ChangeWords;
-	CStrings m_ChangeWordsTo;
-	CStrings m_CustomDict;
-	CStrings* m_menuSuggestions;
-	std::set<long> m_uniqIDs;
-	HIGHLIGHTS m_ElementHighlights;
-
+	CString m_Lang;
 	CString m_DictPath;
 	CString m_CustomDictPath;
-	DWORD	m_CustomDictCodepage;
-	Hunhandle* LoadDictionary(CString dictPath, CString dictName);
-	Hunhandle* GetDictionary(CString word);
-	void LoadCustomDict();
-	void SaveCustomDict();
+
+	int m_prevY;
+	int m_numAphChanged;
+	HWND m_frame;
+
+	CSimpleArray<CSpeller::DICT> m_Dictionaries;
+	CStrings m_CustomDict;
+
+	CStrings m_IgnoreWords;
+	CStrings* m_menuSuggestions;
+	HIGHLIGHTS m_ElementHighlights;
+
+	
+	Hunhandle* LoadDictionary(CString dictName);
+
+
 	MSHTML::IHTMLTxtRangePtr GetSelWordRange();
 	CString GetSelWord();
+	void MarkWord(MSHTML::IHTMLElementPtr elem, long uniqID, CString word, int pos);
+	void MarkElement(MSHTML::IHTMLElementPtr elem, long uniqID);
 
-	CSplitter* splitter;
+	bool SpellCheck(CString word);
+	CStrings* GetSuggestions(CString word);
+	CString detectWordLanguage(const CString& word);
+	void ClearMark(int elemID);
+	void ClearAllMarks();
 };
 
 #endif

@@ -2,6 +2,20 @@
 #define UTILS_H
 
 #include <deque>
+#include <atlbase.h>
+#include <atlstr.h>
+#include <atltypes.h>
+#include <atlcom.h>
+#include <atlwin.h>
+#include <atlctl.h>
+#include <atlhost.h>
+#include <atlpath.h>
+#include <atlcoll.h>
+#include <atlfile.h>
+#include <atlcomtime.h>
+#include <atlimage.h>
+#include <atlutil.h>
+#include <mshtml.h>
 
 namespace U // place all utilities into their own namespace
 {

@@ -8,7 +8,7 @@
 	<xsl:import href="eng.xsl"/>
 
 	<xsl:output method="html" indent="no"/>
-
+	<xsl:strip-space elements="*"/>
 	<xsl:param name="dlgFG"/>
 	<xsl:param name="dlgBG"/>
 	<xsl:param name="descscript"/>
@@ -24,8 +24,8 @@
 			<img id="prevImg"/>
 		</div>
 
-		<div class="float" id="fullImgPanel" align="center">
-			<img id="fullImg" onclick="HideFullImage()"/>
+		<div class="float" id="fullImgPanel" align="center" onclick="HideFullImage()">
+			<img id="fullImg"/>
 		</div>
 
 		<fieldset style="border:none">
@@ -41,18 +41,11 @@
 	</xsl:call-template>
 
 	<!-- source-title-info -->
-	<xsl:if test="not(/f:FictionBook/f:description/f:src-title-info)">
 		<span id = "sti_all" block="true">
 			<xsl:call-template name="sti">
 				<xsl:with-param name="cur" select="/f:FictionBook/f:description/f:src-title-info"/>
 			</xsl:call-template>
 		</span>
-	</xsl:if>
-	<xsl:if test="(/f:FictionBook/f:description/f:src-title-info)">
-		<xsl:call-template name="sti">
-			<xsl:with-param name="cur" select="/f:FictionBook/f:description/f:src-title-info"/>
-		</xsl:call-template>
-	</xsl:if>
 
 	<!-- document-info -->
 	<xsl:call-template name="di">
@@ -73,9 +66,11 @@
 		</span>
 	</xsl:if>
 	<xsl:if test="/f:FictionBook/f:description/f:custom-info">
-		<xsl:call-template name="custom-info">
+		<span id = "ci_all" block="true">
+            <xsl:call-template name="custom-info">
 				<xsl:with-param name="items" select="/f:FictionBook/f:description/f:custom-info"/>
 		</xsl:call-template>
+		</span>
 	</xsl:if>
 
 		<!-- binary objects -->
@@ -302,13 +297,12 @@
 				<legend unselectable="on"><xsl:value-of select="$IDS_GENRES"/></legend>
 				<xsl:for-each select="$cur/f:genre">
 					<div unselectable="on">
-						<button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+						<button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 						<button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 						<label unselectable="on" class="hl"><xsl:value-of select="$IDS_GENRE"/></label><input type="text" maxlength="25" id="genre" value="{.}" disabled="1"/>
 						<button class="popup_btn" onclick="GetGenre(this)" unselectable="on">&#x34;</button>
 						<xsl:if test="not(@match)">
 							<span id = "ti_genre_match" unselectable="on">
-								<button onclick="ShowElement(this.parentNode.id, false)" unselectable="on" style="font-family : Tahoma;">-</button>
 								<label unselectable="on"><xsl:value-of select="$IDS_MATCH"/></label><input type="text" maxlength="3" id="match" value="{@match}" class="short"/>
 							</span>
 						</xsl:if>
@@ -319,7 +313,7 @@
 				</xsl:for-each>
 				<xsl:if test="not($cur/f:genre)">
 					<div unselectable="on">
-						<button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+						<button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 						<button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 						<label unselectable="on" class="hl"><xsl:value-of select="$IDS_GENRE"/></label>
 						<input type="text" maxlength="25" id="genre" value="" disabled="1"/>
@@ -339,7 +333,6 @@
 	  <input type="text" maxlength="256" id="tiTitle" class="wide" value="{$cur/f:book-title}"/><br/>
 	  <xsl:if test="not($cur/f:keywords)">
 		  <span id = "ti_kw" unselectable="on">
-				<!--<button id="kwCollapse" onclick="ShowElement(this.parentNode.id, false)" unselectable="on" style="font-family : Tahoma;">-</button>-->
 				<label unselectable="on" desc_extended="true"><xsl:value-of select="$IDS_KEYWORDS"/></label>
 				<input type="text" maxlength="256" id="tiKwd" class="wide" value="{$cur/f:keywords}"/><br/>
 		  </span>
@@ -356,7 +349,7 @@
 	<legend class="cover" unselectable="on"><xsl:value-of select="$IDS_COVERPAGE"/></legend>
 	<xsl:for-each select="$cur/f:coverpage/f:image">
 	  <div unselectable="on">
-	    <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+	    <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 	    <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	    <button id="show" onmouseover="ShowCoverImage(this.parentNode,false);" onmouseout="HidePrevImage();" onclick="ShowCoverImage(this.parentNode,true);">&#x4e;</button>
 	    <label unselectable="on"><xsl:value-of select="$IDS_IMAGE"/></label>
@@ -367,10 +360,10 @@
 	</xsl:for-each>
 	<xsl:if test="not($cur/f:coverpage/f:image)">
 	  <div unselectable="on">
-	    <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+	    <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 	    <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	    <label unselectable="on"><xsl:value-of select="$IDS_IMAGE"/></label>
-		<select id="href" class="wide" ></select>
+		<select id="href" class="wide" onchange="SetModifiedState();"></select>
 	  </div>
 	</xsl:if>
       </fieldset>
@@ -378,7 +371,7 @@
       <label unselectable="on" class="hl"><xsl:value-of select="$IDS_LANGUAGE"/></label>
       <!--input type="text" maxlength="2" id="tiLang" class="short" value="{$cur/f:lang}"/-->
 
-      <select id="tiLang" title="Language of the text" onchange="document.getElementById('fbw_updater').innerHTML=document.getElementById('fbw_updater').innerHTML=='0'?'1':'0';">
+      <select id="tiLang" title="Language of the text" onchange="SetModifiedState();">
 		<xsl:call-template name="fill_languages_combo">
 			<xsl:with-param name="lang" select="$cur/f:lang"/>
 		</xsl:call-template>
@@ -386,7 +379,7 @@
 
       <label unselectable="on" style="width: 10em"><xsl:value-of select="$IDS_SOURCE_LANG"/></label>
       
-      <select id="tiSrcLang" title="Original language">
+      <select id="tiSrcLang" title="Original language" onchange="SetModifiedState();">
 		<xsl:call-template name="fill_languages_combo">
 			<xsl:with-param name="lang" select="$cur/f:src-lang"/>
 		</xsl:call-template>
@@ -423,12 +416,12 @@
     <xsl:param name="cur"/>
 
 	<fieldset unselectable="on">
-	    <legend unselectable="on" class="top"><xsl:value-of select="$IDS_STI"/><xsl:if test="not($cur)"><button onclick="ShowElement(this.parentNode.parentNode.parentNode.id, false)" unselectable="on" style="font-family : Tahoma; float:none">-</button></xsl:if></legend>
+	    <legend unselectable="on" class="top"><xsl:value-of select="$IDS_STI"/></legend>
 	    <fieldset id="stiGenre" unselectable="on" class="kid">
 			<legend unselectable="on"><xsl:value-of select="$IDS_GENRES"/></legend>
 			<xsl:for-each select="$cur/f:genre">
 				<div unselectable="on">
-					<button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+					<button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 					<button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 					<label unselectable="on" class="hl"><xsl:value-of select="$IDS_GENRE"/></label><input type="text" maxlength="25" id="genre" value="{.}" disabled="1"/>
 					<button class="popup_btn" onclick="GetGenre(this)" unselectable="on">&#x34;</button>	
@@ -437,7 +430,7 @@
 			</xsl:for-each>
 			<xsl:if test="not($cur/f:genre)">
 				<div unselectable="on">
-					<button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+					<button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 					<button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 					<label unselectable="on" class="hl"><xsl:value-of select="$IDS_GENRE"/></label><input type="text" maxlength="25" id="genre" value="" disabled="1"/>
 					<button class="popup_btn" onclick="GetGenre(this)" unselectable="on">&#x34;</button>
@@ -464,21 +457,21 @@
 			<legend class="cover" unselectable="on"><xsl:value-of select="$IDS_COVERPAGE"/></legend>
 			<xsl:for-each select="$cur/f:coverpage/f:image">
 				<div unselectable="on">
-					<button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+					<button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 					<button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	    			<button id="show" onmouseover="ShowCoverImage(this.parentNode,false);" onmouseout="HidePrevImage();" onclick="ShowCoverImage(this.parentNode,true);">&#x4e;</button>
 					<label unselectable="on"><xsl:value-of select="$IDS_IMAGE"/></label>
-					<select id="href" class="wide">
+					<select id="href" class="wide" onchange="SetModifiedState();">
 						<option selected="yes" value="{@l:href}"></option>
 					</select>
 				</div>
 			</xsl:for-each>
 			<xsl:if test="not($cur/f:coverpage/f:image)">
 				<div unselectable="on">
-					<button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+					<button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 					<button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 					<label unselectable="on"><xsl:value-of select="$IDS_IMAGE"/></label>
-					<select id="href" class="wide" ></select>
+					<select id="href" class="wide" onchange="SetModifiedState();"></select>
 				</div>
 			</xsl:if>
 	    </fieldset>
@@ -486,7 +479,7 @@
 	    <label unselectable="on" class="hl"><xsl:value-of select="$IDS_LANGUAGE"/></label>
 	    <!--input type="text" maxlength="2" id="tiLang" class="short" value="{$cur/f:lang}"/-->
 
-	    <select id="stiLang" title="Language of the text">
+	    <select id="stiLang" title="Language of the text" onchange="SetModifiedState();">
 			<xsl:call-template name="fill_languages_combo">
 				<xsl:with-param name="lang" select="$cur/f:lang"/>
 			</xsl:call-template>
@@ -495,7 +488,7 @@
 	    <label unselectable="on" style="width: 10em"><xsl:value-of select="$IDS_SOURCE_LANG"/></label>
 	    <!--input type="text" maxlength="2" id="tiSrcLang" class="short" value="{$cur/f:src-lang}"/-->
 
-	    <select id="stiSrcLang" title="Original language">
+	    <select id="stiSrcLang" title="Original language" onchange="SetModifiedState();">
 			<xsl:call-template name="fill_languages_combo">
 				<xsl:with-param name="lang" select="$cur/f:src-lang"/>
 			</xsl:call-template>
@@ -541,7 +534,6 @@
 						<xsl:attribute name="onclick">NewDocumentID("<xsl:value-of select="$IDS_ID_WARN"></xsl:value-of>")</xsl:attribute>
 						<xsl:value-of select="$IDS_NEW"/>
 					</button>
-					<button onclick="ShowElement(this.parentNode.id, false)" unselectable="on" style="font-family : Tahoma;">-</button>
 					<label unselectable="on" class="hl" style="width:4em;">
 						<xsl:value-of select="$IDS_ID"/>
 					</label>
@@ -568,14 +560,14 @@
 	<legend unselectable="on"><xsl:value-of select="$IDS_SOURCE_URL"/></legend>
 	<xsl:for-each select="$cur/f:src-url">
 	  <div unselectable="on">
-	    <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+	    <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 	    <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	    <input type="text" class="url" maxlength="256" value="{.}"/>
 	  </div>
 	</xsl:for-each>
 	<xsl:if test="not($cur/f:src-url)">
 	  <div unselectable="on">
-	    <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+	    <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 	    <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	    <input type="text" class="url" maxlength="256" value=""/>
 	  </div>
@@ -623,10 +615,10 @@
   <xsl:template name="custom-info">
     <xsl:param name="items"/>
 	<fieldset id="ci" unselectable="on">
-      <legend unselectable="on" class="top"><xsl:value-of select="$IDS_CUSTOM_INFO"/><xsl:if test="not($items)"><button onclick="ShowElement(this.parentNode.parentNode.parentNode.id, false)" unselectable="on" style="font-family : Tahoma; float:none">-</button></xsl:if></legend>
+      <legend unselectable="on" class="top"><xsl:value-of select="$IDS_CUSTOM_INFO"/></legend>
 	  <xsl:for-each select="$items">
 	<div unselectable="on">
-	  <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+	  <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 	  <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	  <label unselectable="on"><xsl:value-of select="$IDS_TYPE"/></label>
 	  <input type="text" maxlength="256" id="type" value="{@info-type}"/><br/>
@@ -636,7 +628,7 @@
       </xsl:for-each>
       <xsl:if test="not($items)">
 	<div unselectable="on">
-	  <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+	  <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 	  <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	  <label unselectable="on"><xsl:value-of select="$IDS_TYPE"/></label>
 	  <input type="text" maxlength="256" id="type" value=""/><br/>
@@ -685,7 +677,7 @@
     <xsl:param name="item"/>
 
     <div unselectable="on">
-      <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+      <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
       <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
       <label unselectable="on"><xsl:value-of select="$IDS_FIRST"/></label>
       <input type="text" maxlength="256" id="first" value="{$item/f:first-name}"/>
@@ -695,7 +687,6 @@
       <input type="text" maxlength="256" id="last" value="{$item/f:last-name}"/>
       <span id = "ti_nic_mail_web" block="true">
 		<br/>
-		<button onclick="ShowElement(this.parentNode.id, false)" unselectable="on" style="font-family : Tahoma;">-</button>
 	    <label unselectable="on"><xsl:value-of select="$IDS_NICKNAME"/></label>
 		<input type="text" maxlength="256" id="nick" value="{$item/f:nickname}"/>
 		<label unselectable="on"><xsl:value-of select="$IDS_EMAIL"/></label>
@@ -712,7 +703,7 @@
     <xsl:param name="item"/>
 
     <div unselectable="on">
-      <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+      <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
       <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
       <label unselectable="on" class="h"><xsl:value-of select="$IDS_FIRST"/></label>
       <input type="text" maxlength="256" id="first" value="{$item/f:first-name}"/>
@@ -722,7 +713,6 @@
       <input type="text" maxlength="256" id="last" value="{$item/f:last-name}"/>      
 	  <span id = "ti_nic_mail_web" block="true">
 			<br/>
-			<button onclick="ShowElement(this.parentNode.id, false)" unselectable="on" style="font-family : Tahoma;">-</button>
 		    <label unselectable="on"><xsl:value-of select="$IDS_NICKNAME"/></label>
 		    <input type="text" maxlength="256" id="nick" value="{$item/f:nickname}"/>
 		    <label unselectable="on"><xsl:value-of select="$IDS_EMAIL"/></label>
@@ -740,7 +730,7 @@
     <xsl:param name="item"/>
 
     <div unselectable="on" style="margin-left:2em;">
-      <button id="del" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
+      <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
       <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
       <button onclick="ChildClone(this.parentNode)" unselectable="on">&#x34;</button>
       <label unselectable="on"><xsl:value-of select="$IDS_NAME"/></label>
