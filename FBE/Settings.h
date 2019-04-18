@@ -7,7 +7,7 @@
 #include "resource.h"
 #include "res1.h"
 #include "utils.h"
-#include "XMLSerializer\Serializable.h"
+#include "extras\Serializable.h"
 
 /*const int ILANG_ENGLISH = 0;
 const int ILANG_RUSSIAN = 1;*/
@@ -385,22 +385,10 @@ class DESCSHOWINFO : public ISerializable, public IObjectFactory
 public:
 	std::map<CString, bool> elements;
 
-	DESCSHOWINFO()
-	{
-		SetDefaults();
-	}
+	DESCSHOWINFO();
 
 	// Default fields showing in description
-	void SetDefaults()
-	{
-		elements[L"ci_all"] = true;
-		elements[L"sti_all"] = false;
-		elements[L"di_id"] = true;
-		elements[L"id"] = true;
-		elements[L"ti_kw"] = true;
-		elements[L"ti_nic_mail_web"] = true;
-		elements[L"ti_genre_match"] = true;
-	}
+	void SetDefaults();
 
 	// ISerializable interface
 	int GetProperties(std::vector<CString>& properties);
@@ -421,7 +409,7 @@ public:
 	std::map<CString, bool> items;
 
 	TREEITEMSHOWINFO();
-	void SetDefaults();
+//	void SetDefaults();
 
 	// ISerializable interface
 	int GetProperties(std::vector<CString>& properties);
@@ -438,6 +426,189 @@ public:
 
 class CSettings : public ISerializable, public IObjectFactory
 {
+	enum AppPropertyType {
+		tUnknown = 0,
+		tBOOL,
+		tSTRING,
+		tDWORD,
+		tWINDOWPOS
+	};
+	struct Property {
+		CString			PropValue;
+		AppPropertyType PropType;
+		Property(CString s, AppPropertyType ap) 
+		{ 
+			PropValue = s;
+			PropType = ap;
+		};
+		Property(int s)
+		{
+			PropValue = L"";
+			PropType = tUnknown;
+		};
+	};
+	CSimpleMap<CString, Property> m_AppProperty;
+
+	void AppPropertyInit()
+	{
+		m_AppProperty.RemoveAll();
+		m_AppProperty.Add(L"KeepEncoding", { L"true", tBOOL });
+		m_AppProperty.Add(L"DefaultSaveEncoding", { L"utf-8", tSTRING });
+		m_AppProperty.Add(L"SearchOptions", { L"0", tDWORD });
+		m_AppProperty.Add(L"ColorBG", { L"4278190080", tDWORD });
+		m_AppProperty.Add(L"ColorFG", { L"4278190080", tDWORD });
+		m_AppProperty.Add(L"XMLSrcWrap", { L"true", tBOOL });
+		m_AppProperty.Add(L"XMLSrcSyntaxHL", { L"true", tBOOL });
+		m_AppProperty.Add(L"XMLSrcTagHL", { L"true", tBOOL });
+		m_AppProperty.Add(L"XMLSrcShowEOL", { L"false", tBOOL });
+		m_AppProperty.Add(L"XMLSrcShowSpace", { L"false", tBOOL });
+		m_AppProperty.Add(L"XMLSrcShowLineNumbers", { L"false", tBOOL });
+		m_AppProperty.Add(L"FastMode", { L"false", tBOOL });
+
+		m_AppProperty.Add(L"FontSize", { L"12", tDWORD });
+		m_AppProperty.Add(L"Font", { L"Trebuchet MS", tSTRING });
+		m_AppProperty.Add(L"SrcFont", { L"Lucida Console", tSTRING });
+		m_AppProperty.Add(L"ViewStatusBar", { L"true", tBOOL });
+		m_AppProperty.Add(L"ViewDocumentTree", { L"true", tBOOL });
+		m_AppProperty.Add(L"SplitterPos", { L"275", tDWORD });
+		m_AppProperty.Add(L"Toolbars", { L"", tSTRING });
+		m_AppProperty.Add(L"RestoreFilePosition", { L"true", tBOOL });
+		m_AppProperty.Add(L"IntefaceLangID", { L"25", tDWORD });
+		m_AppProperty.Add(L"ScriptsFolder", { L"Scripts", tSTRING });
+		m_AppProperty.Add(L"UseSpellChecker", { L"true", tBOOL });
+		m_AppProperty.Add(L"HighlightMisspells", { L"true", tBOOL });
+		m_AppProperty.Add(L"CustomDict", { L"custom.dic", tSTRING });
+		m_AppProperty.Add(L"CustomDictCodePage", { L"65001", tDWORD });
+		m_AppProperty.Add(L"NBSPChar", { L" ", tSTRING });
+		m_AppProperty.Add(L"ChangeKeybLayout", { L"false", tBOOL });
+		m_AppProperty.Add(L"KeyboardLayout", { L"1033", tDWORD });
+		m_AppProperty.Add(L"PasteImageType", { L"1", tDWORD });
+		m_AppProperty.Add(L"JpegQuality", { L"75", tDWORD });
+		m_AppProperty.Add(L"InsImageDialog", { L"false", tBOOL });
+		m_AppProperty.Add(L"InsClearImage", { L"false", tBOOL });
+		m_AppProperty.Add(L"WindowPosition", { L"44;0;1;-1;-1;-1;-1;1433;26;717;1526", tWINDOWPOS });
+		m_AppProperty.Add(L"WordsDlgPosition", { L"44;0;1;-1;-1;-1;-1;838;1052;235;1709", tWINDOWPOS });
+		m_AppProperty.Add(L"ShowWordsExclusions", { L"true", tBOOL });
+	}
+
+	bool getPropValueAsBool(const CString& name)
+	{
+		Property  pr = m_AppProperty.Lookup(name);
+		return pr.PropValue == L"true";
+	}
+
+	CString getPropValueAsString(const CString& name)
+	{
+		Property  pr = m_AppProperty.Lookup(name);
+		return pr.PropValue;
+	}
+
+	DWORD getPropValueAsDWORD(const CString& name)
+	{
+		Property pr = m_AppProperty.Lookup(name);
+		return _wtol(pr.PropValue);
+	}
+
+	void getPropValueAsWINDOWPLACEMENT(const CString& name, WINDOWPLACEMENT &wpl)
+	{
+		Property pr = m_AppProperty.Lookup(name);
+		CString str = pr.PropValue;
+		int n = 0, curPos = 0;
+
+		while (str.Tokenize(L";", curPos) != L"")
+			n++;
+
+		CString* tokens = new CString[n];
+		curPos = n = 0;
+
+		CString temp;
+		while ((temp = str.Tokenize(L";", curPos)) != L"")
+		{
+			tokens[n] = temp;
+			n++;
+		}
+
+		if (n == 11)
+		{
+			wpl.length = StrToInt(tokens[0]);
+			wpl.flags = StrToInt(tokens[1]);
+			wpl.showCmd = StrToInt(tokens[2]);
+			wpl.ptMinPosition.x = StrToInt(tokens[3]);
+			wpl.ptMinPosition.y = StrToInt(tokens[4]);
+			wpl.ptMaxPosition.x = StrToInt(tokens[5]);
+			wpl.ptMaxPosition.y = StrToInt(tokens[6]);
+			wpl.rcNormalPosition.bottom = StrToInt(tokens[7]);
+			wpl.rcNormalPosition.left = StrToInt(tokens[8]);
+			wpl.rcNormalPosition.top = StrToInt(tokens[9]);
+			wpl.rcNormalPosition.right = StrToInt(tokens[10]);
+		}
+
+		delete[] tokens;
+	}
+
+	bool setPropValueAsBool(const CString& name, bool Value)
+	{
+		Property p = { Value? L"true": L"false", tBOOL };
+		return m_AppProperty.SetAt(name, p);
+	};
+
+	bool setPropValueAsString(const CString& name, CString& Value)
+	{
+		Property p = { Value, tSTRING };
+		return m_AppProperty.SetAt(name, p);
+	}
+
+	bool setPropValueAsDWORD(const CString& name, DWORD Value)
+	{
+		CString str(L"");
+		str.Format(L"%u", Value);
+		Property p = { str, tDWORD };
+		return m_AppProperty.SetAt(name, p);
+	}
+
+	bool setPropValueAsWINDOWPLACEMENT(const CString& name, WINDOWPLACEMENT &Value)
+	{
+		CString temp;
+		temp.Format(L"%u;%u;%u;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",
+			Value.length,
+			Value.flags,
+			Value.showCmd,
+			Value.ptMinPosition.x,
+			Value.ptMinPosition.y,
+			Value.ptMaxPosition.x,
+			Value.ptMaxPosition.y,
+			Value.rcNormalPosition.bottom,
+			Value.rcNormalPosition.left,
+			Value.rcNormalPosition.top,
+			Value.rcNormalPosition.right);
+		Property p = { temp, tWINDOWPOS };
+		return m_AppProperty.SetAt(name, p);
+	}
+
+	///<summary>Load properties from file</summary>
+	void CSettings::LoadAppProperty()
+	{
+		/*CXMLAppSettings xmlStorage1(CIniAppSettings::GetRoamingDataFileLocation(L"FBE", L"FBEditor", L"", L"FBESettings.xml"), true, true);
+		for (int i = 0; i<m_AppProperty.GetSize(); i++)
+		{
+			CString name = m_AppProperty.GetKeyAt(i);
+			CString val = xmlStorage1.GetString("FBE", name);
+			if (val)
+				m_AppProperty.SetAtIndex(i, name, val);
+		}*/
+	}
+	///<summary>Load properties from file</summary>
+	void CSettings::SaveAppProperty()
+	{
+		/*CXMLAppSettings xmlStorage1(CIniAppSettings::GetRoamingDataFileLocation(L"FBE", L"FBEditor", L"", L"FBESettings.xml"), true, true);
+		for (int i = 0; i<m_AppProperty.GetSize(); i++)
+		{
+			CString name = m_AppProperty.GetKeyAt(i);
+			Property pr = m_AppProperty.GetValueAt(i);
+			xmlStorage1.WriteString("FBE", name, pr.PropValue);
+		}*/
+	}
+
 	CRegKey		m_key;
 	CString		m_key_path;
 

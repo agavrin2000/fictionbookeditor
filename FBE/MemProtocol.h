@@ -66,7 +66,7 @@ okreport:
     }
 
     // fallback to a builtin image
-    HRESULT hr=U::LoadFile(U::GetProgDirFile(_T("imgph.png")),&m_data);
+    HRESULT hr=U::LoadImageFile(U::GetProgDirFile(_T("imgph.png")),&m_data);
     if (SUCCEEDED(hr))
       goto gotit;
 

@@ -122,25 +122,6 @@ public:
 		return S_FALSE;
 	}
 
-	STDMETHOD(GetInterfaceLanguage)(BSTR *lang)
-	{
-		CString s_lang;
-		switch(_Settings.GetInterfaceLanguageID())
-		{
-			case LANG_RUSSIAN:
-				s_lang = L"rus";
-				break;
-			case LANG_UKRAINIAN:
-				s_lang = L"ukr";
-				break;
-			default:
-				s_lang = L"eng";
-				break;
-		}
-		*lang = s_lang.AllocSysString();
-
-		return S_OK;
-	}
 
 	STDMETHOD(GetNBSP)(BSTR *nbsp)
 	{
@@ -293,7 +274,7 @@ public:
 		CString sTitle(title);
 		CString sInput(value);
 
-		modalResultCode = AU::InputBox (sInput, sTitle, sPrompt);
+		modalResultCode = U::InputBox (sInput, sTitle, sPrompt);
 
 		if (modalResultCode != IDYES) sInput.SetString(L"");
 		*input = sInput.AllocSysString();
@@ -309,7 +290,27 @@ public:
 	STDMETHOD(SetStatusBarText)(BSTR text)
 	{
 		CString sbtext(text);
-		::SendMessage(_Settings.GetMainWindow(), AU::WM_SETSTATUSTEXT, 0, (LPARAM) (LPCTSTR) sbtext.GetBuffer());
+		::SendMessage(_Settings.GetMainWindow(), U::WM_SETSTATUSTEXT, 0, LPARAM(sbtext.GetBuffer()));
+		return S_OK;
+	}
+
+	STDMETHOD(GetInterfaceLanguage1)(BSTR *lang)
+	{
+		CString s_lang;
+		switch(_Settings.GetInterfaceLanguageID())
+		{
+			case LANG_RUSSIAN:
+				s_lang = L"rus";
+				break;
+			case LANG_UKRAINIAN:
+				s_lang = L"ukr";
+				break;
+			default:
+				s_lang = L"eng";
+				break;
+		}
+		*lang = s_lang.AllocSysString();
+
 		return S_OK;
 	}
 };

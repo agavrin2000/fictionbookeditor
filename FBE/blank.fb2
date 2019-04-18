@@ -1,49 +1,37 @@
-<?xml version="1.0" encoding="windows-1251"?>
+<?xml version="1.0" encoding="utf-8"?>
 <FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink">
-	<description>
-		<title-info>
-			<genre match="100"/>
-			<author>
-				<first-name/>
-				<middle-name/>
-				<last-name/>
-			</author>
-			<book-title/>
-			<annotation>
-				<p>Введите сюда краткую аннотацию</p>
-			</annotation>
-			<date/>
-			<coverpage>
-				<image l:href=""/>
-			</coverpage>
-			<lang>ru</lang>
-		</title-info>
-		<document-info>
-			<author>
-				<first-name>Your</first-name>
-				<last-name>Name</last-name>
-			</author>
-			<program-used/>
-			<date value=""/>
-			<src-ocr/>
-			<id/>
-			<version/>
-			<history>
-				<p>1.0 — создание файла</p>
-			</history>
-		</document-info>
-		<publish-info>
-			<book-name/>
-			<publisher/>
-			<city/>
-			<year/>
-			<isbn/>
-		</publish-info>
-	</description>
-	<body>
-		<section>
-			<p>Чтобы изменить документ по умолчанию, отредактируйте файл &quot;blank.fb2&quot; вручную.</p>
-			<empty-line/>
-		</section>
-	</body>
+ <description>
+  <title-info>
+   <genre>sf_cyberpunk</genre>
+   <author>
+    <first-name></first-name>
+    <last-name></last-name>
+   </author>
+   <book-title></book-title>
+   <annotation>
+    <p>Р’РІРµРґРёС‚Рµ СЃСЋРґР° РєСЂР°С‚РєСѓСЋ Р°РЅРЅРѕС‚Р°С†РёСЋ</p>
+   </annotation>
+   <date></date>
+   <lang>ru</lang>
+  </title-info>
+  <document-info>
+   <author>
+    <first-name>Your</first-name>
+    <last-name>Name</last-name>
+   </author>
+   <program-used>FictionBook Editor Release 2.6.7</program-used>
+   <date value="2014-11-10">10 November 2014</date>
+   <id>999E9A00-0EAF-48D3-B792-AFFA96A955A6</id>
+   <version>1.0</version>
+   <history>
+    <p>1.0 вЂ” СЃРѕР·РґР°РЅРёРµ С„Р°Р№Р»Р°</p>
+   </history>
+  </document-info>
+ </description>
+ <body>
+  <section>
+   <p>Р§С‚РѕР±С‹ РёР·РјРµРЅРёС‚СЊ РґРѕРєСѓРјРµРЅС‚ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РѕС‚СЂРµРґР°РєС‚РёСЂСѓР№С‚Рµ С„Р°Р№Р» "blank.fb2" РІСЂСѓС‡РЅСѓСЋ.</p>
+   <empty-line/>
+  </section>
+ </body>
 </FictionBook>

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "stdafx.h"
 
 enum KEY_TYPE
 {
@@ -97,7 +98,7 @@ const wchar_t WORDS_XML_FILE[] = L"Words.xml";
 
 #include "Settings.h"
 
-#include "ElementDescMnr.h"
+#include "ElementDescriptor.h"
 extern CElementDescMnr _EDMnr;
 
 CSettings::CSettings():m_need_restart(false), keycodes(0)
@@ -118,7 +119,8 @@ void CSettings::Init()
 		appname = L"FictionBook Editor";
 	else 
 	{
-		CString tmp = U::GetFullPathName(filepath);
+//		CString tmp = U::GetFullPathName(filepath);
+		CString tmp = filepath;
 		int pos = tmp.ReverseFind(_T('\\'));
 		if (pos >= 0)
 			tmp.Delete(0, pos+1);
@@ -173,18 +175,18 @@ void CSettings::InitHotkeyGroups()
 		CHotkeysGroup edit_hotkeys_group(L"Edit", IDS_HOTKEY_GROUP_EDIT);
 
 		// Add body
-		CHotkey EditAddBody(L"AddBody", IDS_HOTKEY_EDIT_ADD_BODY, FALT + FSHIFT, ID_EDIT_ADD_BODY, U::StringToKeycode(L"B"));
+		CHotkey EditAddBody(L"AddBody", IDS_HOTKEY_EDIT_ADD_BODY, FALT + FSHIFT, ID_ADD_BODY, U::StringToKeycode(L"B"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditAddBody);
 
 		// Add title
-		CHotkey EditAddTitle(L"AddTitle", IDS_HOTKEY_EDIT_ADD_TITLE, FALT + FSHIFT, ID_EDIT_ADD_TITLE, U::StringToKeycode(L"T"));
+		CHotkey EditAddTitle(L"AddTitle", IDS_HOTKEY_EDIT_ADD_TITLE, FALT + FSHIFT, ID_ADD_TITLE, U::StringToKeycode(L"T"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditAddTitle);
 
 		// Add epigraph
 		CHotkey EditAddEpigraph(L"AddEpigraph",
 			IDS_HOTKEY_EDIT_ADD_EPIGRAPH,
 			FALT + FSHIFT,
-			ID_EDIT_ADD_EPIGRAPH,
+			ID_ADD_EPIGRAPH,
 			U::StringToKeycode(L"E"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditAddEpigraph);
 
@@ -192,12 +194,12 @@ void CSettings::InitHotkeyGroups()
 		CHotkey EditAddAnnotation(L"AddAnnotation",
 									IDS_HOTKEY_EDIT_ADD_ANNOTATION,
 									FALT + FSHIFT,
-									ID_EDIT_ADD_ANN,
+									ID_ADD_ANN,
 									U::StringToKeycode(L"A"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditAddAnnotation);
 
 		// Add text author
-		CHotkey EditAddTextAuthor(L"AddTextAuthor", IDS_HOTKEY_EDIT_ADD_TA, FCONTROL, ID_EDIT_ADD_TA, U::StringToKeycode(L"D"));
+		CHotkey EditAddTextAuthor(L"AddTextAuthor", IDS_HOTKEY_EDIT_ADD_TA, FCONTROL, ID_ADD_TEXTAUTHOR, U::StringToKeycode(L"D"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditAddTextAuthor);
 
 		// Insert image
@@ -208,19 +210,11 @@ void CSettings::InitHotkeyGroups()
 			U::StringToKeycode(L"M"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditInsertImage);
 
-		// Insert inline image - added by SeNS
-		CHotkey EditInsertInlineImage(L"InsertInlineImage",
-			IDS_HOTKEY_EDIT_INSERT_INLINEIMAGE,
-			FALT,
-			ID_EDIT_INS_INLINEIMAGE,
-			U::StringToKeycode(L"M"));
-		edit_hotkeys_group.m_hotkeys.push_back(EditInsertInlineImage);
-
 		// Insert poem
 		CHotkey EditInsertPoem(L"InsertPoem",
 			IDS_HOTKEY_EDIT_INSERT_POEM,
 			FALT + FSHIFT,
-			ID_EDIT_INS_POEM,
+			ID_ADD_POEM,
 			U::StringToKeycode(L"P"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditInsertPoem);
 
@@ -228,7 +222,7 @@ void CSettings::InitHotkeyGroups()
 		CHotkey EditInsertCite(L"InsertCite",
 			IDS_HOTKEY_EDIT_INSERT_CITE,
 			FALT + FSHIFT,
-			ID_EDIT_INS_CITE,
+			ID_ADD_CITE,
 			U::StringToKeycode(L"C"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditInsertCite);
 
@@ -236,14 +230,9 @@ void CSettings::InitHotkeyGroups()
 		CHotkey EditInsertTable(L"InsertTable",
 			IDS_HOTKEY_EDIT_INSERT_TABLE,
 			FALT + FSHIFT,
-			ID_INSERT_TABLE,
+			ID_INS_TABLE,
 			U::StringToKeycode(L"T"));
 		edit_hotkeys_group.m_hotkeys.push_back(EditInsertTable);
-
-		// Add section image
-		CHotkey EditAddSectionImage(L"AddSectionImage", IDS_HOTKEY_EDIT_ADD_IMAGE, FALT + FSHIFT, ID_EDIT_ADD_IMAGE,
-			U::StringToKeycode(L"G"));
-		edit_hotkeys_group.m_hotkeys.push_back(EditAddSectionImage);
 
 		// Undo
 		CHotkey EditUndo(L"Undo", IDS_HOTKEY_EDIT_UNDO, FCONTROL, ID_EDIT_UNDO, U::StringToKeycode(L"Z"));
@@ -301,7 +290,7 @@ void CSettings::InitHotkeyGroups()
 		CHotkey RemoveOuterSection(L"RemoveOuterSection",
 			IDS_HOTKEY_EDIT_REMOVE_OUTER_SECTION,
 			FALT | FCONTROL,
-			ID_EDIT_REMOVE_OUTER_SECTION,
+			ID_EDIT_REMOVE_OUTER,
 			VK_SPACE);
 		edit_hotkeys_group.m_hotkeys.push_back(RemoveOuterSection);
 
@@ -556,14 +545,14 @@ void CSettings::InitHotkeyGroups()
 		style_hotkeys_group.m_hotkeys.push_back(StyleNote);
 
 		// Subtitle
-		CHotkey StyleSubtitle(L"Subtitle", IDS_HOTKEY_STYLE_SUBTITLE, FALT, ID_STYLE_SUBTITLE, U::StringToKeycode(L"S"));
+		CHotkey StyleSubtitle(L"Subtitle", IDS_HOTKEY_STYLE_SUBTITLE, FALT, ID_ADD_SUBTITLE, U::StringToKeycode(L"S"));
 		style_hotkeys_group.m_hotkeys.push_back(StyleSubtitle);
 
 		// Text author
 		CHotkey StyleTextAuthor(L"TextAuthor",
 									IDS_HOTKEY_STYLE_TEXT_AUTHOR,
 									FALT,
-									ID_STYLE_TEXTAUTHOR,
+									ID_ADD_TEXTAUTHOR,
 									U::StringToKeycode(L"A"));
 		style_hotkeys_group.m_hotkeys.push_back(StyleTextAuthor);
 	//End Style group hotkeys
@@ -599,18 +588,6 @@ void CSettings::InitHotkeyGroups()
 									VK_OEM_3);
 		scripts_hotkeys_group.m_hotkeys.push_back(ScriptsLastScript);
 	// End Scripts group hotkeys
-
-	// Plugins group hotkeys
-		CHotkeysGroup plugins_hotkeys_group(L"Plugins", IDS_HOTKEY_GROUP_PLUGINS);
-
-		// Last plugin
-		CHotkey PluginsLastPlugin(L"LastPlugin",
-			IDS_HOTKEY_PLUGINS_LAST_PLUGIN,
-			FALT,
-			ID_LAST_PLUGIN,
-			VK_OEM_3);
-		plugins_hotkeys_group.m_hotkeys.push_back(PluginsLastPlugin);
-	// End Plugins group hotkeys
 
 	// Tools group hotkeys
 		CHotkeysGroup tools_hotkeys_group(L"Tools", IDS_HOTKEY_GROUP_TOOLS);
@@ -695,7 +672,6 @@ void CSettings::InitHotkeyGroups()
 	m_hotkey_groups.push_back(style_hotkeys_group);
 	m_hotkey_groups.push_back(tools_hotkeys_group);
 	m_hotkey_groups.push_back(view_hotkeys_group);
-	m_hotkey_groups.push_back(plugins_hotkeys_group);
 	m_hotkey_groups.push_back(scripts_hotkeys_group);
 	m_hotkey_groups.push_back(symbols_hotkeys_group);
 
@@ -753,6 +729,10 @@ int CSettings::GetProperties(std::vector<CString>& properties)
 	return properties.size();
 }
 
+///<summary>Get property value as CProperty object</summary>
+///<param name="sProperty">Property name</param>
+///<param name="property">Property object with value as string</param>
+///<returns>true - if property exists and value returned</returns>
 bool CSettings::GetPropertyValue(const CString& sProperty, CProperty& property)
 {
 	if(sProperty == KEEP_ENCODING_KEY)
@@ -974,6 +954,10 @@ bool CSettings::GetPropertyValue(const CString& sProperty, CProperty& property)
 	return false;
 }
 
+///<summary>Set internal property value from CProperty object</summary>
+///<param name="sProperty">Property name</param>
+///<param name="sValue">Property object with value</param>
+///<returns>true - if property exists and value set</returns>
 bool CSettings::SetPropertyValue(const CString& sProperty, CProperty& sValue)
 {
 	if(sProperty == KEEP_ENCODING_KEY)
@@ -1237,6 +1221,7 @@ bool CSettings::SetPropertyValue(const CString& sProperty, CProperty& sValue)
 	return false;
 }
  
+
 bool CSettings::HasMultipleInstances()
 {
 	return false;
@@ -1263,6 +1248,7 @@ void CSettings::Destroy(ISerializable* obj)
 	delete obj;
 }
 
+///<summary>Save properties to file</summary>
 void CSettings::Save()
 {
 	CString fullpath = U::GetSettingsDir() + SETTINGS_XML_FILE;
@@ -1271,6 +1257,7 @@ void CSettings::Save()
 	ser.Serialize(this);
 }
 
+///<summary>Load properties from file</summary>
 void CSettings::Load()
 {
 	CString fullpath = U::GetSettingsDir() + SETTINGS_XML_FILE;
@@ -1282,6 +1269,7 @@ void CSettings::Load()
 		Save();
 }
 
+///------------ Hotket Groups works -----------
 CHotkeysGroup* CSettings::GetGroupByName(const CString& name)
 {
 	for(unsigned int i = 0; i < m_hotkey_groups.size(); ++i)
@@ -1365,6 +1353,7 @@ void CSettings::LoadHotkeyGroups()
 	}
 }
 
+///------------ Property Getters -----------
 bool CSettings::ViewStatusBar()const
 {
 	return m_view_status_bar;
@@ -1572,7 +1561,8 @@ CString CSettings::GetDefaultScriptsFolder()
 	CString tmp = L"";
 	DWORD pathlen = ::GetModuleFileName(_Module.GetModuleInstance(), filepath, MAX_PATH);
 	if (pathlen) {
-		tmp = U::GetFullPathName(filepath);
+//		tmp = U::GetFullPathName(filepath);
+		tmp = filepath;
 		int pos = tmp.ReverseFind(_T('\\'));
 		if (pos >= 0)
 		{
@@ -1605,6 +1595,7 @@ bool CSettings::GetDocTreeItemState(const ATL::CString&item, bool default_state)
 	else return member->second;
 }
 
+///------------ Property Setters -----------
 void CSettings::SetKeepEncoding(bool keep, bool apply)
 {
 	m_keep_encoding = keep;
@@ -1866,7 +1857,7 @@ void CSettings::SetJpegQuality(const DWORD value, bool apply)
 	if (apply) Save();
 }
 
-
+//--------------------- Words setting ---------------
 // Predicate for std::sort
 class sortComp { public: bool operator()(void* x, void* y) {
 	return (reinterpret_cast<WordsItem*>(x)->m_word.Compare(reinterpret_cast<WordsItem*>(y)->m_word) < 0); }
@@ -1921,6 +1912,7 @@ void CSettings::SaveWords()
 	}
 }
 
+///<summary>Set property default values </summary>
 void CSettings::SetDefaults()
 {
 	m_keep_encoding			= true;
@@ -1959,6 +1951,24 @@ void CSettings::SetDefaults()
 
 	::ZeroMemory(&m_wnd_placement, sizeof(WINDOWPLACEMENT));
 	m_desc.SetDefaults();
+}
+
+/// ------------ DESCSHOWINFO class --------------
+DESCSHOWINFO::DESCSHOWINFO()
+{
+	SetDefaults();
+}
+
+// Default fields showing in description
+void DESCSHOWINFO::SetDefaults()
+{
+	elements[L"ci_all"] = true;
+	elements[L"sti_all"] = false;
+	elements[L"di_id"] = true;
+	elements[L"id"] = true;
+	elements[L"ti_kw"] = true;
+	elements[L"ti_nic_mail_web"] = true;
+	elements[L"ti_genre_match"] = true;
 }
 
 int DESCSHOWINFO::GetProperties(std::vector<CString>& properties)
@@ -2032,13 +2042,14 @@ void DESCSHOWINFO::Destroy(ISerializable* obj)
 	delete obj;
 }
 
+/// ------------ TREEITEMSHOWINFO class --------------
 TREEITEMSHOWINFO::TREEITEMSHOWINFO()
 {
-	SetDefaults();
+	// SetDefaults();
 }
 
 // Default fields showing in description
-void TREEITEMSHOWINFO::SetDefaults()
+/*void TREEITEMSHOWINFO::SetDefaults()
 {
 	_EDMnr.InitStandartEDs();
 	int edCount = _EDMnr.GetStEDsCount();
@@ -2048,6 +2059,7 @@ void TREEITEMSHOWINFO::SetDefaults()
 		items[ed->GetCaption()] = ed->ViewInTree();
 	}
 }
+*/
 
 int TREEITEMSHOWINFO::GetProperties(std::vector<CString>& properties)
 {

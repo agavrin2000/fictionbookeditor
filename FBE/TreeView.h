@@ -1,7 +1,7 @@
 #ifndef LTREEVIEW_H
 #define	LTREEVIEW_H
 
-#include "ElementDescMnr.h"
+#include "ElementDescriptor.h"
 
 typedef CWinTraits<WS_CHILD|WS_VISIBLE|
 		   TVS_HASBUTTONS|TVS_LINESATROOT|TVS_SHOWSELALWAYS,0>
@@ -11,18 +11,17 @@ class CTreeView : public CWindowImpl<CTreeView, CTreeViewCtrlEx, CLPTVWinTraits>
 {
 protected:
   WTL::CImageList		m_ImageList;
-  HTREEITEM				m_last_lookup_item;
-  HWND					m_main_window;
+  HTREEITEM				m_last_lookup_item; // highlighted item
+  HWND					m_main_window; // parent window
+  // DRAG&DROP
   bool					m_drag;
   HIMAGELIST			m_himlDrag;
   CTreeItem				m_move_from;
   CTreeItem				m_move_to;
  // HTREEITEM				m_dragdrop_inserted_item;  
   int					m_drop_item_nimage;
-
-  // for multiple selection
-  HTREEITEM m_hItemFirstSel;
-
+  
+  HTREEITEM m_hItemFirstSel; // for multiple selection
 
 public:
   enum InsertType
@@ -31,12 +30,15 @@ public:
 	  child,
 	  sibling
   };
-  int					m_insert_type;
+  int m_insert_type;
 
-public:
   DECLARE_WND_SUPERCLASS(_T("Tree"), CTreeViewCtrlEx::GetWndClassName())
 
-  CTreeView() : m_last_lookup_item(0), m_main_window(0), m_drag(false), /*m_dragdrop_inserted_item(0),*/ m_insert_type(CTreeView::none){m_move_from.m_pTreeView = this;m_move_to.m_pTreeView = this;}
+  CTreeView() : m_last_lookup_item(0), m_main_window(0), m_drag(false), /*m_dragdrop_inserted_item(0),*/ m_insert_type(CTreeView::none)
+  {
+      m_move_from.m_pTreeView = this;
+      m_move_to.m_pTreeView = this;
+  }
     
   BOOL PreTranslateMessage(MSG* pMsg);
   
@@ -90,14 +92,10 @@ public:
   LRESULT OnLeftOne(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);  
   LRESULT OnLeftWithChildren(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
   LRESULT OnMerge(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled);
-
-  
-  LRESULT OnDeleteItem(int idCtrl, LPNMHDR pnmh, BOOL& bHandled) {
-    NMTREEVIEW	  *tvn=(NMTREEVIEW*)pnmh;
-    if (tvn->itemOld.lParam)
-      ((MSHTML::IHTMLElement*)tvn->itemOld.lParam)->Release();
-    return 0;
-  }
+  LRESULT OnDeleteItem(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
+  LRESULT OnLButtonUp(UINT, WPARAM, LPARAM, BOOL&);
+  LRESULT OnMouseMove(UINT, WPARAM, LPARAM, BOOL&);
+  LRESULT OnBegindrag(int idCtrl, LPNMHDR mhdr, BOOL& bHandled);
 
   //LRESULT OnRClick(int idCtrl, LPNMHDR pnmh, BOOL& bHandled);
 
@@ -105,22 +103,14 @@ public:
   void GetDocumentStructure(MSHTML::IHTMLDocument2Ptr& v);
   void UpdateDocumentStructure(MSHTML::IHTMLDocument2Ptr& v,MSHTML::IHTMLDOMNodePtr node);
   void UpdateAll();
-  void HighlightItemAtPos(MSHTML::IHTMLElement *p);
-  void SetMainwindow(HWND hwnd){m_main_window = hwnd;}
+  void HighlightItemAtPos(MSHTML::IHTMLElementPtr p);
+  void SetMainwindow(HWND hwnd)
+  {
+      m_main_window = hwnd;
+  }
 
   CTreeItem GetMoveElementFrom(){m_move_from.m_pTreeView = this; return m_move_from;}
   CTreeItem GetMoveElementTo(){m_move_to.m_pTreeView = this;return m_move_to;}
-
-  	LRESULT OnLButtonUp(UINT, WPARAM, LPARAM, BOOL&);
-	LRESULT OnMouseMove(UINT, WPARAM, LPARAM, BOOL&);
-	LRESULT OnBegindrag(int idCtrl, LPNMHDR mhdr, BOOL& bHandled);
-
-	CTreeItem GetFirstSelectedItem();
-	CTreeItem GetLastSelectedItem();
-	CTreeItem GetNextSelectedItem(CTreeItem item);
-	CTreeItem GetPrevSelectedItem(CTreeItem	item);
-
-	CTreeItem GetNextSelectedSibling(CTreeItem	item);
 
 	void SelectElement(MSHTML::IHTMLElement *p);
 	void ExpandElem(MSHTML::IHTMLElement *p, UINT mode);
@@ -128,9 +118,13 @@ public:
 
 	int AddImage(HANDLE img);
 	int AddIcon(HANDLE icon);
- 
+	CTreeItem GetFirstSelectedItem();
+	CTreeItem GetLastSelectedItem();
+	CTreeItem GetNextSelectedItem(CTreeItem item);
+	CTreeItem GetPrevSelectedItem(CTreeItem	item);
+	CTreeItem GetNextSelectedSibling(CTreeItem	item);
 protected:
-  CTreeItem LocatePosition(MSHTML::IHTMLElement *p);
+ CTreeItem LocatePosition(MSHTML::IHTMLElementPtr p);
   bool IsDropChangePosition(UINT flags, HTREEITEM	hitem);
   bool IsParent(CTreeItem	parent, CTreeItem	child);
   bool IsSibling(CTreeItem	item, CTreeItem	sibling);
@@ -152,11 +146,11 @@ protected:
   //bool MoveRightWithChildren(HTREEITEM hitem);
   //bool MoveRightSmart(HTREEITEM hitem);  
 
-  private:
-	CElementDescriptor* m_bodyED;
-	CElementDescriptor* m_sectionED;
-	CElementDescriptor* m_imageED;
-	CElementDescriptor* m_poemED;
+  //private:
+	//CElementDescriptor* m_bodyED;
+	//CElementDescriptor* m_sectionED;
+	//CElementDescriptor* m_imageED;
+	//CElementDescriptor* m_poemED;
 };
 
 #endif

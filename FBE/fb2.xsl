@@ -3,7 +3,8 @@
 <xsl:stylesheet version="1.0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:f="http://www.gribuser.ru/xml/fictionbook/2.0"
-	xmlns:l="http://www.w3.org/1999/xlink">
+	xmlns:l="http://www.w3.org/1999/xlink"
+	exclude-result-prefixes="f l">
 
 	<xsl:import href="eng.xsl"/>
 
@@ -363,7 +364,7 @@
 	    <button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 	    <button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	    <label unselectable="on"><xsl:value-of select="$IDS_IMAGE"/></label>
-		<select id="href" class="wide" onchange="SetModifiedState();"></select>
+		<select id="href" class="wide"></select>
 	  </div>
 	</xsl:if>
       </fieldset>
@@ -371,7 +372,7 @@
       <label unselectable="on" class="hl"><xsl:value-of select="$IDS_LANGUAGE"/></label>
       <!--input type="text" maxlength="2" id="tiLang" class="short" value="{$cur/f:lang}"/-->
 
-      <select id="tiLang" title="Language of the text" onchange="SetModifiedState();">
+      <select id="tiLang" title="Language of the text">
 		<xsl:call-template name="fill_languages_combo">
 			<xsl:with-param name="lang" select="$cur/f:lang"/>
 		</xsl:call-template>
@@ -379,7 +380,7 @@
 
       <label unselectable="on" style="width: 10em"><xsl:value-of select="$IDS_SOURCE_LANG"/></label>
       
-      <select id="tiSrcLang" title="Original language" onchange="SetModifiedState();">
+      <select id="tiSrcLang" title="Original language">
 		<xsl:call-template name="fill_languages_combo">
 			<xsl:with-param name="lang" select="$cur/f:src-lang"/>
 		</xsl:call-template>
@@ -461,7 +462,7 @@
 					<button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 	    			<button id="show" onmouseover="ShowCoverImage(this.parentNode,false);" onmouseout="HidePrevImage();" onclick="ShowCoverImage(this.parentNode,true);">&#x4e;</button>
 					<label unselectable="on"><xsl:value-of select="$IDS_IMAGE"/></label>
-					<select id="href" class="wide" onchange="SetModifiedState();">
+					<select id="href" class="wide">
 						<option selected="yes" value="{@l:href}"></option>
 					</select>
 				</div>
@@ -471,7 +472,7 @@
 					<button id="del" onmouseover="HighlightBorder(this, true);" onmouseout="HighlightBorder(this, false);" onclick="Remove(this.parentNode)" unselectable="on">&#x72;</button>
 					<button onclick="Clone(this.parentNode)" unselectable="on">&#x32;</button>
 					<label unselectable="on"><xsl:value-of select="$IDS_IMAGE"/></label>
-					<select id="href" class="wide" onchange="SetModifiedState();"></select>
+					<select id="href" class="wide"></select>
 				</div>
 			</xsl:if>
 	    </fieldset>
@@ -479,7 +480,7 @@
 	    <label unselectable="on" class="hl"><xsl:value-of select="$IDS_LANGUAGE"/></label>
 	    <!--input type="text" maxlength="2" id="tiLang" class="short" value="{$cur/f:lang}"/-->
 
-	    <select id="stiLang" title="Language of the text" onchange="SetModifiedState();">
+	    <select id="stiLang" title="Language of the text">
 			<xsl:call-template name="fill_languages_combo">
 				<xsl:with-param name="lang" select="$cur/f:lang"/>
 			</xsl:call-template>
@@ -488,7 +489,7 @@
 	    <label unselectable="on" style="width: 10em"><xsl:value-of select="$IDS_SOURCE_LANG"/></label>
 	    <!--input type="text" maxlength="2" id="tiSrcLang" class="short" value="{$cur/f:src-lang}"/-->
 
-	    <select id="stiSrcLang" title="Original language" onchange="SetModifiedState();">
+	    <select id="stiSrcLang" title="Original language">
 			<xsl:call-template name="fill_languages_combo">
 				<xsl:with-param name="lang" select="$cur/f:src-lang"/>
 			</xsl:call-template>

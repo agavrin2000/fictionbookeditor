@@ -13,8 +13,8 @@ var MyTagName="B";
 function Run() {
  window.external.BeginUndoUnit(document,"Предложение");
  var body=document.getElementById("fbw_body");
- var coll=body.document.selection.createRange().getClientRects();
- var ttr1 = body.document.selection.createRange();
+ var coll=body.document.createRange().getClientRects();
+ var ttr1 = body.document.createRange();
  var el=body.document.elementFromPoint(coll[0].left, coll[0].top);
 // поставим маркеры блока в виде пустых ссылок
  var tr=ttr1.duplicate();

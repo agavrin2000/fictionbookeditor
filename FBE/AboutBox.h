@@ -7,7 +7,7 @@
 #include <math.h>
 #include <memory>
 #include "ModelessDialog.h"
-#include "extras/http_download.h"
+//#include "extras/http_download.h"
 #include "extras/MD5.h"
 #include "GLLogo.h"
 
@@ -53,37 +53,9 @@ public:
 	COLORREF m_transparentColor;
 };
 
-class CDownloadMonitor : public FCTimerNotify
-{
-    int    m_task_id ;
-    DWORD  m_start_time ;
-    HWND   m_dlg ;
-public:
-    CDownloadMonitor (HWND hDlg, int nTaskID)
-    {
-        m_dlg = hDlg ;
-        m_task_id = nTaskID ;
-        m_start_time = GetTickCount() ;
-        StartTimer(100) ;
-    }
-
-    // in milliseconds
-    int GetElapseTime() const
-    {
-        return (int)(GetTickCount() - m_start_time) ;
-    }
-
-private:
-    // Update progress
-    virtual void OnHandleTimer()
-    {
-        PostMessage (m_dlg, UIS_WM_UPDATE_PROGRESS_UI, (WPARAM)m_task_id, 0) ;
-    }
-};
-
 #define ANIM_SIZE 24
 
-class CAboutDlg : public CDialogImpl<CAboutDlg>, public FCHttpDownloadManager
+class CAboutDlg : public CDialogImpl<CAboutDlg>
 {
 public:
 	enum { IDD = IDD_ABOUTBOX };
@@ -93,18 +65,15 @@ public:
 		MESSAGE_HANDLER(WM_CTLCOLORSTATIC, OnCtlColor)
 		MESSAGE_HANDLER(WM_GETMINMAXINFO, OnGetMinMaxInfo)
 		MESSAGE_HANDLER(WM_SIZE, OnSize)
-		MESSAGE_HANDLER(UIS_WM_UPDATE_PROGRESS_UI, OnUpdateProgressUI)
 		MESSAGE_HANDLER(WM_RESIZE_OPENGL_WINDOW, OnResizeOpenGLWindow)
 		COMMAND_ID_HANDLER(IDOK, OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL, OnCloseCmd)
-		COMMAND_ID_HANDLER(IDC_UPDATE, OnUpdate)
 		NOTIFY_HANDLER(IDC_SYSLINK_AB_LINKS, NM_CLICK, OnNMClickSyslinkAbLinks)
 	END_MSG_MAP()
 
 private:
 	RECT m_SaveRect, m_LogoRect;
 	CGLLogoView m_glLogo;
-	auto_ptr<CDownloadMonitor> m_monitor;
 	stringstream m_file;
 	CEdit m_Contributors;
 	bool m_UpdateReady;
@@ -127,9 +96,6 @@ private:
 	CString m_sNewVersionAvailable, m_sHaveLatestVersion, m_sLogoCaption, m_sDownloadReady;
 	CString m_sDownloadCompleted, m_sDownloadError, m_sNotSupportRange, m_sDownloadErrorStatus;
 
-    void CheckUpdate();
-	CString GetUpdateFileName();
-	void RunUpdate(CString filename);
 
 	LRESULT OnInitDialog(UINT, WPARAM, LPARAM, BOOL&);
 	LRESULT OnCloseCmd(WORD, WORD wID, HWND, BOOL&);
@@ -137,15 +103,6 @@ private:
 	LRESULT OnSize(UINT, WPARAM, LPARAM, BOOL&);
 	LRESULT OnCtlColor(UINT, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnNMClickSyslinkAbLinks(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL&);
-    LRESULT OnUpdateProgressUI(UINT, WPARAM, LPARAM, BOOL&);
 	LRESULT OnResizeOpenGLWindow(UINT, WPARAM, LPARAM, BOOL&);
-
-    LRESULT OnUpdate(WORD, WORD wID, HWND, BOOL&);
-	HTTP_SEND_HEADER PrepareHeader(const CString url);
-
-    void AcceptReceivedData (FCHttpDownload* pTask) ;
-    void FinishUpdateStatus (FCHttpDownload* pTask) ;
-    virtual void OnAfterDownloadConnected (FCHttpDownload* pTask) ;
-    virtual void OnAfterDownloadFinish (FCHttpDownload* pTask) ;
 };
 

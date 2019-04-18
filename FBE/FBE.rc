@@ -359,9 +359,6 @@ BEGIN
     CONTROL         "<a href=""http://code.google.com/p/fictionbookeditor/"">http://code.google.com/p/fictionbookeditor/</a>",IDC_SYSLINK_AB_LINKS,
                     "SysLink",0x0,101,32,154,8
     EDITTEXT        IDC_CONTRIBS,70,51,189,77,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_WANTRETURN | NOT WS_BORDER | WS_VSCROLL | NOT WS_TABSTOP,WS_EX_STATICEDGE
-    CONTROL         "Static",IDC_TEXT_STATUS,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,24,137,180,8
-    CONTROL         IDB_UPD_CHECK1,IDC_PIC_UPDATE,"Static",SS_BITMAP,9,136,9,9
-    PUSHBUTTON      "Update now",IDC_UPDATE,161,133,49,14,NOT WS_VISIBLE
 END
 
 IDD_SETTINGS_HOTKEYS DIALOGEX 0, 0, 238, 227
@@ -439,6 +436,7 @@ IDI_OLDICON             ICON                    "res\\FBE.ico"
 IDR_MAINFRAME TOOLBAR 24, 24
 BEGIN
     BUTTON      ID_FILE_NEW
+    SEPARATOR
     BUTTON      ID_FILE_OPEN
     BUTTON      ID_FILE_SAVE
     SEPARATOR
@@ -448,10 +446,10 @@ BEGIN
     BUTTON      ID_VIEW_BODY
     BUTTON      ID_VIEW_SOURCE
     SEPARATOR
-    BUTTON      ID_EDIT_ADDBINARY
-    BUTTON      ID_EDIT_INS_IMAGE
-    BUTTON      ID_EDIT_INS_INLINEIMAGE
-    SEPARATOR
+    BUTTON      ID_ATTACH_BINARY
+    BUTTON      ID_ADD_IMAGE
+	BUTTON      ID_ADD_IMAGE
+	SEPARATOR
     BUTTON      ID_EDIT_FIND
     BUTTON      ID_EDIT_FINDNEXT
     SEPARATOR
@@ -462,12 +460,12 @@ BEGIN
     BUTTON      ID_EDIT_UNDO
     BUTTON      ID_EDIT_REDO
     SEPARATOR
-    BUTTON      ID_EDIT_BOLD
-    BUTTON      ID_EDIT_ITALIC
-    BUTTON      ID_EDIT_SUP
-    BUTTON      ID_EDIT_SUB
-    BUTTON      ID_EDIT_STRIK
-    BUTTON      ID_EDIT_CODE
+    BUTTON      ID_STYLE_BOLD
+    BUTTON      ID_STYLE_ITALIC
+    BUTTON      ID_STYLE_SUPERSCRIPT
+    BUTTON      ID_STYLE_SUBSCRIPT
+    BUTTON      ID_STYLE_STRIKETROUGH
+    BUTTON      ID_STYLE_CODE
     SEPARATOR
     BUTTON      ID_STYLE_LINK
     BUTTON      ID_STYLE_NOTE
@@ -475,8 +473,8 @@ BEGIN
     BUTTON      ID_GOTO_FOOTNOTE
     SEPARATOR
     BUTTON      ID_STYLE_NORMAL
-    BUTTON      ID_STYLE_SUBTITLE
-    BUTTON      ID_STYLE_TEXTAUTHOR
+    BUTTON      ID_ADD_SUBTITLE
+    BUTTON      ID_ADD_TEXTAUTHOR
     SEPARATOR
     BUTTON      ID_TOOLS_SPELLCHECK
 END
@@ -491,7 +489,7 @@ BEGIN
     BUTTON      ID_VIEW_BODY
     BUTTON      ID_VIEW_SOURCE
     BUTTON      ID_VIEW_OPTIONS
-    BUTTON      ID_EDIT_ADDBINARY
+    BUTTON      ID_ATTACH_BINARY
     BUTTON      ID_EDIT_FIND
     BUTTON      ID_EDIT_FINDNEXT
     BUTTON      ID_EDIT_REPLACE
@@ -500,23 +498,21 @@ BEGIN
     BUTTON      ID_EDIT_PASTE
     BUTTON      ID_EDIT_UNDO
     BUTTON      ID_EDIT_REDO
-    BUTTON      ID_EDIT_INS_IMAGE
-    BUTTON      ID_EDIT_INS_INLINEIMAGE
-    BUTTON      ID_EDIT_ADD_IMAGE
+    BUTTON      ID_ADD_IMAGE
     BUTTON      ID_STYLE_LINK
     BUTTON      ID_STYLE_NOTE
     BUTTON      ID_STYLE_NOLINK
     BUTTON      ID_STYLE_NORMAL
-    BUTTON      ID_STYLE_SUBTITLE
-    BUTTON      ID_STYLE_TEXTAUTHOR
+    BUTTON      ID_ADD_SUBTITLE
+    BUTTON      ID_ADD_TEXTAUTHOR
     BUTTON      ID_GOTO_FOOTNOTE
-    BUTTON      ID_EDIT_ADD_BODY
-    BUTTON      ID_EDIT_ADD_TITLE
-    BUTTON      ID_EDIT_ADD_EPIGRAPH
-    BUTTON      ID_EDIT_ADD_ANN
-    BUTTON      ID_EDIT_INS_POEM
-    BUTTON      ID_EDIT_INS_CITE
-    BUTTON      ID_INSERT_TABLE
+    BUTTON      ID_ADD_BODY
+    BUTTON      ID_ADD_TITLE
+    BUTTON      ID_ADD_EPIGRAPH
+    BUTTON      ID_ADD_ANN
+    BUTTON      ID_ADD_POEM
+    BUTTON      ID_ADD_CITE
+    BUTTON      ID_INS_TABLE
     BUTTON      ID_TOOLS_SPELLCHECK
 END
 
@@ -676,23 +672,14 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "&New",                        ID_FILE_NEW
-        MENUITEM "&Open...",                    ID_FILE_PAGE_SETUP
+        MENUITEM "&Open...",                    ID_FILE_OPEN
         MENUITEM "&Save",                       ID_FILE_SAVE
         MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
         MENUITEM "&Validate",                   ID_FILE_VALIDATE
         MENUITEM SEPARATOR
-        POPUP "&Import"
-        BEGIN
-            MENUITEM "No import plugins installed", IDCANCEL
-        END
-        POPUP "&Export"
-        BEGIN
-            MENUITEM "No export plugins installed", IDCANCEL
-        END
-        MENUITEM SEPARATOR
         POPUP "&Recent Files"
         BEGIN
-            MENUITEM "No Recent Files",             ID_FILE_MRU_FIRST, INACTIVE
+            MENUITEM "No Recent Files",         ID_FILE_MRU_FIRST, INACTIVE
         END
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
@@ -711,52 +698,66 @@ BEGIN
         MENUITEM "R&eplace...",                 ID_EDIT_REPLACE
         MENUITEM SEPARATOR
         MENUITEM "&Go to footnote or reference", ID_GOTO_FOOTNOTE
-        MENUITEM "Go to matching &tag",         ID_GOTO_MATCHTAG
+        MENUITEM "G&o to matching &tag",        ID_GOTO_MATCHTAG
         MENUITEM SEPARATOR
         MENUITEM "C&lone container",            ID_EDIT_CLONE
         MENUITEM "Sp&lit container",            ID_EDIT_SPLIT
         MENUITEM "&Merge containers",           ID_EDIT_MERGE
-        MENUITEM "Remove outer container",      ID_EDIT_REMOVE_OUTER_SECTION
+        MENUITEM "Remove outer container",      ID_EDIT_REMOVE_OUTER
     END
     POPUP "&View"
     BEGIN
         MENUITEM "&Commands toolbar",           60161
-        MENUITEM "Scripts toolbar",             60162
+        MENUITEM "Sc&ripts toolbar",            60162
         MENUITEM "&Links Bar",                  60163
-        MENUITEM "Table Bar",                   60164
+        MENUITEM "&Table Bar",                  60164
         MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
         MENUITEM "&Document Tree",              ID_VIEW_TREE
         MENUITEM SEPARATOR
         MENUITEM "D&escription",                ID_VIEW_DESC
         MENUITEM "&Body",                       ID_VIEW_BODY
         MENUITEM "So&urce",                     ID_VIEW_SOURCE
+        MENUITEM SEPARATOR
+        POPUP "&Zoom"                           
+        BEGIN
+	        MENUITEM "Zoom In",             ID_VIEW_ZOOMIN
+	        MENUITEM "Zoom Out",            ID_VIEW_ZOOMOUT
+	        MENUITEM "100%",                ID_VIEW_ZOOM100
+        END
     END
     POPUP "&Add"
     BEGIN
-        MENUITEM "&Body",                       ID_EDIT_ADD_BODY
-        MENUITEM "&Title",                      ID_EDIT_ADD_TITLE
-        MENUITEM "&Epigraph",                   ID_EDIT_ADD_EPIGRAPH
-        MENUITEM "A&nnotation",                 ID_EDIT_ADD_ANN
+        MENUITEM "&Body",                       ID_ADD_BODY
+        MENUITEM "Body (&Notes)",               ID_ADD_BODY_NOTES
+        MENUITEM "&Annotation",                 ID_ADD_ANN
+        MENUITEM "&Section",                    ID_ADD_SECTION
+        MENUITEM "&Title",                      ID_ADD_TITLE
+		MENUITEM "S&ubtitle",					ID_ADD_SUBTITLE
+		MENUITEM SEPARATOR
+		MENUITEM "&Cite",						ID_ADD_CITE
+		MENUITEM "&Poem",                       ID_ADD_POEM
+        MENUITEM "Stan&za",                     ID_ADD_STANZA
+        MENUITEM "&Epigraph",                   ID_ADD_EPIGRAPH
+		MENUITEM "Text Aut&hor",				ID_ADD_TEXTAUTHOR
+		MENUITEM SEPARATOR
+        MENUITEM "Tab&le",                      ID_INS_TABLE
         MENUITEM SEPARATOR
-        MENUITEM "T&ext author",                ID_EDIT_ADD_TA
-        MENUITEM "&Image",                      ID_EDIT_INS_IMAGE
-        MENUITEM "In&line image",               ID_EDIT_INS_INLINEIMAGE
-        MENUITEM "&Poem",                       ID_EDIT_INS_POEM
-        MENUITEM "&Cite",                       ID_EDIT_INS_CITE
-        MENUITEM "T&able",                      ID_INSERT_TABLE
-        MENUITEM "&Section image",              ID_EDIT_ADD_IMAGE
-        MENUITEM SEPARATOR
-        MENUITEM "Add &Binary Object...",       ID_EDIT_ADDBINARY
+        MENUITEM "&Image...",                   ID_ADD_IMAGE
+        MENUITEM "Attach Binary &Object...",    ID_ATTACH_BINARY
     END
     POPUP "&Style"
     BEGIN
         MENUITEM "&Normal",                     ID_STYLE_NORMAL
-        MENUITEM "Text &Author",                ID_STYLE_TEXTAUTHOR
-        MENUITEM "&Subtitle",                   ID_STYLE_SUBTITLE
-        MENUITEM SEPARATOR
+        MENUITEM "C&ode",                       ID_STYLE_CODE
         MENUITEM "&Link...",                    ID_STYLE_LINK
         MENUITEM "&Footnote...",                ID_STYLE_NOTE
         MENUITEM "&Remove link",                ID_STYLE_NOLINK
+        MENUITEM SEPARATOR
+        MENUITEM "Bold",                        ID_STYLE_BOLD
+        MENUITEM "Italic",                      ID_STYLE_ITALIC
+        MENUITEM "Superscript",                 ID_STYLE_SUPERSCRIPT
+        MENUITEM "Subscript",                   ID_STYLE_SUBSCRIPT
+        MENUITEM "Striketrough",                ID_STYLE_STRIKETROUGH
     END
     POPUP "&Tools"
     BEGIN
@@ -854,15 +855,8 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_INSERT_TABLE         "Insert an table at cursor\nInsert table"
-    ID_GOTO_FOOTNOTE        "Go to footnote or reference\nGo to footnote or reference"
-END
-
-STRINGTABLE
-BEGIN
     ID_LAST_SCRIPT          "Execute last called script\nLast script"
     ID_TOOLS_SPELLCHECK     "Check document spelling...\nCheck document spelling"
-    ID_GOTO_MATCHTAG        "Go to matching tag\nGo to matching tag"
     ID_GOTO_WRONGTAG        "Go to wrong tag\nGo to wrong tag"
 END
 
@@ -873,33 +867,29 @@ BEGIN
     ID_DT_RIGHT_ONE         "\nMove node once to the right"
     ID_DT_RIGHT_SMART       "\nMove one node to the right with smart mode"
     ID_DT_MERGE             "\nMerge containers"
-    ID_VIEW_FASTMODE        "Toggle fast mode\nToggle fast mode"
 END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_ADD_TA          "Add a text author paragraph to the selected container\nAdd text author"
-    ID_EDIT_MERGE           "Merge selected container with next\nMerge containers"
-    ID_EDIT_INS_CITE        "Replace selection with a cite container\nInsert cite"
-    ID_EDIT_STRIK           "Marks the selection """"strikethrough"""" (toggle)\nStrikethrough"
-    ID_EDIT_SUB             "Marks the selection """"sub"""" (toggle)\nSub"
-    ID_EDIT_SUP             "Marks the selection """"sup"""" (toggle)\nSup"
-    ID_EDIT_CODE            "Marks the selection """"code"""" (toggle)\nCode"
+    ID_ADD_CITE             "Replace selection with a cite container\nInsert cite"
+	ID_STYLE_STRIKETROUGH   "Marks the selection """"strikethrough"""" (toggle)\nStrikethrough"
+    ID_STYLE_SUBSCRIPT      "Marks the selection """"sub"""" (toggle)\nSub"
+    ID_STYLE_SUPERSCRIPT    "Marks the selection """"sup"""" (toggle)\nSup"
+    ID_STYLE_CODE           "Marks the selection """"code"""" (toggle)\nCode"
 END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_ADD_TITLE       "Add a title to the selected object\nAdd title"
-    ID_EDIT_ADD_BODY        "Add a new body to the document\nAdd body"
-    ID_EDIT_CLONE           "Clone selected object\nClone"
-    ID_EDIT_INS_IMAGE       "Insert an image at cursor\nInsert image"
-    ID_EDIT_INS_INLINEIMAGE "Insert an inline image at cursor\nInsert inline image"
+    ID_ADD_TITLE            "Add a title to the selected object\nAdd title"
+    ID_ADD_BODY             "Add a new body to the document\nAdd body"
+    ID_ADD_BODY_NOTES       "Add Notes body to the document\nAdd Notes body"
+    ID_ADD_ANN              "Add annotation to the selected obejct\nAdd annotation"
+    ID_INS_TABLE            "Insert an table at cursor\nInsert table"
+    ID_ADD_IMAGE            "Insert an image at cursor\nInsert image"
     ID_FILE_VALIDATE        "Validate current document against FictionBook schema\nValidate"
-    ID_EDIT_ADD_EPIGRAPH    "Add epigraph to selected object\nAdd epigraph"
-    ID_EDIT_ADD_IMAGE       "Add an image to the selected object\nAdd image"
-    ID_EDIT_ADD_ANN         "Add annotation to the selected obejct\nAdd annotation"
-    ID_EDIT_SPLIT           "Split parent container at selection\nSplit container"
-    ID_EDIT_INS_POEM        "Replace selection with a poem container\nInsert poem"
+    ID_ADD_EPIGRAPH         "Add epigraph to selected object\nAdd epigraph"
+    ID_ATTACH_BINARY        "Add an image to the selected object\nAdd image"
+    ID_ADD_POEM             "Replace selection with a poem container\nInsert poem"
 END
 
 STRINGTABLE
@@ -933,22 +923,21 @@ END
 STRINGTABLE
 BEGIN
     ID_STYLE_NORMAL         "Normal paragraph style\nNormal"
-    ID_STYLE_TEXTAUTHOR     "Text author paragraph style\nText author"
-    ID_STYLE_SUBTITLE       "Subtitle paragraph style\nSubtitle"
+    ID_ADD_TEXTAUTHOR		"Add Text author paragraph\nText author"
+    ID_ADD_SUBTITLE			"Add Subtitle paragraph\nSubtitle"
     ID_VIEW_OPTIONS         "Display options\nDisplay options"
 END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_BOLD            "Marks the selection ""strong"" (toggle)\nStrong"
-    ID_EDIT_ITALIC          "Marks the selection ""emphasis"" (toggle)\nEmphasis"
+    ID_STYLE_BOLD            "Marks the selection ""strong"" (toggle)\nStrong"
+    ID_STYLE_ITALIC          "Marks the selection ""emphasis"" (toggle)\nEmphasis"
 END
 
 STRINGTABLE
 BEGIN
-    ID_STYLE_LINK           "Add a hyperlink\nHyperlink"
-    ID_STYLE_NOTE           "Add a footnote\nFootnote"
-    ID_EDIT_FINDNEXT        "Repeats the last find\nFind next"
+    ID_STYLE_LINK           "Create a hyperlink from selected text\nHyperlink"
+    ID_STYLE_NOTE           "Create a footnote from selected text\nFootnote"
     ID_VIEW_DESC            "Show document description\nDescription"
     ID_VIEW_BODY            "Show document body\nBody"
     ID_STYLE_NOLINK         "Remove links from selected text\nRemove links"
@@ -957,13 +946,20 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
-    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
-    ID_EDIT_FIND            "Find the specified text\nFind"
-    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
-    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_FINDNEXT        "Repeats the last find\nFind next"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_GOTO_FOOTNOTE        "Go to footnote or reference\nGo to footnote or reference"
+    ID_GOTO_MATCHTAG        "Go to matching tag\nGo to matching tag"
+    ID_EDIT_CLONE           "Clone selected object\nClone"
+    ID_EDIT_SPLIT           "Split parent container at selection\nSplit container"
+    ID_EDIT_MERGE           "Merge selected container with next\nMerge containers"
+    ID_EDIT_REMOVE_OUTER    "Remove outer container\nRemove outer container"
 END
 
 STRINGTABLE

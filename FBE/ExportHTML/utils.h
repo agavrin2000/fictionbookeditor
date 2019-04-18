@@ -61,23 +61,22 @@ namespace U { // place all utilities into their own namespace
 
   typedef CComObject<HandleStreamImpl>	  HandleStream;
   typedef CComPtr<HandleStream>		  HandleStreamPtr;
-  HandleStreamPtr			  NewStream(HANDLE& hf,bool fClose=true);
+  HandleStreamPtr  NewStream(HANDLE& hf,bool fClose=true);
 
   // strings
   int		scmp(const wchar_t *s1,const wchar_t *s2);
   CString	GetMimeType(const CString& filename);
-  bool		is_whitespace(const wchar_t *spc);
   void		NormalizeInplace(CString& s);
   void		RemoveSpaces(wchar_t *zstr);
-  extern inline CString	Normalize(const CString& s) { CString p(s); NormalizeInplace(p); return p; }
+  //extern inline CString	Normalize(const CString& s) { CString p(s); NormalizeInplace(p); return p; }
   CString	GetFileTitle(const TCHAR *filename);
-  extern inline void	StrAppend(CString& s1,const CString& s2) {
+  /*extern inline void	StrAppend(CString& s1,const CString& s2) {
     if (!s2.IsEmpty()) {
       s1+=_T(' ');
       s1+=s2;
     }
-  }
-  CString	UrlFromPath(const CString& path);
+  }*/
+ // CString	UrlFromPath(const CString& path);
 
   // settings in the registry
   CString	QuerySV(HKEY hKey,const TCHAR *name,const TCHAR *def=NULL);
@@ -90,9 +89,9 @@ namespace U { // place all utilities into their own namespace
   extern inline CString	GetSettingS(const TCHAR *name,const TCHAR *def=NULL) {
     return U::QuerySV(_Settings,name,def);
   }
-
+  bool is_whitespace(const wchar_t *spc);
   // windows api
-  HFONT	  CreatePtFont(int sizept,const TCHAR *facename,bool fBold=false,bool fItalic=false);
+ // HFONT	  CreatePtFont(int sizept,const TCHAR *facename,bool fBold=false,bool fItalic=false);
   CString GetFullPathName(const CString& filename);
   CString Win32ErrMsg(DWORD code);
   CString GetWindowText(HWND hWnd);
@@ -103,11 +102,11 @@ namespace U { // place all utilities into their own namespace
   CString GetCBString(HWND hCB,int idx);
 
   // unicode char names (win2k/xp only)
-  CString GetCharName(int ch);
+ // CString GetCharName(int ch);
 
   // msxml support
   IXMLDOMDocument2Ptr CreateDocument(bool fFreeThreaded=false);
-  void			      ReportParseError(IXMLDOMDocument2Ptr doc);
+  // void			      ReportParseError(IXMLDOMDocument2Ptr doc);
   bool			      LoadXml(IXMLDOMDocument2Ptr doc,
 				      const CString& url);
   IXSLTemplatePtr     CreateTemplate();

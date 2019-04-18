@@ -15,7 +15,6 @@
 #define IDS_HOTKEY_FILE_SAVE            106
 #define IDS_HOTKEY_FILE_SAVEAS          107
 #define IDS_HOTKEY_FILE_VALIDATE        108
-#define IDS_HOTKEY_FILE_NEW				310
 #define IDS_HOTKEY_GROUP_FILE           109
 #define IDN_ED_TEXT                     110
 #define IDS_HOTKEY_EDIT_ADD_ANNOTATION  110
@@ -46,7 +45,6 @@
 #define IDN_HKMAP_CHANGE                124
 #define IDS_HOTKEY_EDIT_INSERT_IMAGE    124
 #define IDS_HOTKEY_EDIT_INSERT_POEM     125
-#define ID_EDIT_REMOVE_OUTER_SECTION    126
 #define IDS_HOTKEY_EDIT_ITALIC          126
 #define ID_VIEW_SOURCE                  127
 #define IDR_MAINFRAME                   128
@@ -310,6 +308,7 @@
 #define IDB_UPD_CHECK24                 423
 #define IDC_SPELL_REPLACE               500
 #define ID_VER_ADVANCE                  550
+#define ID_DOC_CHANGED                  551
 #define IDS_MB_OK                       600
 #define IDS_MB_CANCEL                   601
 #define IDS_MB_ABORT                    602
@@ -485,8 +484,9 @@
 #define ID_EDIT_BOLD                    32779
 #define ID_EDIT_ITALIC                  32780
 #define ID_STYLE_NORMAL                 32788
-#define ID_STYLE_TEXTAUTHOR             32789
-#define ID_STYLE_SUBTITLE               32790
+#define ID_ADD_TEXTAUTHOR               32789
+#define ID_ADD_SUBTITLE                 32790
+#define ID_EDIT_REMOVE_OUTER            32791
 #define ID_VIEW_OPTIONS                 32794
 #define ID_SELECT_ID                    32796
 #define ID_SELECT_HREF                  32797
@@ -500,22 +500,20 @@
 #define ID_VIEW_HTML                    32811
 #define ID_STYLE_NOLINK                 32812
 #define ID_EDIT_ADDBINARY               32813
-#define ID_EDIT_ADD_TITLE               32817
-#define ID_EDIT_ADD_BODY                32818
+#define ID_ADD_TITLE                    32817
 #define ID_EDIT_CLONE                   32819
 #define ID_EDIT_INS_IMAGE               32820
-#define ID_EDIT_INS_INLINEIMAGE         32821
 #define ID_FILE_VALIDATE                32822
-#define ID_EDIT_ADD_EPIGRAPH            32824
-#define ID_EDIT_ADD_IMAGE               32827
-#define ID_EDIT_ADD_ANN                 32829
+#define ID_ADD_EPIGRAPH                 32824
+#define ID_ADD_IMAGE					32827
+#define ID_ADD_SECTION                  32829
 #define ID_EDIT_SPLIT                   32830
-#define ID_EDIT_INS_POEM                32831
-#define ID_EDIT_ADD_TA                  32832
+#define ID_ADD_POEM                     32831
+#define ID_ADD_STANZA                   32832
 #define ID_EDIT_MERGE                   32833
 #define ID_TOOLS_OPTIONS                32834
 #define ID_TOOLS_WORDS                  32835
-#define ID_EDIT_INS_CITE                32836
+#define ID_ADD_CITE		                32836
 #define ID_TOOLS_SCRIPTS                32837
 #define ID_EDIT_STRIK                   32840
 #define ID_EDIT_SUB                     32841
@@ -529,7 +527,7 @@
 #define ID_SELECT_VALIGN                32850
 #define ID_SELECT_STYLET                32851
 #define ID_SELECT_ALIGNTR               32852
-#define ID_INSERT_TABLE                 32853
+#define ID_INS_TABLE	                32853
 #define ID_SELECT_SECTION               32854
 #define ID_GOTO_FOOTNOTE                32855
 #define ID_GOTO_REFERENCE               32856
@@ -547,10 +545,6 @@
 #define ID_DT_LEFT_ONE                  32875
 #define ID_DT_LEFT_WITH_CHILDREN        32876
 #define ID_DT_MERGE                     32877
-#define ID_VIEW_FASTMODE                32878
-#define ID_LAST_SCRIPT                  32899
-#define ID_LAST_PLUGIN                  32900
-#define ID_ADD_IMAGE                    32902
 #define ID_SAVEIMG_AS                   32904
 #define ID_TOOLS_SPELLCHECK             32905
 #define ID_TOOLS_SPELLCHECK_HIGHLIGHT   32906
@@ -558,7 +552,20 @@
 #define ID_GOTO_WRONGTAG                32908
 #define ID_TOOLS_CUSTOMIZE              32909
 #define ID_HIDETOOLBAR                  32910
-#define ID_EDIT_PASTE2                  0xE525
+#define ID_VIEW_ZOOMIN                  32911
+#define ID_VIEW_ZOOMOUT                 32912
+#define ID_VIEW_ZOOM100                 32913
+#define ID_ADD_BODY                     32918
+#define ID_ADD_BODY_NOTES               32919
+#define ID_STYLE_BOLD                   32920
+#define ID_STYLE_ITALIC                 32921
+#define ID_STYLE_SUPERSCRIPT            32922
+#define ID_STYLE_SUBSCRIPT              32923
+#define ID_STYLE_STRIKETROUGH           32924
+#define ID_STYLE_CODE                   32926
+#define ID_LAST_SCRIPT					32927
+#define ID_ADD_ANN                      32928
+#define ID_ATTACH_BINARY                32932
 #define IDS_ENCODINGS                   61403
 #define IDS_DOCUMENT_TREE_CAPTION       61404
 
@@ -568,7 +575,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        256
-#define _APS_NEXT_COMMAND_VALUE         32912
+#define _APS_NEXT_COMMAND_VALUE         32933
 #define _APS_NEXT_CONTROL_VALUE         1109
 #define _APS_NEXT_SYMED_VALUE           134
 #endif

@@ -44,6 +44,7 @@
 #define	IDC_TREE_BASE					40400
 
 #define	IDC_TREE_CLEAR_ALL				40500
+#define	IDC_TREE_UNCHECK_ALL			40600
 
 
 #define  MAX_LOAD_STRING  1023

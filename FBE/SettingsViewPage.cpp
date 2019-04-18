@@ -3,7 +3,6 @@
 #include "res1.h"
 
 #include "utils.h"
-#include "apputils.h"
 
 //#include <atlgdix.h>
 
@@ -167,7 +166,7 @@ int CSettingsViewPage::OnApply()
 	// save zoom
 	_Settings.SetFontSize(m_fsz_val);
 
-	DWORD new_lang;
+	DWORD new_lang = LANG_ENGLISH;
 	switch (m_lang.GetCurSel())
 	{
 	case 0: new_lang = LANG_ENGLISH; break;

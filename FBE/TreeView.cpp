@@ -3,7 +3,6 @@
 #include "res1.h"
 
 #include "utils.h"
-#include "apputils.h"
 
 #include "FBEView.h"
 #include "FBDoc.h"
@@ -12,153 +11,107 @@
 extern CElementDescMnr _EDMnr;
 
 // redrawing the tree is _very_ ugly visually, so we first build a copy and compare them
-struct TreeNode {
-  TreeNode    *parent,*next,*last,*child;
-  CString     text;
-  int	      img;
-  MSHTML::IHTMLElement	*pos;
-  TreeNode() : parent(0), next(0), child(0), last(0), img(0), pos(0) { }
-  TreeNode(TreeNode *nn,const CString& s,int ii,MSHTML::IHTMLElement *pp) : parent(nn), next(0), last(0), child(0),
-    text(s), img(ii), pos(pp)
+struct TreeNode 
+{
+  TreeNode    *parent,*next,*last,*child; // link to neightborhoods
+  CString     text; // node title
+  int	      img; // image index
+  MSHTML::IHTMLElement* pos; //corresponding HTML-element
+  
+  TreeNode() : parent(0), next(0), child(0), last(0), img(0), pos(0) 
+  {
+  }
+  
+  TreeNode(TreeNode *nn, const CString& s, int ii, MSHTML::IHTMLElement* pp) : 
+                    parent(nn), next(0), last(0), child(0), text(s), img(ii), pos(pp)
   {
     if (pos)
       pos->AddRef();
   }
-  ~TreeNode() {
+  
+  ~TreeNode() 
+  {
     if (pos)
       pos->Release();
     TreeNode *q;
-    for (TreeNode *n=child;n;n=q) {
-      q=n->next;
+    for (TreeNode *n=child; n ;n=q) 
+    {
+      q = n->next;
       delete n;
     }
   }
-  TreeNode *Append(const CString& s,int ii,MSHTML::IHTMLElement *p) {
-    TreeNode *n=new TreeNode(this,s,ii,p);
-    if (last) {
-      last->next=n;
-      last=n;
-    } else
-      last=child=n;
+    ///<summary>Append new node</summary>
+    ///<params name="s">Node title</params>
+    ///<params name="ii">Image index</params>
+    ///<params name="p">HTML-element</params>
+    ///<returns>New Node</returns>
+  TreeNode *Append(const CString& s, int ii, MSHTML::IHTMLElement* p) 
+  {
+    TreeNode *n = new TreeNode(this,s,ii,p);
+    if (last) 
+    {
+      last->next = n;
+      last = n;
+    } 
+    else
+      last = child = n;
     return n;
   }
 };
 
-static bool  SearchUnder(CTreeItem& ret,CTreeItem ii,MSHTML::IHTMLElement *p) {
-  CTreeItem   jj(ii.GetChild());
-  while (!jj.IsNull()) {
-    MSHTML::IHTMLElement    *n=(MSHTML::IHTMLElement *)jj.GetData();
-    if (n && n->contains(p)) {
-      ret=jj;
+///<summary>Recursively search tree item with specified HTML-element</summary>
+///<params name="ret">Founded tree item or NULL(OUT)</params>
+///<params name="ii">Start tree item</params>
+///<params name="p">Searched HTML-element</params>
+///<returns>true if found</returns>
+static bool SearchUnder(CTreeItem& ret, CTreeItem ii, MSHTML::IHTMLElementPtr p) 
+{
+  CTreeItem jj(ii.GetChild());
+  
+  while (jj) 
+  {
+	MSHTML::IHTMLElementPtr n = (MSHTML::IHTMLElement *)jj.GetData();
+    if (n && n->contains(p)) 
+    {
+      ret = jj;
       if (jj.HasChildren())
-	SearchUnder(ret,jj,p);
+        // search in children
+        SearchUnder(ret, jj, p);
       return true;
     }
-    jj=jj.GetNextSibling();
+    jj = jj.GetNextSibling();
   }
   return false;
 }
 
-CTreeItem CTreeView::LocatePosition(MSHTML::IHTMLElement *p) {
-  CTreeItem   ret(TVI_ROOT,this);
-  if (GetCount()==0 || !p)
-    return ret; // no items at all
-
-  SearchUnder(ret,ret,p);
-
-  return ret;
-}
-
-void  CTreeView::HighlightItemAtPos(MSHTML::IHTMLElement *p) {
-  CTreeItem ii(LocatePosition(p));
-  if (ii==m_last_lookup_item)
-    return;
-  m_last_lookup_item=ii;
-  ClearSelection();
- 
-  if (ii!=TVI_ROOT) {
-    SelectItem(ii);	
-   // EnsureVisible(ii);
-  } else
-    SelectItem(0);
-}
-
-
+///<summary>Recursively create node and descendants from root HTML-element</summary>
+///<params name="parent">Start tree node</params>
+///<params name="elem">root HTML-element</params>
 static void MakeNode(TreeNode* parent, MSHTML::IHTMLDOMNodePtr elem)
 {
-	if (elem->nodeType != 1)
+	if (elem->nodeType != NODE_ELEMENT)
 		return;
 
-	MSHTML::IHTMLElementPtr he(elem);
-  /*_bstr_t		    nn(he->tagName);
-  _bstr_t		    cn(he->className);
-  if (U::scmp(nn,L"DIV")==0) {
-    // at this point we are interested only in sections/subtitles/poems/stanzas
-    int img=0;
-    CString txt;
-    if (U::scmp(cn,L"poem")==0 || U::scmp(cn,L"stanza")==0) {
-      txt=FindTitle(elem);
-      img=3;
-    } 
-	else if (U::scmp(cn,L"body")==0) {
-      txt=AU::GetAttrCS(he,L"fbname");
-      U::NormalizeInplace(txt);
-      if (txt.IsEmpty())
-	txt=FindTitle(elem);
-      img=0;
-    } else if (U::scmp(cn,L"section")==0) {
-      txt=FindTitle(elem);
-      img=0;
-    } else if (U::scmp(cn,L"epigraph")==0 || U::scmp(cn,L"annotation")==0 ||
-	       U::scmp(cn,L"history")==0 || U::scmp(cn,L"cite")==0)
-    {
-      img=0;
-    } 
-	// Modification by Pilgrim
-	else if (U::scmp(cn,L"table")==0 || U::scmp(cn,L"tr")==0 || U::scmp(cn,L"th")==0 || U::scmp(cn,L"td")==0) {
-		txt=FindTitle(elem);
-		img=3;
-	} 
-	else if (U::scmp(cn,L"image")==0) {
-		txt=GetImageFileName(elem);
-		img=3;
-	} 	
-	else
-	{
-		elem=elem->firstChild;
-		while ((bool)elem) 
-		{
+	MSHTML::IHTMLElementPtr he = elem;
 
-			MakeNode(parent,elem);
-			elem=elem->nextSibling;
-		}
-		return;
-	}      
-    U::NormalizeInplace(txt);
-    if (txt.IsEmpty())
-      txt.Format(_T("<%s>"),(const TCHAR *)cn);
-    parent=parent->Append(txt,img,he);
-  } else if (U::scmp(nn,L"P")==0 && U::scmp(cn,L"subtitle")==0) {
-    CString txt((const TCHAR *)he->innerText);
-    U::NormalizeInplace(txt);
-    if (txt.IsEmpty())
-      txt=_T("<subtitle>");
-    parent=parent->Append(txt,6,he);
-  }*/
-
-	_bstr_t cn(he->className);
-	CElementDescriptor* ED = 0;
+	CElementDescriptor* ED = nullptr;
 	if(_EDMnr.GetElementDescriptor(he, &ED) && ED->ViewInTree())
 	{
+        // set node text = title or class name
 		CString txt = ED->GetTitle(he);
 		U::NormalizeInplace(txt);
-		if(txt.IsEmpty())
-			txt.Format(_T("<%s>"), (const TCHAR*)cn);
+		if (txt.IsEmpty())
+		{
+			txt.SetString(he->className);
+			txt = L"<" + txt + L">";
+		}
+        // append node
 		parent = parent->Append(txt, ED->GetDTImageID(), he);
 	}
-
-	elem = elem->firstChild;
-	while((bool)elem)
+    
+    // recursive make nodes
+    elem = elem->firstChild;
+	while(elem)
 	{
 		MakeNode(parent, elem);
 		elem = elem->nextSibling;
@@ -167,165 +120,255 @@ static void MakeNode(TreeNode* parent, MSHTML::IHTMLDOMNodePtr elem)
 	return;
 }
 
-static TreeNode  *GetDocTree(MSHTML::IHTMLDocument2Ptr& view)
+///<summary>Recursively create tree from BODY</summary>
+///<params name="view">HTML Document</params>
+///<returns>Root tree node</returns>
+static TreeNode *GetDocTree(MSHTML::IHTMLDocument2Ptr& view)
 {
-  TreeNode	*root=new TreeNode();
-  try {
-    MakeNode(root,view->body);
+  TreeNode	*root = new TreeNode();
+  try 
+  {
+    MakeNode(root, view->body);
   }
-  catch (_com_error&) {
+  catch (_com_error&) 
+  {
   }
-  if (!root->child) {
+  
+  // if not added - rollback
+  if (!root->child) 
+  {
     delete root;
-    return NULL;
+    return nullptr;
   }
   return root;
 }
 
-static void  CompareTreesAndSet(TreeNode *n,CTreeItem ii,bool& fDisableRedraw) {
-  bool	fH1=ii==TVI_ROOT ? ii.m_pTreeView->GetCount()>0 : ii.HasChildren()!=0;
+///<summary>Recursively transfer data from tree node to TreeItems</summary>
+///<params name="n">Root tree node</params>
+///<params name="ii">Root tree item</params>
+///<params name="fRedraw">Flag/ Set if redraw needs (OUT)</params>
+static void  CompareTreesAndSet(TreeNode *n, CTreeItem ii, bool& fRedraw) 
+{
+  bool	fH1 = (ii == TVI_ROOT) ? ii.m_pTreeView->GetCount() > 0 : ii.HasChildren() != 0;
+  
   // walk them one by one and check
-  CTreeItem   nc=fH1 ? ii.GetChild() : CTreeItem(NULL,ii.m_pTreeView);
-  TreeNode    *ic=n->child;
-  CString     text;
-  while (ic && nc) {
-    int	  img1,img2;
-    nc.GetImage(img1,img2);
+  CTreeItem   nc = fH1 ? ii.GetChild() : CTreeItem(NULL,ii.m_pTreeView);
+  TreeNode    *ic = n->child;
+  CString     text = L"";
+  while (ic && nc) 
+  {
+    int	 img1, img2;
+    nc.GetImage(img1, img2);
     nc.GetText(text);
-    if (text!=ic->text || img1!=ic->img) { // differ
-      // copy the item here
-      if (!fDisableRedraw) {
-	ii.m_pTreeView->SetRedraw(FALSE);
-	fDisableRedraw=true;
+    
+    // copy different
+    if (text != ic->text || img1 != ic->img) 
+    { 
+      // copy tree node to treeitem
+      if (!fRedraw) 
+      {
+        ii.m_pTreeView->SetRedraw(FALSE);
+        fRedraw = true;
       }
-      nc.SetImage(ic->img,ic->img);
+      // set title & icon
+      nc.SetImage(ic->img, ic->img);
       nc.SetText(ic->text);
     } 
-    MSHTML::IHTMLElement    *od=(MSHTML::IHTMLElement *)nc.GetData();
+    // set HTML-Element link
+    MSHTML::IHTMLElementPtr od = (MSHTML::IHTMLElement *)nc.GetData();
     if (od)
       od->Release();
     if (ic->pos)
       ic->pos->AddRef();
     nc.SetData((LPARAM)ic->pos);
-    CompareTreesAndSet(ic,nc,fDisableRedraw);
-    ic=ic->next;
-    nc=nc.GetNextSibling();
+    // recursive call
+    CompareTreesAndSet(ic, nc, fRedraw);
+
+    ic = ic->next;
+    nc = nc.GetNextSibling();
   }
-  CTreeItem next;
-  if ((nc || ic) && !fDisableRedraw) {
+  
+  if ((nc || ic) && !fRedraw) 
+  {
     ii.m_pTreeView->SetRedraw(FALSE);
-    fDisableRedraw=true;
+    fRedraw = true;
   }
-  while (nc) { // remove extra children, staring with ic
-    next=nc.GetNextSibling();
+
+  // remove extra children, staring with nc
+  while (nc) 
+  { 
+    CTreeItem next = nc.GetNextSibling();
     nc.Delete();
-    nc=next;
+    nc = next;
   }
-  while (ic) { // append children to ii
-    nc=ii.AddTail(ic->text,ic->img);
+  
+  // append children to ii
+  while (ic) 
+  { 
+    nc = ii.AddTail(ic->text,ic->img);
     if (ic->pos)
       ic->pos->AddRef();
     nc.SetData((LPARAM)ic->pos);
     if (ic->child)
-      CompareTreesAndSet(ic,nc,fDisableRedraw);
-    ic=ic->next;
+      CompareTreesAndSet(ic,nc,fRedraw);
+    ic = ic->next;
   }
 }
 
-void  CTreeView::GetDocumentStructure(MSHTML::IHTMLDocument2Ptr& view) {
-  m_last_lookup_item=0;
+///<summary>Recursively expand all child nodes</summary>
+///<params name="n">Strat tree item</params>
+///<params name="fEnable">Redraw flag (OUT)</params>
+static void RecursiveExpand(CTreeItem n, bool& fEnable) 
+{
+  for (CTreeItem ch(n.GetChild()); ch; ch = ch.GetNextSibling()) 
+  {
+    if (!ch.HasChildren())
+      continue;
+    if (!(ch.GetState(TVIS_EXPANDED)&TVIS_EXPANDED)) 
+    {
+      if (!fEnable) 
+      {
+        fEnable = true;
+        ch.GetTreeView()->SetRedraw(FALSE);
+      }
+      ch.Expand();
+    }
+    RecursiveExpand(ch,fEnable);
+  }
+}
 
-  TreeNode  *root=GetDocTree(view);
-  if (!root) {
+///<summary>Locate tree item with specified HTML-element</summary>
+///<params name="p">HTML-element</params>
+///<returns>Tree item</returns>
+CTreeItem CTreeView::LocatePosition(MSHTML::IHTMLElementPtr p) 
+{
+  CTreeItem ret(TVI_ROOT, this);
+  if (GetCount() == 0 || !p)
+    return ret; // no items at all
+
+  SearchUnder(ret, ret, p);
+  return ret;
+}
+
+///<summary>Highlight tree item with specified HTML-element</summary>
+///<params name="p">HTML-element</params>
+void CTreeView::HighlightItemAtPos(MSHTML::IHTMLElementPtr p) 
+{
+  CTreeItem ii(LocatePosition(p));
+  // if already selected - return
+  if (ii == m_last_lookup_item)
+    return;
+
+  m_last_lookup_item = ii;
+  ClearSelection();
+ 
+  if (ii != TVI_ROOT) 
+    SelectItem(ii);	
+  else
+    SelectItem(0);
+}
+
+///<summary>Build tree</summary>
+///<params name="view">HTML Document</params>
+void  CTreeView::GetDocumentStructure(MSHTML::IHTMLDocument2Ptr& view) 
+{
+  m_last_lookup_item = 0;
+
+  // Build tree internal structure
+  TreeNode  *root = GetDocTree(view);
+  if (!root) 
+  {
     SetRedraw(FALSE);
     DeleteAllItems();
     SetRedraw(TRUE);
     return;
   }
-  bool	fDisableRedraw=false;
-  CompareTreesAndSet(root,CTreeItem(TVI_ROOT,this),fDisableRedraw);
-  if (fDisableRedraw)
+
+  //Refill tree info from internal structure
+  bool	fRedraw = false;
+  CompareTreesAndSet(root, CTreeItem(TVI_ROOT,this), fRedraw);
+  if (fRedraw)
     SetRedraw(TRUE);
+
   delete root;
 }
 
+///<summary>Update tree</summary>
 void CTreeView::UpdateAll()
 {
-	::SendMessage(m_main_window, WM_COMMAND, MAKELONG(0,IDN_TREE_UPDATE_ME), (LPARAM)m_hWnd);
+	::SendMessage(m_main_window, WM_COMMAND, MAKEWPARAM(0,IDN_TREE_UPDATE_ME), (LPARAM)m_hWnd);
 }
 
-void  CTreeView::UpdateDocumentStructure(MSHTML::IHTMLDocument2Ptr& v,MSHTML::IHTMLDOMNodePtr node) {
-  MSHTML::IHTMLElementPtr     ce(node);
+void  CTreeView::UpdateDocumentStructure(MSHTML::IHTMLDocument2Ptr& v,MSHTML::IHTMLDOMNodePtr node) 
+{
+  MSHTML::IHTMLElementPtr ce(node);
+  CTreeItem  ii(LocatePosition(ce));
 
-  /*CTreeItem selected_item = GetFirstSelectedItem();
-  MSHTML::IHTMLElementPtr selected_elem;
-  if(!selected_item.IsNull() && selected_item.GetData())
-  {
-	  selected_elem = (MSHTML::IHTMLElement*)selected_item.GetData();
-  }*/
-
-  CTreeItem   ii(LocatePosition(ce));
-
-  if (ii==TVI_ROOT) { // huh?
+  // shortcut for the most common situation
+  // update whole tree
+  if (ii == TVI_ROOT) 
+  { // huh?
     GetDocumentStructure(v);
     return;
   }
 
-  MSHTML::IHTMLElementPtr   jj((MSHTML::IHTMLElement *)ii.GetData());
+  MSHTML::IHTMLElementPtr jj = (MSHTML::IHTMLElement *)ii.GetData();
 
-  // shortcut for the most common situation
   // all changes confined to a P, which is not in the title
-  if (U::scmp(jj->tagName,L"DIV")==0 && U::scmp(node->nodeName,L"P")==0) {
-	  MSHTML::IHTMLElementPtr   tn(U::FindTitleNode(jj));
-    if (!(bool)tn || (tn!=ce && tn->contains(ce)!=VARIANT_TRUE))
-      return;
-
-	// ???? ???????? ????????? ?????? ? ?????????, ?? ?????? ?????? ????? ?????????
-	if ((bool)tn && (tn==ce || tn->contains(ce)==VARIANT_TRUE))
-	{
-		CString txt = (wchar_t*)tn->innerText;
-		U::NormalizeInplace(txt);
-		ii.SetText(txt);
-		return;
-	}
-  }
-
-  TreeNode		    *nn=new TreeNode;
-
-  try
+  if (U::scmp(jj->tagName, L"DIV")==0 && U::scmp(node->nodeName,L"P")==0) 
   {
-	MakeNode(nn,jj);
+        MSHTML::IHTMLElementPtr tn(U::FindTitleNode(jj));
+        /* old variant
+        if (!tn || (tn !=ce && tn->contains(ce) != VARIANT_TRUE))
+            return;
+        if (tn && (tn == ce || tn->contains(ce)==VARIANT_TRUE))
+        {
+            CString txt = tn->innerText;
+            U::NormalizeInplace(txt);
+            ii.SetText(txt);
+            return;
+        }
+        */
+        
+        if (tn && (tn == ce || tn->contains(ce)==VARIANT_TRUE))
+        {
+            CString txt = tn->innerText;
+            U::NormalizeInplace(txt);
+            ii.SetText(txt);
+        }
   }
-  catch(_com_error&){}
+
+  TreeNode *nn = new TreeNode;
+
+  MakeNode(nn,jj);
   
-  bool	fDisableRedraw=false;
+  bool	fRedraw = false;
   // check the item itself
+
+  // TO_DO ?? May be Check CompareTreesAndSet(nn, ii, fRedraw);
   CString text;
   int	  img1,img2;
   ii.GetImage(img1,img2);
   ii.GetText(text);
-  if (text!=nn->child->text || img1!=nn->child->img) { // differ
-    // copy the item here
+  if (text != nn->child->text || img1 != nn->child->img) 
+  { 
+    // copy differed item here
     SetRedraw(FALSE);
-    fDisableRedraw=true;
-    ii.SetImage(nn->child->img,nn->child->img);
+    fRedraw = true;
+    ii.SetImage(nn->child->img, nn->child->img);
     ii.SetText(nn->child->text);
   }
 
-  CompareTreesAndSet(nn->child,ii,fDisableRedraw);
-  if (fDisableRedraw)
+  CompareTreesAndSet(nn->child, ii, fRedraw);
+  if (fRedraw)
     SetRedraw(TRUE);
 
- /* if((bool)selected_elem)
-  {
-	  SelectElement(selected_elem);
-  }*/
   delete nn;
 }
 
 BOOL CTreeView::PreTranslateMessage(MSG* pMsg)
 {
-  pMsg;
+  pMsg; //???
   return FALSE;
 }
 
@@ -340,7 +383,6 @@ LRESULT CTreeView::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHand
 
   SetScrollTime(1);
   FillEDMnr();
-
   
   bHandled = TRUE;
   
@@ -351,10 +393,6 @@ LRESULT CTreeView::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHan
 {
   SetImageList(NULL,TVSIL_NORMAL);
   m_ImageList.Destroy();
-/*  delete m_bodyED;
-  delete m_sectionED;
-  delete m_imageED;
-  delete m_poemED;*/
   
   // Say that we didn't handle it so that the treeview and anyone else
   //  interested gets to handle the message
@@ -383,98 +421,86 @@ LRESULT CTreeView::OnClick(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandl
 LRESULT CTreeView::OnDblClick(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
   // check if we double-clicked an already selected item item
-  UINT	  flags=0;
+  UINT  flags = 0;
   CTreeItem ii(HitTest(CPoint(LOWORD(lParam),HIWORD(lParam)),&flags));
-  if (flags&TVHT_ONITEM && !ii.IsNull() && ii==GetSelectedItem())
-    ::SendMessage(m_main_window,WM_COMMAND,MAKELONG(0,IDN_TREE_CLICK),(LPARAM)m_hWnd);
+  if (flags&TVHT_ONITEM && ii && ii == GetSelectedItem())
+    ::SendMessage(m_main_window,WM_COMMAND,MAKEWPARAM(0,IDN_TREE_CLICK),(LPARAM)m_hWnd);
   return 0;
-}
-
-static void RecursiveExpand(CTreeItem n,bool *fEnable) {
-  for (CTreeItem   ch(n.GetChild());!ch.IsNull();ch=ch.GetNextSibling()) {
-    if (!ch.HasChildren())
-      continue;
-    if (!(ch.GetState(TVIS_EXPANDED)&TVIS_EXPANDED)) {
-      if (!*fEnable) {
-	*fEnable=true;
-	ch.GetTreeView()->SetRedraw(FALSE);
-      }
-      ch.Expand();
-    }
-    RecursiveExpand(ch,fEnable);
-  }
 }
 
 LRESULT CTreeView::OnChar(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-  switch (wParam) {
+  switch (wParam) 
+  {
   case VK_RETURN: // swallow
     break;
   case '*': // expand the entire tree
-    if (GetCount()>0) {
-      bool  fEnable=false;
-      RecursiveExpand(CTreeItem(TVI_ROOT,this),&fEnable);
+    if (GetCount()>0) 
+    {
+      bool fEnable = false;
+      RecursiveExpand(CTreeItem(TVI_ROOT,this), fEnable);
       if (fEnable)	 
-	SetRedraw(TRUE);
+        SetRedraw(TRUE);
     }
     break;
   default: // pass to control
-    bHandled=FALSE;
+    break;
   }
   bHandled=FALSE;
   return 0;
 }
-
+// Onkey down - select handling
 LRESULT CTreeView::OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {  
-  if (wParam==VK_RETURN)
-    ::PostMessage(m_main_window,WM_COMMAND,MAKELONG(0,IDN_TREE_RETURN),(LPARAM)m_hWnd);
+  if (wParam==VK_RETURN) // expand & goto element
+    ::PostMessage(m_main_window,WM_COMMAND,MAKEWPARAM(0,IDN_TREE_RETURN),(LPARAM)m_hWnd);
 
-  if ( (wParam==VK_UP || wParam==VK_DOWN) && GetKeyState( VK_SHIFT )&0x8000)
+  if ((wParam==VK_UP || wParam==VK_DOWN) && (GetKeyState(VK_SHIFT) & 0x8000))
 	{
 		// Initialize the reference item if this is the first shift selection
-		if( !m_hItemFirstSel )
+		if(!m_hItemFirstSel)
 		{
-			m_hItemFirstSel = GetSelectedItem();
+			m_hItemFirstSel = GetSelectedItem(); 
 			ClearSelection();
 		}
 
-		// Find which item is currently selected
-		HTREEITEM hItemPrevSel = GetSelectedItem();
+		HTREEITEM hItemPrevSel = GetSelectedItem(); //currently selected item
 
-		HTREEITEM hItemNext;
-		if ( wParam==VK_UP )
-			hItemNext = GetPrevVisibleItem( hItemPrevSel );
+		HTREEITEM hItemNext; // closest item in tree
+		if (wParam==VK_UP)
+			hItemNext = GetPrevVisibleItem(hItemPrevSel);
 		else
-			hItemNext = GetNextVisibleItem( hItemPrevSel );
+			hItemNext = GetNextVisibleItem(hItemPrevSel);
 
-		if ( hItemNext )
+		if (hItemNext)
 		{
+			/* Old variant
 			// Determine if we need to reselect previously selected item
-			BOOL bReselect =
-				!( GetItemState( hItemNext, TVIS_SELECTED ) & TVIS_SELECTED );
+			BOOL bReselect = !(GetItemState(hItemNext, TVIS_SELECTED) & TVIS_SELECTED );
 
 			// Select the next item - this will also deselect the previous item
-			SelectItem( hItemNext );
-
+                SelectItem(hItemNext);
+            
 			// Reselect the previously selected item
 			if ( bReselect )
 				SetItemState( hItemPrevSel, TVIS_SELECTED, TVIS_SELECTED );
+            */
+            SelectItems(m_hItemFirstSel, hItemNext, false);
 		}
-		bHandled=TRUE;
+		bHandled = TRUE;
 		return 0;
 	}
-	else if( wParam >= VK_SPACE )
+	else if (wParam >= VK_SPACE)
 	{
-		m_hItemFirstSel = NULL;
+        // reset selection if press any alphanum key
+		m_hItemFirstSel = nullptr;
 		ClearSelection();
 	}
-	
   
   bHandled=FALSE;
   return 0;
 }
-
+// TO_DO No DRAG-DROP features
 LRESULT CTreeView::OnBegindrag(int idCtrl, LPNMHDR mhdr, BOOL& bHandled)
 {
 	LPNMTREEVIEW pnmtv = (LPNMTREEVIEW) mhdr;
@@ -495,7 +521,7 @@ LRESULT CTreeView::OnLButtonUp(UINT, WPARAM, LPARAM, BOOL& bHandled)
 	if(m_drag)
 	{
 		EndDrag();
-		::SendMessage(m_main_window,WM_COMMAND,MAKELONG(0,IDN_TREE_MOVE_ELEMENT),(LPARAM)m_hWnd);
+		::SendMessage(m_main_window,WM_COMMAND,MAKEWPARAM(0,IDN_TREE_MOVE_ELEMENT),(LPARAM)m_hWnd);
 	}
 	bHandled = false;
 	return 0;
@@ -565,9 +591,8 @@ LRESULT CTreeView::OnMouseMove(UINT, WPARAM, LPARAM lParam, BOOL& bHandled)
 LRESULT CTreeView::OnRClick(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM lParam, BOOL& /*bHandled*/)
 {
 	if(m_drag)
-	{
 		EndDrag();
-	}
+
 	UINT flags = 0;
 	CTreeItem htItem(HitTest(CPoint(LOWORD(lParam),HIWORD(lParam)),&flags), this);
 	if(!htItem.GetState(TVIS_SELECTED))
@@ -583,7 +608,7 @@ LRESULT CTreeView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 {
 	CPoint ptMousePos = (CPoint)lParam;
 		
-	// i	f Shift-F10
+	// if Shift-F10
 	if (ptMousePos.x == -1 && ptMousePos.y == -1)
 	{
 		ptMousePos = (CPoint)GetMessagePos();		
@@ -604,14 +629,21 @@ LRESULT CTreeView::OnContextMenu(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BO
 
 	// the font popup is stored in a resource
 	menu = ::LoadMenu(_Module.GetResourceInstance(), MAKEINTRESOURCEW(IDR_DOCUMENT_TREE));
+	//TO_DO Disable menu items if multiple selection
 	pPopup = ::GetSubMenu(menu, 0);
 	ClientToScreen(&ptMousePos);
-	BOOL res = ::TrackPopupMenu(pPopup, TPM_LEFTALIGN, ptMousePos.x, ptMousePos.y, 0, *this, 0);
-	int err = GetLastError();
+	::TrackPopupMenu(pPopup, TPM_LEFTALIGN, ptMousePos.x, ptMousePos.y, 0, *this, 0);
 
 	return 1;
 }
 
+LRESULT CTreeView::OnDeleteItem(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+{
+    NMTREEVIEW *tvn = (NMTREEVIEW*)pnmh;
+    if (tvn->itemOld.lParam)
+      ((MSHTML::IHTMLElement*)tvn->itemOld.lParam)->Release();
+    return 0;
+}
 
 bool CTreeView::IsDropChangePosition(UINT flags, HTREEITEM hitem)
 {
@@ -799,7 +831,6 @@ LRESULT CTreeView::OnRightOne(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bH
 	return 0;
 }
 
-
 LRESULT CTreeView::OnRightSmart(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	::SendMessage(m_main_window,WM_COMMAND,MAKELONG(0,IDN_TREE_MOVE_ELEMENT_SMART),(LPARAM)m_hWnd);
@@ -841,24 +872,24 @@ bool CTreeView::SetMultiSelection(UINT nFlags, CPoint point)
 	//m_dwDragStart = GetTickCount();
 	
 	UINT flag;
-	HTREEITEM hItem = HitTest( point, &flag );
+	HTREEITEM hItem = HitTest(point, &flag);
 
-	if(nFlags & MK_SHIFT)
+	if (nFlags & MK_SHIFT)
 	{
 		// Shift key is down	
 
 		// Initialize the reference item if this is the first shift selection
-		if( !m_hItemFirstSel )
+		if(!m_hItemFirstSel)
 			m_hItemFirstSel = GetSelectedItem();
 
 		// Select new item
-		if( GetSelectedItem() == hItem )
+		if(GetSelectedItem() == hItem)
 			SelectItem( NULL );			// to prevent edit
 //		OnLButtonDown(nFlags, point);
 
-		if( m_hItemFirstSel )
+		if(m_hItemFirstSel)
 		{
-			SelectItems( m_hItemFirstSel, hItem, !(BOOL)(nFlags & MK_CONTROL));
+			SelectItems(m_hItemFirstSel, hItem, !(BOOL)(nFlags & MK_CONTROL));
 			return true;
 		}
 	}
@@ -873,24 +904,20 @@ bool CTreeView::SetMultiSelection(UINT nFlags, CPoint point)
 							0 : TVIS_SELECTED;
 
 			// Get old selected (focus) item and state
-			HTREEITEM hItemOld = GetSelectedItem();
-			UINT uOldSelState  = hItemOld ?
-					GetItemState(hItemOld, TVIS_SELECTED) : 0;
+			//HTREEITEM hItemOld = GetSelectedItem();
+			//UINT uOldSelState  = hItemOld ?	GetItemState(hItemOld, TVIS_SELECTED) : 0;
 
 			// Select new item
 			if( GetSelectedItem() == hItem )
-			{
 				SelectItem( NULL );		// to prevent edit				
-			}
-//			OnLButtonDown(nFlags, point);
 
 			// Set proper selection (highlight) state for new item
 			SelectItem(hItem);
 			SetItemState(hItem, uNewSelState,  TVIS_SELECTED);
 
 			// Restore state of old selected item
-			if (hItemOld && hItemOld != hItem)
-				SetItemState(hItemOld, uOldSelState, TVIS_SELECTED);
+			//if (hItemOld && hItemOld != hItem)
+			//	SetItemState(hItemOld, uOldSelState, TVIS_SELECTED);
 
 			m_hItemFirstSel = NULL;
 
@@ -910,41 +937,41 @@ bool CTreeView::SetMultiSelection(UINT nFlags, CPoint point)
 	//		OnLButtonDown(nFlags, point);
 	return false;
 }
-
+// clear all selections in Tree
 void CTreeView::ClearSelection()
 {
 	// This can be time consuming for very large trees 
 	// and is called every time the user does a normal selection
 	// If performance is an issue, it may be better to maintain 
 	// a list of selected items
-	for (CTreeItem hItem(GetRootItem(), this); hItem!=NULL; hItem=GetNextItem(hItem))
-		if ( GetItemState( hItem, TVIS_SELECTED ) & TVIS_SELECTED )
-			SetItemState( hItem, 0, TVIS_SELECTED );
+	for (CTreeItem hItem(GetRootItem(), this); hItem; hItem = GetNextItem(hItem))
+		if (GetItemState(hItem, TVIS_SELECTED) & TVIS_SELECTED)
+			SetItemState(hItem, 0, TVIS_SELECTED);
 }
 
-// SelectItems	- Selects items from hItemFrom to hItemTo. Does not
-//		- select child item if parent is collapsed. Removes
-//		- selection from all other items
-// hItemFrom	- item to start selecting from
-// hItemTo	- item to end selection at.
+///<summary>Selects items from hItemFrom to hItemTo. 
+///Does not select child item if parent is collapsed. 
+///Removes selection from all other items</summary>
+///<params name="hItemFrom">item to start selecting from</params>
+///<params name="hItemTo">item to end selection at</params>
+///<params name="clearPrevSelection">true=clear selection upto the first item</params>
+///<returns>TRUE on success, FALSE - item not visible</returns>
 BOOL CTreeView::SelectItems(HTREEITEM hItemFrom, HTREEITEM hItemTo, bool clearPrevSelection)
 {
 	HTREEITEM hItem = GetRootItem();
 
 	// Clear selection upto the first item
-	while ( hItem && hItem!=hItemFrom && hItem!=hItemTo )
+	while ( hItem && hItem != hItemFrom && hItem != hItemTo )
 	{
-		hItem = GetNextVisibleItem( hItem );
+		hItem = GetNextVisibleItem(hItem);
 		if(clearPrevSelection)
-		{
 			SetItemState( hItem, 0, TVIS_SELECTED );
-		}
 	}	
 
-	if ( !hItem )
-		return FALSE;	// Item is not visible
+	if (!hItem)
+		return FALSE;	// start Item is not visible
 
-	SelectItem( hItemTo );
+	SelectItem(hItemTo);
 
 	// Rearrange hItemFrom and hItemTo so that hItemFirst is at top
 	if( hItem == hItemTo )
@@ -972,36 +999,45 @@ BOOL CTreeView::SelectItems(HTREEITEM hItemFrom, HTREEITEM hItemTo, bool clearPr
 	return TRUE;
 }
 
+///<summary>Get first selected tree item</summary>
+///<returns>Tree item</returns>
 CTreeItem CTreeView::GetFirstSelectedItem()
 {
-	for ( CTreeItem hItem(GetRootItem(), this); !hItem.IsNull(); hItem = GetNextItem( hItem ) )
-		if ( GetItemState( hItem, TVIS_SELECTED ) & TVIS_SELECTED )
+	for (CTreeItem hItem(GetRootItem(), this); !hItem.IsNull(); hItem = GetNextItem(hItem))
+		if (GetItemState(hItem, TVIS_SELECTED) & TVIS_SELECTED)
 			return hItem;
 
-	return NULL;
+	return nullptr;
 }
 
+///<summary>Get last selected tree item</summary>
+///<params name="view">HTML Document</params>
+///<returns>Tree item</returns>
 CTreeItem CTreeView::GetLastSelectedItem()
 {
 	CTreeItem ret;
-	for ( CTreeItem hItem(GetRootItem(), this); !hItem.IsNull(); hItem = GetNextItem( hItem ) )
-		if ( GetItemState( hItem, TVIS_SELECTED ) & TVIS_SELECTED )
-		{
+	for (CTreeItem hItem(GetRootItem(), this); !hItem.IsNull(); hItem = GetNextItem(hItem))
+		if (GetItemState( hItem, TVIS_SELECTED ) & TVIS_SELECTED)
 			ret = hItem;
-		}
 
 	return ret;
 }
 
-CTreeItem CTreeView::GetNextSelectedItem( CTreeItem hItem )
+///<summary>Get next selected tree item</summary>
+///<params name="hItem">Current item</params>
+///<returns>Tree item</returns>
+CTreeItem CTreeView::GetNextSelectedItem(CTreeItem hItem)
 {
-	for ( hItem = GetNextItem( hItem ); !hItem.IsNull(); hItem = GetNextItem( hItem ) )
-		if ( GetItemState( hItem, TVIS_SELECTED ) & TVIS_SELECTED )
+	for ( hItem = GetNextItem(hItem); !hItem.IsNull(); hItem = GetNextItem(hItem) )
+		if (GetItemState( hItem, TVIS_SELECTED ) & TVIS_SELECTED)
 			return hItem;
 
 	return NULL;
 }
 
+///<summary>Get previous selected tree item</summary>
+///<params name="hItem">Current item</params>
+///<returns>Tree item</returns>
 CTreeItem CTreeView::GetPrevSelectedItem( CTreeItem hItem )
 {
 	for ( hItem = GetPrevItem( hItem ); !hItem.IsNull(); hItem = GetPrevItem( hItem ) )
@@ -1011,6 +1047,9 @@ CTreeItem CTreeView::GetPrevSelectedItem( CTreeItem hItem )
 	return NULL;
 }
 
+///<summary>Get next tree item</summary>
+///<params name="hitem">Current item</params>
+///<returns>Tree item</returns>
 CTreeItem CTreeView::GetNextItem(CTreeItem hitem)
 {
 	//????????? ???? ?? child
@@ -1029,14 +1068,15 @@ CTreeItem CTreeView::GetNextItem(CTreeItem hitem)
 	{
 		CTreeItem parent_sibling = parent.GetNextSibling();
 		if(parent_sibling)
-		{
 			return parent_sibling;
-		}
 	}
 
 	return 0;
 }
 
+///<summary>Get previous tree item</summary>
+///<params name="hitem">Current item</params>
+///<returns>Tree item</returns>
 CTreeItem CTreeView::GetPrevItem(CTreeItem hitem)
 {
 	// ????????? ???? ?? prev sibling
@@ -1066,66 +1106,6 @@ CTreeItem CTreeView::GetPrevItem(CTreeItem hitem)
 	return 0;
 }
 
-/*bool CTreeView::MoveRightOne(HTREEITEM item)
-{
-	// ?????? ???? ???????? ?????? ??????????? ?????
-	// ????? ???? ????? ????? ?????? ?????? ????????
-
-	// ???? ?? ????? ??????????? ????, ?? ?? ?????? ??????
-	HTREEITEM prev_sibling = GetPrevSiblingItem(item);
-	HTREEITEM child = GetChildItem(prev_sibling);
-	if(!prev_sibling)
-		return false;
-
-	// ?????? ???? ????????? ???????? ?????? ??????????? ?????
-	if(!child)
-	{
-		m_move_to = prev_sibling;
-		m_insert_type = InsertType::child;
-	}
-	else
-	{
-		m_move_to = GetLastSiblingItem(child);
-		m_insert_type = InsertType::sibling;
-	}
-	m_move_from = item;		
-	::SendMessage(m_main_window,WM_COMMAND,MAKELONG(0,IDN_TREE_MOVE_ELEMENT),(LPARAM)m_hWnd);	
-
-	HTREEITEM parent = GetParentItem(item);
-	HTREEITEM nextSibling = GetNextSiblingItem(item);		
-	
-	child = GetChildItem(item);
-	if(child)
-	{
-		m_move_to = item;
-		m_insert_type = InsertType::sibling;
-		HTREEITEM last_child = GetLastSiblingItem(child);
-		HTREEITEM prev_child = 0;
-		
-        do
-		{
-			m_move_from = last_child;
-			last_child = GetPrevSiblingItem(last_child);
-			::SendMessage(m_main_window,WM_COMMAND,MAKELONG(0,IDN_TREE_MOVE_ELEMENT),(LPARAM)m_hWnd);
-		}while(last_child);		
-	}
-	
-	return true;
-}*/
-
-CTreeItem CTreeView::GetLastSiblingItem(CTreeItem item)
-{
-	if(!item)
-		return 0;
-
-	CTreeItem ret = item;
-	while(item = item.GetNextSibling())
-	{
-		ret = item;
-	}
-	return ret;
-}
-
 CTreeItem CTreeView::GetNextSelectedSibling(CTreeItem item)
 {
 	if(item.IsNull())
@@ -1141,12 +1121,14 @@ CTreeItem CTreeView::GetNextSelectedSibling(CTreeItem item)
 	return 0;
 }
 
+// search and tree item with specific HTML-element
 void CTreeView::SelectElement(MSHTML::IHTMLElement *p)
 {
 	CTreeItem item = this->LocatePosition(p);
 	SelectItem(item);
 }
 
+// search and expand tree item with specific HTML-element
 void CTreeView::ExpandElem(MSHTML::IHTMLElement *p, UINT mode)
 {
 	CTreeItem item = this->LocatePosition(p);
@@ -1171,9 +1153,10 @@ void CTreeView::Collapse(CTreeItem item, int level2Collapse, bool mode)
 				Collapse(child, level2Collapse - 1, mode);
 		}
 		item = item.GetNextSibling();
-	}while(!item.IsNull());
+	} while(!item.IsNull());
 }
 
+//TO_DO Not used
 void CTreeView::FillEDMnr()
 {
 	/*m_bodyED = new CBodyED;
@@ -1186,11 +1169,14 @@ void CTreeView::FillEDMnr()
 	_EDMnr.AddElementDescriptor(m_poemED);*/
 }
 
+// add image to image list
+// return Image index
 int CTreeView::AddImage(HANDLE img)
 {
 	return m_ImageList.Add((HBITMAP)img);
 }
 
+// add icon to image list
 int CTreeView::AddIcon(HANDLE icon)
 {
 	return m_ImageList.AddIcon((HICON)icon);

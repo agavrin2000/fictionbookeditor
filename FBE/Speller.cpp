@@ -6,8 +6,53 @@
 #include "FBE.h"
 #include "Speller.h"
 
+
+/// <summary>Find first nonalpanum character</summary>
+/// <param name="str">WCHAR string</param>
+/// <returns>Char position in string or textlength+1</returns>
+static int FindWordEnd(wchar_t* str)
+{
+	wchar_t* cur_pos = str;
+	while (*cur_pos)
+	{
+		if (!iswalnum(*cur_pos))
+			return cur_pos - str;
+		cur_pos++;
+	}
+	return cur_pos - str; //last character
+}
+
+/// <summary>Find first alpanum character</summary>
+/// <param name="str">WCHAR string</param>
+/// <returns>Char position in string or -1 if not found</returns>
+static int FindNextWordBegin(wchar_t* str)
+{
+	wchar_t* cur_pos = str;
+	while (*cur_pos)
+	{
+		if (iswalnum(*cur_pos))
+			return cur_pos - str;
+		cur_pos++;
+	}
+	return -1;
+}
+
+/// <summary>Find first word in string</summary>
+/// <param name="str">WCHAR string</param>
+/// <param name="start">Begin char of word (OUT)</param>
+/// <param name="end">End char of word (OUT)</param>
+/// <returns>true if found</returns>
+static bool GetWord(wchar_t* str, int& start, int& end)
+{
+	start = FindNextWordBegin(str);
+	if (start == -1)
+		return false;
+	end = start + FindWordEnd(str + start);
+	return true;
+}
+
 // spell check dialog initialisation
-LRESULT CSpellDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CSpellDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
 {
 	m_BadWord = GetDlgItem(IDC_SPELL_BEDWORD);
 	m_Replacement = GetDlgItem(IDC_SPELL_REPLACEMENT);
@@ -20,7 +65,7 @@ LRESULT CSpellDialog::OnInitDialog(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	return 1;
 }
 
-LRESULT CSpellDialog::OnActivate(UINT, WPARAM wParam, LPARAM, BOOL&)
+LRESULT CSpellDialog::OnActivate(UINT, WPARAM wParam, LPARAM, BOOL &)
 {
 	if (wParam == WA_INACTIVE)
 	{
@@ -41,17 +86,21 @@ LRESULT CSpellDialog::OnActivate(UINT, WPARAM wParam, LPARAM, BOOL&)
 	return 0;
 }
 
+/// <summary>Update dialog: fill suggestions</summary>
 LRESULT CSpellDialog::UpdateData()
 {
 	m_BadWord.SetWindowText(m_sBadWord);
 	m_Suggestions.ResetContent();
 	if (m_strSuggestions)
+	{
 		for (int i = 0; i < m_strSuggestions->GetSize(); i++)
 		{
 			m_Suggestions.AddString((*m_strSuggestions)[i]);
-			if (!i) m_Replacement.SetWindowText((*m_strSuggestions)[i]);
+			if (!i)
+				m_Replacement.SetWindowText((*m_strSuggestions)[i]);
 		}
-
+		//m_Suggestions.SetCurSel(0);
+	}
 	if (m_Speller->GetUndoState())
 		GetDlgItem(IDC_SPELL_UNDO).EnableWindow(TRUE);
 	else
@@ -60,8 +109,9 @@ LRESULT CSpellDialog::UpdateData()
 	return 1;
 }
 
-/// <summary>Select suggestion in list</summary>
-LRESULT CSpellDialog::OnSelChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+/// <summary>Handler(LBN_SELCHANGE)
+/// Set spellcheck variant for replacement</summary>
+LRESULT CSpellDialog::OnSelChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL &bHandled)
 {
 	CString strText;
 	if (m_Suggestions.GetText(m_Suggestions.GetCurSel(), strText))
@@ -69,8 +119,9 @@ LRESULT CSpellDialog::OnSelChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL
 	return 0;
 }
 
-// change text to suggested word on doubleclick
-LRESULT CSpellDialog::OnSelDblClick(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+/// <summary>Handler(LBN_DBLCLK)
+/// Change text to suggested word on doubleclick</summary>
+LRESULT CSpellDialog::OnSelDblClick(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL &bHandled)
 {
 	CString strText;
 	if (m_Suggestions.GetText(m_Suggestions.GetCurSel(), strText))
@@ -81,28 +132,31 @@ LRESULT CSpellDialog::OnSelDblClick(WORD wNotifyCode, WORD wID, HWND hWndCtl, BO
 	return 0;
 }
 
-LRESULT CSpellDialog::OnEditChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+LRESULT CSpellDialog::OnEditChange(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL &bHandled)
 {
 	m_Replacement.GetWindowText(m_sReplacement);
 	return 0;
 }
 
-/// <summary>Cancel Spell Dialog</summary>
-LRESULT CSpellDialog::OnCancel(WORD, WORD wID, HWND, BOOL&)
+/// <summary>Handler(IDCANCEL)
+/// Before cancel Spell Dialog</summary>
+LRESULT CSpellDialog::OnCancel(WORD, WORD wID, HWND, BOOL &)
 {
 	m_Speller->EndDocumentCheck();
 	return 0;
 }
 
-/// <summary>Skip misspelled word</summary>
-LRESULT CSpellDialog::OnIgnore(WORD, WORD wID, HWND, BOOL&)
+/// <summary>Handler(IDC_SPELL_IGNORE)
+/// BSkip misspelled word</summary>
+LRESULT CSpellDialog::OnIgnore(WORD, WORD wID, HWND, BOOL &)
 {
 	if (m_WasSuspended)
 	{
 		CString txt;
 		txt.LoadString(IDC_SPELL_IGNORE);
 		m_IgnoreContinue.SetWindowText(txt);
-
+        
+        // enable controls
 		GetDlgItem(IDC_SPELL_IGNOREALL).EnableWindow(TRUE);
 		GetDlgItem(IDC_SPELL_CHANGE).EnableWindow(TRUE);
 		GetDlgItem(IDC_SPELL_CHANGEALL).EnableWindow(TRUE);
@@ -120,16 +174,18 @@ LRESULT CSpellDialog::OnIgnore(WORD, WORD wID, HWND, BOOL&)
 	return 0;
 }
 
-/// <summary>Ignore all such misspelled words</summary>
-LRESULT CSpellDialog::OnIgnoreAll(WORD, WORD wID, HWND, BOOL&)
+/// <summary>Handler(IDC_SPELL_IGNORE_ALL)
+/// Ignore all such misspelled words</summary>
+LRESULT CSpellDialog::OnIgnoreAll(WORD, WORD wID, HWND, BOOL &)
 {
 	m_Speller->IgnoreAll(m_sBadWord);
 	m_Speller->ContinueDocumentCheck();
 	return 0;
 }
 
-/// <summary>Replace misspelled words once</summary>
-LRESULT CSpellDialog::OnChange(WORD, WORD wID, HWND, BOOL&)
+/// <summary>Handler(IDC_SPELL_CHANGE)
+/// Replace misspelled words once</summary>
+LRESULT CSpellDialog::OnChange(WORD, WORD wID, HWND, BOOL &)
 {
 	m_Speller->BeginUndoUnit(L"replace word");
 	m_Speller->Replace(m_sReplacement);
@@ -139,9 +195,11 @@ LRESULT CSpellDialog::OnChange(WORD, WORD wID, HWND, BOOL&)
 }
 
 /// <summary>Replace all such misspelled words</summary>
-LRESULT CSpellDialog::OnChangeAll(WORD, WORD wID, HWND, BOOL&)
+/// <summary>Handler(IDC_SPELL_CHANGE)
+/// Replace misspelled words once</summary>
+LRESULT CSpellDialog::OnChangeAll(WORD, WORD wID, HWND, BOOL &)
 {
-	
+
 	m_Speller->BeginUndoUnit(L"replace word");
 	m_Speller->ReplaceAll(m_sBadWord, m_sReplacement);
 	m_Speller->EndUndoUnit();
@@ -150,49 +208,56 @@ LRESULT CSpellDialog::OnChangeAll(WORD, WORD wID, HWND, BOOL&)
 }
 
 /// <summary>Add word to custom dictionary</summary>
-LRESULT CSpellDialog::OnAdd(WORD, WORD wID, HWND, BOOL&)
+LRESULT CSpellDialog::OnAdd(WORD, WORD wID, HWND, BOOL &)
 {
 	m_Speller->AddToDictionary(m_sBadWord);
 	m_Speller->ContinueDocumentCheck();
 	return 0;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
 // CSpeller methods
 //
 ////////////////////////////////////////////////////////////////////////////////////////////
-
-//
-// CSpeller constructor
-//
-CSpeller::CSpeller(CString& dictPath) :
-	m_prevY(0), m_Lang(""), m_Enabled(false), m_spell_dlg(0), m_prevSelRange(0), m_CustomDictPath(L"")
+/// <summary>CSpeller constructor</summary>
+CSpeller::CSpeller(CString dictPath) : m_prevY(0), m_Lang(""), m_Enabled(false), m_spell_dlg(nullptr), m_prevSelection(nullptr), m_CustomDictPath(L"")
 {
+	MSHTML::IHTMLDOMRangePtr m_prevSelection;
+	MSHTML::IHTMLDOMRangePtr m_curSelection;
 	m_DictPath = dictPath;
 
 	// get all available dictionary
 	getAvailDictionary();
-	// but load only English dictionary 
-	for (int i = 0; i<m_Dictionaries.GetSize(); i++) 
+	// but preload only English dictionary
+	for (int i = 0; i < m_Dictionaries.GetSize(); i++)
 	{
 		if (m_Dictionaries[i].lang == L"en")
+		{
 			m_Dictionaries[i].handle = LoadDictionary(m_Dictionaries[i].filename);
-        HRESULT GetCodePageInfo(
-  [in]  UINT        uiCodePage,
-  [out] PMIMECPINFO pCodePageInfo
-);
+		}
 	}
 }
 
-/// <summary>Init all dictionaries in folder</summary>
+/// <summary>CSpeller destructor</summary>
+CSpeller::~CSpeller()
+{
+	EndDocumentCheck();
+	// unload dictionaries
+	for (int i = 0; i < m_Dictionaries.GetSize(); i++)
+	{
+		if (m_Dictionaries[i].handle)
+			Hunspell_destroy(m_Dictionaries[i].handle);
+	}
+}
+
+/// <summary>Init all dictionaries founded in folder</summary>
 void CSpeller::getAvailDictionary()
 {
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
-	
-	hFind = FindFirstFile(m_DictPath+L"*.dic", &ffd);
+
+	hFind = FindFirstFile(m_DictPath + L"*.dic", &ffd);
 	if (INVALID_HANDLE_VALUE == hFind)
 		return;
 
@@ -200,7 +265,8 @@ void CSpeller::getAvailDictionary()
 	{
 		CString fname = ffd.cFileName;
 		int idx = fname.ReverseFind(L'.');
-		if (idx != -1) {
+		if (idx != -1)
+		{
 			fname = fname.Left(idx);
 		}
 		m_Dictionaries.Add({0, fname.Left(2), fname});
@@ -209,28 +275,13 @@ void CSpeller::getAvailDictionary()
 	FindClose(hFind);
 	return;
 }
-// CSpeller destructor
-CSpeller::~CSpeller()
-{
-	EndDocumentCheck();
-	// unload dictionaries
-/*	for (int i = 0; i < m_Dictionaries.GetSize(); i++)
-		if (m_Dictionaries[i].handle)
-			Hunspell_destroy(m_Dictionaries[i].handle);
-			*/
-	for (int i = 0; i < m_Dictionaries.GetSize(); i++) 
-	{
-		if (m_Dictionaries[i].handle)
-			Hunspell_destroy(m_Dictionaries[i].handle);
-	}
-}
 
 /// <summary>Load Dictionary from file</summary>
-/// <param name="dictName">Dictionary filename</param>  
-/// <returns>Dic handle or NULL</returns> 
-Hunhandle* CSpeller::LoadDictionary(CString dictName)
+/// <param name="dictName">Dictionary filename</param>
+/// <returns>Dic handle or NULL</returns>
+Hunhandle *CSpeller::LoadDictionary(CString dictName)
 {
-	Hunhandle* dict = nullptr;
+	Hunhandle *dict = nullptr;
 
 	if (PathFileExistsW(m_DictPath + dictName + L".aff") && PathFileExistsW(m_DictPath + dictName + L".dic"))
 	{
@@ -238,26 +289,28 @@ Hunhandle* CSpeller::LoadDictionary(CString dictName)
 		CW2A affpath(m_DictPath + dictName + L".aff", CP_UTF8);
 		CW2A dpath(m_DictPath + dictName + L".dic", CP_UTF8);
 		dict = Hunspell_create(affpath, dpath);
-        CString cp = Hunspell_get_dic_encoding(dict);
-        if (cp != L"UTF-8")
-        {
-            //load only utf-8 dictionary
-            Hunspell_destroy(dict);
-            return nullptr;
-        }
-            
+		if(!dict)
+			return nullptr;
+		CString cp(Hunspell_get_dic_encoding(dict));
+
+		if (cp != L"UTF-8")
+		{
+			//load only UTF8 dictionary
+			Hunspell_destroy(dict);
+			return nullptr;
+		}
 	}
 	return dict;
 }
 
 /// <summary>Init Custom Dictionary</summary>
-/// <param name="pathToDictionary">Path to dictionary</param>  
-/// <returns>Dic handle or NULL</returns> 
+/// <param name="pathToDictionary">Path to dictionary</param>
+/// <returns>Dic handle or NULL</returns>
 void CSpeller::SetCustomDictionary(CString pathToDictionary)
 {
 	m_CustomDictPath = pathToDictionary;
 	m_CustomDict.RemoveAll();
-	
+
 	//init dictionary
 	CString str;
 	char buf[256];
@@ -284,7 +337,7 @@ void CSpeller::SetCustomDictionary(CString pathToDictionary)
 }
 
 /// <summary>Attach new document</summary>
-/// <param name="doc">HTML document</param>  
+/// <param name="doc">HTML document</param>
 void CSpeller::AttachDocument(MSHTML::IHTMLDocumentPtr doc)
 {
 	// cancel spell check and destroy dialog
@@ -308,7 +361,6 @@ void CSpeller::AttachDocument(MSHTML::IHTMLDocumentPtr doc)
 	pISP->QueryService(IID_IWebBrowserApp, IID_IWebBrowser2, (void **)&m_browser);
 
 	m_scrollElement = MSHTML::IHTMLDocument3Ptr(doc)->documentElement;
-	m_mkc = MSHTML::IMarkupContainer2Ptr(MSHTML::IHTMLDocument4Ptr(doc));
 	m_ims = MSHTML::IMarkupServicesPtr(MSHTML::IHTMLDocument4Ptr(doc));
 	m_ihrs = MSHTML::IHighlightRenderingServicesPtr(MSHTML::IHTMLDocument4Ptr(doc));
 	m_ids = MSHTML::IDisplayServicesPtr(MSHTML::IHTMLDocument4Ptr(doc));
@@ -326,8 +378,9 @@ void CSpeller::AttachDocument(MSHTML::IHTMLDocumentPtr doc)
 	// detect document language
 	m_Lang = "";
 	MSHTML::IHTMLSelectElementPtr elem = MSHTML::IHTMLDocument3Ptr(m_doc2)->getElementById(L"tiLang");
-	CString lang = elem->value;
-	if (elem) {
+	if (elem)
+	{
+		CString lang = elem->value;
 		for (int i = 0; i < m_Dictionaries.GetSize(); i++)
 		{
 			if (m_Dictionaries[i].lang == lang)
@@ -346,7 +399,7 @@ void CSpeller::AttachDocument(MSHTML::IHTMLDocumentPtr doc)
 
 /// <summary>Set Enabled state
 /// and cspellcheck or clear marks</summary>
-/// <param name="Enabled">new Enabled state</param>  
+/// <param name="Enabled">new Enabled state</param>
 void CSpeller::Enable(bool state)
 {
 	if (m_Enabled != state)
@@ -360,7 +413,7 @@ void CSpeller::Enable(bool state)
 }
 
 /// <summary>Set doc language bases on Title Info and load dictionaries</summary>
-/// <param name="lang">Language</param>  
+/// <param name="lang">Language</param>
 void CSpeller::SetDocumentLanguage(CString lang)
 {
 	if (lang.IsEmpty())
@@ -397,7 +450,10 @@ void CSpeller::Undo()
 	{
 		IOleCommandTargetPtr ct(m_browser);
 		if (ct)
+		{
 			ct->Exec(&CGID_MSHTML, IDM_UNDO, 0, NULL, NULL);
+			doSpellCheck();
+		}
 	}
 }
 
@@ -408,7 +464,7 @@ bool CSpeller::GetUndoState()
 	bool stat = false;
 	if (m_browser)
 	{
-		static OLECMD cmd[] = { IDM_UNDO };
+		static OLECMD cmd[] = {IDM_UNDO};
 		IOleCommandTargetPtr ct(m_browser);
 		if (ct)
 		{
@@ -420,7 +476,7 @@ bool CSpeller::GetUndoState()
 }
 
 /// <summary>Begin Undo block</summary>
-/// <param name="name">Undo block name</param>  
+/// <param name="name">Undo block name</param>
 void CSpeller::BeginUndoUnit(const wchar_t *name)
 {
 	m_undoSrv->BeginUndoUnit((wchar_t *)name);
@@ -432,119 +488,132 @@ void CSpeller::EndUndoUnit()
 	m_undoSrv->EndUndoUnit();
 }
 
-/// <summary>Get TextRange of selected word</summary>
-/// <returns>TxtRangePtr with word, NULL - if several or none words selected</returns> 
-MSHTML::IHTMLTxtRangePtr CSpeller::GetSelWordRange()
+/// <summary>Get Range object of selected word
+/// Try to define word using caret position</summary>
+/// <returns>DOMRange with word, NULL - if selection not collapsed or none words selected</returns>
+MSHTML::IHTMLDOMRangePtr CSpeller::DetectSelWordRange()
 {
-	MSHTML::IHTMLTxtRangePtr rng = nullptr;
-	CString s = L"";
 
 	// fetch exist selection
-	MSHTML::IHTMLTxtRangePtr selRange(m_doc2->selection->createRange());
-	if (selRange) {
-		s.SetString(selRange->text);
-		// if selected text block contains 2+ words return, 
-		// we don't know which word selected
-		for (int i = 0; i<int(s.GetLength()); i++)
-		{
-			if(iswspace(s.GetAt(i)))
-				return nullptr;
-		}
-		rng = selRange->duplicate();
-	}
+	MSHTML::IHTMLSelectionPtr sel = MSHTML::IHTMLDocument7Ptr(m_doc2)->getSelection();
+	if (!sel || sel->rangeCount == 0)
+		return nullptr;
+	MSHTML::IHTMLDOMRangePtr rng = sel->getRangeAt(0)->cloneRange();
 	if (!rng)
 		return nullptr;
-	rng->collapse(true); //collapse to start point
 	
-	// try to detect word
-	// IHTMLTextRange expand() has strange behavior
-	// before space look word backward, return word with space
-	// after space look word forward, return word with space
-	// before puctuation (and hyphen) return punctuation
-	// before \n return empty string
-
-	int endMoved = rng->moveEnd(L"character", 1);
-	s.SetString(rng->text);
-
-	CString charAfter = s.Left(1);
-	if (endMoved == 1) {
-		endMoved = rng->moveEnd(L"character", -1);
-	}
-
-	int startMoved = rng->moveStart(L"character", -1);
-	s.SetString(rng->text);
-
-	CString charBefore = s.Right(1);
-	if (startMoved == -1) {
-		rng->moveStart(L"character", 1);
-	}
-
-	// case: between space or punctuation or \n
-	if ((iswspace(charBefore.GetAt(0)) || iswpunct(charBefore.GetAt(0)) || charBefore.GetLength() == 0) &&
-		(iswspace(charAfter.GetAt(0)) || iswpunct(charAfter.GetAt(0)) || charAfter.GetLength() == 0)) {
+    // case: select different nodes or nontext selection
+	if ((rng->endContainer != rng->startContainer) || (rng->startContainer->nodeType != NODE_TEXT))
 		return nullptr;
+	
+    // check that selection=word
+	if (!sel->isCollapsed)
+	{
+		CString sel_text = sel->toString();
+        wchar_t* txt_pos = sel_text.GetBuffer();
+        
+        while(*txt_pos)
+        {
+			if (!iswalnum(*txt_pos++))
+				return nullptr;
+        }
+		return rng;
 	}
-	// case: between punctuation
-	if (iswpunct(charBefore.GetAt(0)) && iswpunct(charAfter.GetAt(0))) {
+	// try to detect word (assume that range is collapsed)
+	CString node_text = rng->startContainer->nodeValue.bstrVal;
+	int text_len = node_text.GetLength();
+	if (text_len == 0)
 		return nullptr;
+    
+    // take characters before& after caret
+	int start_offset = rng->startOffset;
+	int end_offset = rng->startOffset;
+
+    wchar_t before_char = L'\0';
+    wchar_t after_char  = L'\0';
+
+	if (start_offset>0)
+        before_char = node_text.GetAt(start_offset-1);
+
+	if (end_offset < text_len)
+        after_char = node_text.GetAt(end_offset);
+    
+	// case: between space or punctuation
+	if (!iswalnum(before_char) && !iswalnum(after_char))
+		return nullptr;
+
+	// case: between space and alphanum character
+    // move the end forward
+	if (iswalnum(after_char))
+    {
+        while (end_offset < text_len && iswalnum(after_char))
+            after_char = node_text.GetAt(++end_offset);
+    }
+
+	// case: between alphanum character and space
+    // move the start backward
+	if (iswalnum(before_char))
+    {
+		while (start_offset > 0 && iswalnum(before_char))
+		{
+			start_offset--;
+			if(start_offset > 0)
+				before_char = node_text.GetAt(start_offset - 1);
+		}
 	}
 
-	// case: take previous word
-	if ((iswalpha(charBefore.GetAt(0)) || iswdigit(charBefore.GetAt(0))) &&
-		(iswspace(charAfter.GetAt(0)) || iswpunct(charAfter.GetAt(0)) || charAfter.GetLength() == 0)) {
-			rng->moveStart(L"word", -1);
-	}
-	// case: take next word or word on carret
-	// use trick when "expand()" get forward word or get word on carret
-	else {
-		rng->expand(L"word");
-		// MS expand() can catch space at the end, so remove it
-		s.SetString(rng->text);
-		if (iswspace(s.GetAt(s.GetLength()-1)))
-			rng->moveEnd(L"character", -1);
-	}
+	rng->setStart(rng->startContainer, start_offset);
+	rng->setEnd(rng->startContainer, end_offset);
+
 	return rng;
 }
 
 /// <summary>Get word under caret or selected</summary>
-/// <returns>Word</returns> 
+/// <returns>Word</returns>
 CString CSpeller::GetSelWord()
 {
 	CString word(L"");
-	MSHTML::IHTMLTxtRangePtr range = GetSelWordRange();
-	if (range) {
-		word.SetString(range->text);
-	}
+	MSHTML::IHTMLDOMRangePtr range = DetectSelWordRange();
+	if (range)
+		word.SetString(range->toString());
 	return word;
 }
 
 /// <summary>Get suggestions for current selected word</summary>
-CStrings* CSpeller::GetSuggestions()
+CStrings *CSpeller::GetSuggestions()
 {
 	CString word = GetSelWord();
 	if (word.IsEmpty())
-        return nullptr;
+		return nullptr;
 
 	if (!SpellCheck(word))
 	{
 		return GetSuggestions(word);
 	}
-    return nullptr;
+	return nullptr;
 }
 
 /// <summary>Replace misspelled word with the correct</summary>
-/// <param name="word">Correct word</param>  
+/// <param name="word">Correct word</param>
 void CSpeller::Replace(CString word)
 {
-	MSHTML::IHTMLTxtRangePtr range = GetSelWordRange();
+	MSHTML::IHTMLDOMRangePtr range = DetectSelWordRange();
+	if (!range)
+		return;
 	if (m_numAphChanged)
 		word.Replace(L"'", L"’");
-	range->put_text(_bstr_t(word));
+
+	range->deleteContents();
+	MSHTML::IHTMLDOMNodePtr new_node = MSHTML::IHTMLDocument3Ptr(m_doc2)->createTextNode(word.GetString());
+	range->insertNode(new_node);
+    
+    //Clear Mark
+	CheckElement(MSHTML::IHTMLElementPtr(new_node->parentNode), false);
 }
 
 /// <summary>Replace misspelled word with the correct in ALL text</summary>
-/// <param name="badWord">misspelled word</param>  
-/// <param name="goodWord">Correct word</param>  
+/// <param name="badWord">misspelled word</param>
+/// <param name="goodWord">Correct word</param>
 void CSpeller::ReplaceAll(CString badWord, CString goodWord)
 {
 	MSHTML::IHTMLElementPtr fbw_body = MSHTML::IHTMLDocument3Ptr(m_doc2)->getElementById(L"fbw_body");
@@ -561,7 +630,7 @@ void CSpeller::ReplaceAll(CString badWord, CString goodWord)
 }
 
 /// <summary>Add word to ignore list and recheck</summary>
-/// <param name="word">Word to ignore</param>  
+/// <param name="word">Word to ignore</param>
 void CSpeller::IgnoreAll(CString word)
 {
 	if (word.IsEmpty())
@@ -576,18 +645,13 @@ void CSpeller::IgnoreAll(CString word)
 }
 
 /// <summary>Add word to custom dictionary and recheck page</summary>
-/// <param name="word">Word to add, if empty take word on caret</param>  
+/// <param name="word">Word to add, if empty take word on caret</param>
 void CSpeller::AddToDictionary(CString word)
 {
 	if (word == L"")
 		word = GetSelWord();
 	if (word == L"")
 		return;
-	//Hunhandle* currDict = GetDictionary(word);
-
-	// add to Hunspell's runtime dictionary
-	//CW2A str(word, CP_UTF8);
-	//Hunspell_add(currDict, str);
 
 	// add to custom dictionary & save custom dictionary
 	// check in custom dictionary
@@ -598,14 +662,15 @@ void CSpeller::AddToDictionary(CString word)
 	{
 		std::ofstream save;
 		save.open(m_CustomDictPath, std::ios_base::out | std::ios_base::app);
-		if (save.is_open()) {
+		if (save.is_open())
+		{
 			word.Replace(L"\u00AD", L"");
 			CT2A str(word, CP_UTF8);
 			save << str << '\n';
 			save.close();
 		}
 	}
-	catch (...) 
+	catch (...)
 	{
 		// L"Can't add to dictionary:" + m_CustomDictPath
 		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, IDS_SPELL_CHECK_COMPLETED, (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_INFORMATION_ICON);
@@ -617,9 +682,9 @@ void CSpeller::AddToDictionary(CString word)
 }
 
 /// <summary>Get languge based on word (bi-lingual hack)</summary>
-/// <param name="word">Word</param>  
-/// <returns>Lanhuage</returns> 
-CString CSpeller::detectWordLanguage(const CString& word)
+/// <param name="word">Word</param>
+/// <returns>Lanhuage</returns>
+CString CSpeller::detectWordLanguage(const CString &word)
 {
 	CString detectLang = m_Lang;
 
@@ -628,7 +693,7 @@ CString CSpeller::detectWordLanguage(const CString& word)
 	{
 		// try to detect english language by first char: too dirty but simple
 		// 0x0 - English or other latin, 0x4 - Russian
-		unsigned char* sData = (unsigned char*)word.GetString();
+		unsigned char *sData = (unsigned char *)word.GetString();
 		if (sData[1] != 0x4)
 		{
 			// Latin detected
@@ -639,14 +704,14 @@ CString CSpeller::detectWordLanguage(const CString& word)
 }
 
 /// <summary>Get suggestion array for word</summary>
-/// <param name="word">Word</param>  
-/// <returns>Suggestion array</returns> 
-CStrings* CSpeller::GetSuggestions(CString word)
+/// <param name="word">Word</param>
+/// <returns>Suggestion array</returns>
+CStrings *CSpeller::GetSuggestions(CString word)
 {
 	// remove all soft hyphens
 	word.Replace(L"\u00AD", L"");
 
-	CStrings* suggestions;
+	CStrings *suggestions;
 	suggestions = new CStrings();
 	CString lang = detectWordLanguage(word);
 	CW2A str(word, CP_UTF8);
@@ -659,7 +724,7 @@ CStrings* CSpeller::GetSuggestions(CString word)
 			int listLength = Hunspell_suggest(m_Dictionaries[i].handle, &list, str);
 			suggestions = new CStrings();
 
-			char** p = list;
+			char **p = list;
 			for (int j = 0; j < listLength; j++)
 			{
 				CString s(CA2CT(*p, CP_UTF8));
@@ -673,8 +738,8 @@ CStrings* CSpeller::GetSuggestions(CString word)
 }
 
 /// <summary>Spell check the word</summary>
-/// <param name="word">Word in UTF encoding</param>  
-/// <returns>true-if spellcheck Ok, false in misspell</returns> 
+/// <param name="word">Word in UTF encoding</param>
+/// <returns>true-if spellcheck Ok, false in misspell</returns>
 bool CSpeller::SpellCheck(CString word)
 {
 	if (word.IsEmpty())
@@ -700,9 +765,9 @@ bool CSpeller::SpellCheck(CString word)
 		checkWord.Replace(L"ё", L"е");
 
 	bool spellResult = true;
-	// encode string to the dictionary encoding 
-	CW2A str(checkWord, CP_UTF8);
 	int i = 0;
+	// encode string to the dictionary encoding
+	CW2A str(checkWord, CP_UTF8);
 	for (i = 0; i < m_Dictionaries.GetSize(); i++)
 	{
 		if (m_Dictionaries[i].lang == lang && m_Dictionaries[i].handle)
@@ -728,9 +793,9 @@ bool CSpeller::SpellCheck(CString word)
 }
 
 /// <summary>Highlight word at the pos in the element</summary>
-/// <param name="elem">HTML Element</param>  
-/// <param name="uniqID">UniqID of the element</param>  
-/// <param name="pos">Position of word in element</param>  
+/// <param name="elem">HTML Element</param>
+/// <param name="uniqID">UniqID of the element</param>
+/// <param name="pos">Position of word in element</param>
 void CSpeller::MarkWord(MSHTML::IHTMLElementPtr elem, long uniqID, CString word, int pos)
 {
 	MSHTML::IMarkupPointerPtr impStart;
@@ -747,8 +812,7 @@ void CSpeller::MarkWord(MSHTML::IHTMLElementPtr elem, long uniqID, CString word,
 	m_ims->CreateMarkupPointer(&impEnd);
 	impEnd->MoveAdjacentToElement(elem, MSHTML::ELEM_ADJ_BeforeEnd);
 
-	// Locate the misspelled word
-	// Update impEnd
+	// Locate the misspelled word (move impEnd to end of word)
 	if (impStart->findText(bstr_t(word), FINDTEXT_MATCHCASE, impEnd, NULL) == S_FALSE)
 		return;
 
@@ -771,15 +835,13 @@ void CSpeller::MarkWord(MSHTML::IHTMLElementPtr elem, long uniqID, CString word,
 /// <summary>Removes all highlights in the document and clear saved highlights</summary>
 void CSpeller::ClearAllMarks()
 {
-	for each (HIGHLIGHT itr in m_ElementHighlights)
-	{
+	for each(HIGHLIGHT itr in m_ElementHighlights)
 		m_ihrs->RemoveSegment(itr.second);
-	}
 	m_ElementHighlights.clear();
 }
 
-/// <summary>Removes highlights for element</summary>
-/// <param name="elemID">Element ID</param>  
+/// <summary>Removes highlights for whole HTML-element</summary>
+/// <param name="elemID">Unique element ID</param>
 void CSpeller::ClearMark(int elemID)
 {
 	HIGHLIGHTS::iterator itr, lastElement;
@@ -797,17 +859,19 @@ void CSpeller::ClearMark(int elemID)
 }
 
 /// <summary>Spellcheck element</summary>
-/// <param name="elem">HTML Element</param>  
-/// <param name="HTMLChanged">true if DOM was changed</param>  
+/// <param name="elem">HTML Element</param>
+/// <param name="HTMLChanged">true if DOM was changed</param>
 void CSpeller::CheckElement(MSHTML::IHTMLElementPtr elem, bool HTMLChanged)
 {
+	if (!elem)
+		return;
 	// skip whole document checking
-	CString html = elem->innerHTML;
-	if (html.Find(L"<DIV") >= 0 || html.Find(L"<div") >= 0)
+    if (MSHTML::IElementSelectorPtr(elem)->querySelector(L"div"))
 		return;
 
-	if (HTMLChanged) {
-		// recheck whole page
+    // recheck whole page
+	if (HTMLChanged)
+	{
 		ClearAllMarks();
 		doSpellCheck();
 		return;
@@ -816,9 +880,9 @@ void CSpeller::CheckElement(MSHTML::IHTMLElementPtr elem, bool HTMLChanged)
 
 	MarkElement(elem, uniqID);
 }
-/// <summary>Spellcheck HTML Element</summary>
-/// <param name="elem">HTML Element</param>  
-/// <param name="uniqID">UniqID of the element</param>  
+/// <summary>Spellcheck HTML Element and mark wrong words</summary>
+/// <param name="elem">HTML Element</param>
+/// <param name="uniqID">UniqID of the element</param>
 void CSpeller::MarkElement(MSHTML::IHTMLElementPtr elem, long uniqID)
 {
 	CString src = elem->innerText;
@@ -828,30 +892,20 @@ void CSpeller::MarkElement(MSHTML::IHTMLElementPtr elem, long uniqID)
 		ClearMark(uniqID);
 
 		// split string to words and check words
-		int wordStartPos = 0;
-		int strlen = src.GetLength();
-		for (int i = 0; i < strlen; i++)
-		{
-			if (!iswdigit(src.GetAt(i)) && !iswalpha(src.GetAt(i)))
-			{
-				if (i - wordStartPos) {
-					CString wrd = src.Mid(wordStartPos, i - wordStartPos);
-					if (!SpellCheck(wrd))
-						MarkWord(elem, uniqID, wrd, wordStartPos);
-				}
-				wordStartPos = i + 1;
-			}
+        wchar_t* cur_pos = src.GetBuffer();
+        int start = 0;
+        int end   = 0;
+		int offset = 0;
 
-			// add last word
-			else if (i + 1 == strlen) {
-				CString wrd = src.Mid(wordStartPos, strlen - wordStartPos);
-				if (!SpellCheck(wrd))
-					MarkWord(elem, uniqID, wrd, wordStartPos);
-			}
-		}
+        while(GetWord(cur_pos + offset, start, end))
+        {
+			CString wrd = src.Mid(offset + start, end - start);
+			if (!SpellCheck(wrd))
+                MarkWord(elem, uniqID, wrd, offset + start);
+			offset += end + 1;
+        };
 	}
 }
-
 
 /// <summary>If scroll changed do spellcheck (run OnIdle)</summary>
 void CSpeller::CheckScroll()
@@ -872,33 +926,32 @@ void CSpeller::doSpellCheck()
 {
 	if (!m_Enabled)
 		return;
-	CString tagName;
-	std::pair< std::set<long>::iterator, bool > pr;
-	int currNum, numChanges = 0, nStartElem, nEndElem;
-	MSHTML::IHTMLElementPtr elem, endElem;
+	MSHTML::IHTMLElementPtr elem = nullptr;
+    MSHTML::IHTMLElementPtr endElem =  nullptr;
 
-	// lookup first element on page
+	// lookup first <P> element on page
 	for (int y = 10; y < m_scrollElement->clientHeight; y += 10)
 	{
 		elem = m_doc2->elementFromPoint(63, y);
-		tagName.SetString(elem->tagName);
-		if (tagName.CompareNoCase(L"P") == 0)
+		CString ss = elem->tagName;
+		if (U::scmp(elem->tagName, L"P") == 0)
 			break;
 	}
-	// lookup last element on page
-	for (int y = m_scrollElement->clientHeight - 1; y > 10; y -= 10)
+	// lookup last <P> element on page
+	for (int y = m_scrollElement->clientHeight - 1; y >= 10; y -= 10)
 	{
 		endElem = m_doc2->elementFromPoint(63, y);
-		tagName.SetString(endElem->tagName);
-		if (tagName.CompareNoCase(L"P") == 0)
+		if (U::scmp(elem->tagName, L"P") == 0)
 			break;
 	}
 
 	// get all document paragraphs
 	MSHTML::IHTMLElementPtr fbw_body = MSHTML::IHTMLDocument3Ptr(m_doc2)->getElementById(L"fbw_body");
 	MSHTML::IHTMLElementCollectionPtr paras = MSHTML::IHTMLElement2Ptr(fbw_body)->getElementsByTagName(L"P");
-
-	nStartElem = nEndElem = -1;
+    
+    // define index range in collection of <P>
+	int nStartElem = -1;
+    int nEndElem = -1; 
 	for (int i = 0; i < paras->length; i++)
 	{
 		if ((nStartElem == -1) && paras->item(i) == elem)
@@ -906,154 +959,184 @@ void CSpeller::doSpellCheck()
 		else if (paras->item(i) == endElem)
 		{
 			nEndElem = i;
-			break;
+			break; //assume that endElem after elem
 		}
 	}
+	
+   /* if (nStartElem == -1 && nEndElem == -1)
+        return;
 
+	if (nEndElem + 1 < paras->length)
+		nEndElem++; // end paragraph extends after window border
+    
+    // no there are cases when both not found 
+	*/
+    // Old variant 
 	if (nStartElem == -1)
-		nStartElem = 0;
+		nStartElem = 0; //spellcheck from first paragraph
 
 	if (nEndElem == -1)
-		nEndElem = nStartElem + 20; //??
+    {
+		nEndElem = nStartElem + 20; //spellcheck 20 paragraphs only
+        if(nEndElem >= paras->length)
+            nEndElem = paras->length-1;
+    }
 	else if (nEndElem + 1 < paras->length)
-		nEndElem++;
+		nEndElem++; // end paragraph extends after window border
 
 	for (int i = nStartElem; i < nEndElem; i++)
 	{
-		elem = paras->item(i);
-		if (elem)
-		{
-			// get element unique number
-			int vv = MSHTML::IMarkupContainer2Ptr(m_doc2)->GetVersionNumber();
-			currNum = MSHTML::IHTMLUniqueNamePtr(elem)->uniqueNumber;
-
-			// Getting uniqueNumber from IHTMLUniqueName interface changes
-			// the internal HTML document version due to generation of UniqueNumber. We need to correct this
-			// issue, because document not really changed
-			vv = MSHTML::IMarkupContainer2Ptr(m_doc2)->GetVersionNumber();
-			pr = m_uniqIDs.insert(currNum);
-			// increase changes only if new unique element inserted 
-			if (pr.second) 
-				numChanges++;
-
-			MarkElement(elem, currNum);
-		}
+		// get element unique number
+		//currNum = MSHTML::IHTMLUniqueNamePtr(paras->item(i))->uniqueNumber;
+		MarkElement(paras->item(i), MSHTML::IHTMLUniqueNamePtr(paras->item(i))->uniqueNumber);
 	}
-	// Increase version number
-	if (numChanges)
-		::PostMessage(m_frame, WM_COMMAND, MAKELONG(ID_VER_ADVANCE, numChanges), 0);
 }
-
 
 void CSpeller::StartDocumentCheck(MSHTML::IMarkupServices2Ptr undoSrv)
 {
-	// create and show spell dialog
-	if (!m_spell_dlg)
-	{
-		m_spell_dlg = new CSpellDialog(this);
-		m_spell_dlg->ShowDialog();
-		m_undoSrv = undoSrv;
-	}
+	m_undoSrv = undoSrv;
+	MSHTML::IHTMLSelectionPtr sel = MSHTML::IHTMLDocument7Ptr(m_doc2)->getSelection();
 
 	// save current selection
-	if (!m_prevSelRange)
-	{
-		m_ims->CreateMarkupPointer(&m_impStart);
-		m_ims->CreateMarkupPointer(&m_impEnd);
-
-		m_prevSelRange = m_doc2->selection->createRange();
-		m_ims->MovePointersToRange(m_prevSelRange, m_impStart, m_impEnd);
-	}
-
-	// fetch selection
-	CString selType = m_doc2->selection->type;
-
-	m_selRange = m_doc2->selection->createRange();
-
-	m_selRange->collapse(true);
-	m_selRange->expand("word");
-	CString sText = m_selRange->text;
-	m_selRange->moveStart(L"word", -1);
-	m_selRange->moveEnd(L"word", -1);
-	sText.SetString(m_selRange->text);
+	if (!sel || sel->rangeCount == 0)
+    {
+       //if no selection, create a new one from document beginning
+       	MSHTML::IHTMLElementPtr fbw_body = MSHTML::IHTMLDocument3Ptr(m_doc2)->getElementById(L"fbw_body");
+        MSHTML::IHTMLElementPtr paras = MSHTML::IHTMLElement2Ptr(fbw_body)->getElementsByTagName(L"P")->item(0);
+        m_prevSelection = MSHTML::IDocumentRangePtr(m_doc2)->createRange();
+        m_prevSelection->selectNodeContents(paras);
+        m_prevSelection->collapse(VARIANT_TRUE);
+        sel->addRange(m_prevSelection);
+    }
+    else
+    {
+        m_prevSelection = sel->getRangeAt(0)->cloneRange();
+        sel->collapseToStart();
+    }
+    // try to define start word
+    m_curSelection = DetectSelWordRange();
+    if(m_curSelection)
+		// go to word start
+		m_curSelection->collapse(VARIANT_TRUE);
+	else
+		// if unsuccess (stay on nonalphanum char) just get current selection
+		m_curSelection = sel->getRangeAt(0)->cloneRange();
 
 	ContinueDocumentCheck();
 }
 
-//
-// Spellcheck whole document from beginning
-// Returns true if some changes was made, or false if no changes
-//
-void CSpeller::ContinueDocumentCheck()
+// Move internal range to next word
+// return true if success
+bool CSpeller::SelectNextWord()
 {
-	bool result;
-	CString word;
-	CString tag;
-	_bstr_t b;
+	MSHTML::IHTMLDOMNodePtr cur_node = m_curSelection->startContainer;
+	int offset = m_curSelection->endOffset;
 
-	// find next misspell word from the beginning or current position
-	do
+	// move trough DOM-tree until reach top of DOM-tree (parent = NULL)
+	while (cur_node)
 	{
-		// shift to the next word 
-		m_selRange->moveStart(L"word", 1);
-		m_selRange->moveEnd(L"word", 1);
-		MSHTML::IHTMLElementPtr elem(m_selRange->parentElement());
-		tag.SetString(elem->tagName);
-
-		word.SetString(m_selRange->text);
-		word.Trim();
-
-		// if word != words delimiter
-		if (word.IsEmpty() || iswpunct(word.GetAt(0)))
+		if (cur_node->nodeType == NODE_TEXT)
 		{
-			result = true;
-			continue;
-			//_word.Rightword.FindOneOf(Tokens) == -1)
+			//After Undo can appear several TEXT_NODE in a row. We have to join them in one TEXT_NODE
+			while (cur_node->nextSibling && cur_node->nextSibling->nodeType == NODE_TEXT)
+			{
+				MSHTML::IHTMLDOMTextNodePtr el_node = cur_node->nextSibling;
+				bstr_t joined_text = MSHTML::IHTMLDOMTextNodePtr(cur_node)->data + el_node->data;
+				cur_node->parentNode->removeChild(MSHTML::IHTMLDOMNodePtr(el_node));
+				MSHTML::IHTMLDOMTextNodePtr(cur_node)->put_data(joined_text);
+			}
+			CString txt_value = MSHTML::IHTMLDOMTextNodePtr(cur_node)->data;
+			if (offset < txt_value.GetLength())
+			{
+				int start_pos = 0;
+				int end_pos = 0;
+				if (GetWord(txt_value.GetBuffer() + offset, start_pos, end_pos))
+				{
+					m_curSelection->setStart(cur_node, offset + start_pos);
+					m_curSelection->setEnd(cur_node, offset + end_pos);
+					return true;
+				}
+			}
+		}
+		// try next sibling
+		if (cur_node->nextSibling)
+		{
+			cur_node = cur_node->nextSibling;
+			// deep dive to leaf
+			while (cur_node->firstChild)
+				cur_node = cur_node->firstChild;
 		}
 		else
-			result = SpellCheck(word);
+		{
+			// no next siblings, so climb up
+			cur_node = cur_node->parentNode;
+		}
+		// reset for new node
+		offset = 0;
+	}
+	return false;
+}
 
-		// select misspelled word
-		if (!result) {
-			m_selRange->select();
+// Continue spellcheck document
+void CSpeller::ContinueDocumentCheck()
+{
+	CString word(L"");
+	MSHTML::IHTMLSelectionPtr sel = MSHTML::IHTMLDocument7Ptr(m_doc2)->getSelection();
+
+	while(SelectNextWord())
+	{
+		word.SetString(m_curSelection->toString());
+		if (!SpellCheck(word))
+		{
+			// select wrong word
+            sel->removeAllRanges();
+			sel->addRange(m_curSelection);
+			
+			// create and show spell dialog if there is not already
+			if (!m_spell_dlg)
+			{
+				m_spell_dlg = new CSpellDialog(this);
+				m_spell_dlg->ShowDialog();
+			}
+			
 			m_spell_dlg->m_sBadWord = word;
 			if (m_spell_dlg->m_strSuggestions)
 				delete m_spell_dlg->m_strSuggestions;
 			m_spell_dlg->m_strSuggestions = GetSuggestions(word);
 			m_spell_dlg->UpdateData();
+			return;
 		}
-	} while (result && tag != L"BODY"); // check for end of selection
-
-	if (tag == L"BODY")
-		EndDocumentCheck(false);
+	} 
+	EndDocumentCheck(false);
 }
-
 /// <summary>Finish document spellcheck</summary>
-/// <param name="bCancel">User press Cancel button</param>  
+/// <param name="bCancel">User press Cancel button</param>
 void CSpeller::EndDocumentCheck(bool bCancel)
 {
-	if (m_spell_dlg)
+	//close dialog
+    if (m_spell_dlg)
 	{
 		m_spell_dlg->DestroyWindow();
 		m_spell_dlg = nullptr;
 	}
-	// display message box
+	
+    // display message box if spellcheck finished
 	if (!bCancel)
-	{
 		AtlTaskDialog(::GetActiveWindow(), IDR_MAINFRAME, IDS_SPELL_CHECK_COMPLETED, (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_INFORMATION_ICON);
-	}
-	// restore previous selection
-	if (m_prevSelRange)
-	{
-		m_ims->MoveRangeToPointers(m_impStart, m_impEnd, m_prevSelRange);
-		m_prevSelRange->select();
 
-		// delete objects
-		m_prevSelRange = nullptr;
+	// restore previous selection
+	if (m_prevSelection)
+	{
+		MSHTML::IHTMLSelectionPtr sel = MSHTML::IHTMLDocument7Ptr(m_doc2)->getSelection();
+		sel->removeAllRanges();
+		sel->addRange(m_prevSelection);
+		m_prevSelection->Release();
+		m_prevSelection = nullptr;
 	}
 	// delete spell-check selection range
-	if (m_selRange)
+	if (m_curSelection)
 	{
-		m_selRange = nullptr;
+		m_curSelection->Release();
+		m_curSelection = nullptr;
 	}
 }

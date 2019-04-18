@@ -25,13 +25,7 @@
     <ClCompile Include="AboutBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="apputils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DocumentTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ElementDescMnr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ElementDescriptor.cpp">
@@ -76,12 +70,6 @@
     <ClCompile Include="Words.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="xmlMatchedTagsHighlighter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XMLSerializer\XMLSerializer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="extras\ColorButton.cpp">
       <Filter>extras</Filter>
     </ClCompile>
@@ -106,7 +94,13 @@
     <ClCompile Include="TableDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils\Utils.cpp">
+    <ClCompile Include="extras\xmlMatchedTagsHighlighter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="extras\XMLSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -119,16 +113,10 @@
     <ClInclude Include="AboutBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="apputils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ContainerWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DocumentTree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ElementDescMnr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ElementDescriptor.h">
@@ -179,9 +167,6 @@
     <ClInclude Include="Speller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Splitter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -189,12 +174,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Words.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="xmlMatchedTagsHighlighter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XMLSerializer\XMLSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="extras\atlctrlsext.h">
@@ -239,7 +218,13 @@
     <ClInclude Include="TableDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\utils.h">
+    <ClInclude Include="extras\xmlMatchedTagsHighlighter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="extras\XMLSerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

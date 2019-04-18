@@ -194,6 +194,10 @@ div#fbw_body div.body {
 
 div.section{
 	border-color: #009600;
+	border-bottom-style: dashed;
+	border-bottom-width: 1px;
+	border-top-style: dashed;
+	border-top-width: 1px;
 }
 div.cite{
 	padding-left: 2em;
@@ -201,17 +205,12 @@ div.cite{
 	color: #B46400;
 	border-color: #B46400;
 }
-
-em{
-	font-style: italic;
-}
 div.epigraph{
 	font-size: 80%;
 	/*font-style: italic;*/
 	border-color: #0000F0;
 	color: #0000F0;
 }
-
 div.epigraph p{
 	text-indent: 3em;
 	margin: 0 1em 0.5em 25%;
@@ -226,6 +225,7 @@ div.history{
 }
 div.poem{
 	border-color: black;
+	font-family: segoe print;
 }
 div.stanza{
 	border-color: #FF1493;
@@ -254,8 +254,8 @@ p{
 }
 p.subtitle{
 	text-align: center;
-	font-weight: bold;
 	text-indent: 0em;
+	font-variant:small-caps;
 }
 p.text-author{
 	margin-left: 3em;
@@ -267,10 +267,18 @@ span.code{
 	font-style: normal;
 	background: rgb(238,238,238);
 }
+u{
+	font-family: monospace;
+	font-style: normal;
+	background: rgb(238,238,238);
+}
 a.note{
 	vertical-align: super;
 	color: blue;
 	font-size: 75%;
+}
+a{
+	text-decoration: overline;
 }
 div.table {
 	border-color: teal;
@@ -323,6 +331,9 @@ span.image{
 	clear: both;
 	text-align: center;
 }
+	span.image::selection {
+		outline: thick double #32a1ce;
+	}
 /* Image Library*/
 ul.thumbnails {
   overflow: auto;

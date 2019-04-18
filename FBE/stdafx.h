@@ -39,7 +39,6 @@
 
 #include <shellapi.h>
 #include <Wininet.h>
-#include <Urlmon.h>
 #include <msxml6.h>
 
 #include <wtl/atlapp.h>
@@ -140,7 +139,7 @@ using namespace _com_util;
 #include <activscp.h>
 
 // XML serialization
-#include "XMLSerializer/XMLSerializer.h"
+#include "extras/XMLSerializer.h"
 
 #if defined _M_IX86
 #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")

@@ -3,7 +3,6 @@
 #include "resource.h"
 #include "res1.h"
 #include "utils.h"
-#include "apputils.h"
 #include "FBEView.h"
 #include "FBDoc.h"
 #include "Words.h"
@@ -604,10 +603,10 @@ public:
 				{
 					if(word.CompareNoCase(pwc->word) == 0)
 					{
-						WordsItem checker(word.MakeLower(), pwc->count + pwc->count);
+						WordsItem checker1(word.MakeLower(), pwc->count + pwc->count);
 						pwc->flags |= WARN;
-						if(std::find(_Settings.m_words.begin(), _Settings.m_words.end(), checker) == _Settings.m_words.end())
-							_Settings.m_words.push_back(checker);
+						if(std::find(_Settings.m_words.begin(), _Settings.m_words.end(), checker1) == _Settings.m_words.end())
+							_Settings.m_words.push_back(checker1);
 						idxs2.Add(j);
 					}
 				}

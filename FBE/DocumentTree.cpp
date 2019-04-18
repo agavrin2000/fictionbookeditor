@@ -2,14 +2,16 @@
 #include "resource.h"
 #include "res1.h"
 #include "utils.h"
-
 #include "DocumentTree.h"
-#include "ElementDescMnr.h"
 
+#include "ElementDescriptor.h"
 #include "Settings.h"
+
 extern CSettings _Settings;
 
 extern CElementDescMnr _EDMnr;
+//==================================================================================================================
+// CTreeWithToolBar - Tree view window with toolbar
 
 BOOL CTreeWithToolBar::ModifyStyle(DWORD dwRemove, DWORD dwAdd, UINT nFlags) throw()
 {
@@ -32,7 +34,7 @@ BOOL CTreeWithToolBar::ModifyStyle(DWORD dwRemove, DWORD dwAdd, UINT nFlags) thr
 
 LRESULT CTreeWithToolBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	m_toolbarOrientation = CTreeWithToolBar::bottom;
+	//m_toolbarOrientation = CTreeWithToolBar::bottom;
 
 	LRESULT lRet = DefWindowProc(uMsg, wParam, lParam);
 
@@ -42,6 +44,7 @@ LRESULT CTreeWithToolBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	m_toolbar = CFrameWindowImplBase<>::CreateSimpleToolBarCtrl(*this, IDR_DOCUMENT_TREE, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
 	CFrameWindowImplBase<>::AddSimpleReBarBandCtrl(m_rebar, m_toolbar);
 
+    // Init standard element descriptors
 	_EDMnr.InitStandartEDs();
 	int edsCount = _EDMnr.GetStEDsCount();
 	for(int i = 0; i < edsCount; ++i)
@@ -49,12 +52,15 @@ LRESULT CTreeWithToolBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 		CElementDescriptor* eld = _EDMnr.GetStED(i);
 		eld->SetViewInTree(_Settings.GetDocTreeItemState(eld->GetCaption(), eld->ViewInTree()));
 	}
-	
+
+    // Init nonstandard element descriptors
 	_EDMnr.InitScriptEDs();
+
+    //Fill and add menu bar
 	RECT rect;
 	SetRect(&rect, 0, 0, 500, 20);
 	this->ModifyStyle(0, WS_POPUP, 0);
-	HWND hWndCmdBar = m_view_bar.Create(*this, rect, NULL, ATL_SIMPLE_TOOLBAR_PANE_STYLE);	
+	m_view_bar.Create(*this, rect, NULL, ATL_SIMPLE_TOOLBAR_PANE_STYLE);	
 	m_view_bar.SetStyle(ATL_SIMPLE_TOOLBAR_PANE_STYLE);
 	FillViewBar();
 	this->ModifyStyle(WS_POPUP, 0, 0);
@@ -66,7 +72,6 @@ LRESULT CTreeWithToolBar::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	bHandled = FALSE;
 	return lRet;
 }
-
 
 LRESULT CTreeWithToolBar::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -101,30 +106,17 @@ LRESULT CTreeWithToolBar::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 
 	bool moved = false;
 
-	if(m_toolbarOrientation == CTreeWithToolBar::bottom)
-	{
-		if(rebarRect.top != clientRect.bottom - rebarHight)
-			moved = true;
+    if(rebarRect.top != clientRect.bottom - rebarHight)
+        moved = true;
 
-		rebarRect.top = clientRect.bottom - rebarHight;
-		
-		rebarRect.bottom = rebarRect.top + rebarHight;
-		treeRect.top = clientRect.top + viewBarHight;
-		treeRect.bottom = rebarRect.top;
+    rebarRect.top = clientRect.bottom - rebarHight;
+    
+    rebarRect.bottom = rebarRect.top + rebarHight;
+    treeRect.top = clientRect.top + viewBarHight;
+    treeRect.bottom = rebarRect.top;
 
-		viewBarRect.top = clientRect.top;
-		viewBarRect.bottom = viewBarRect.top + viewBarHight;
-	}
-
-	// ?????? ????? ????? ???????????? ??????. ??? ???? ???????? ???????? ??? ????.
-	/*if(m_toolbarOrientation == CTreeWithToolBar::top)
-	{
-		rebarRect.top = clientRect.top;
-		rebarRect.bottom = rebarRect.top + rebarHight;
-
-		treeRect.top = rebarRect.bottom ;
-		treeRect.bottom = clientRect.bottom;
-	}*/
+    viewBarRect.top = clientRect.top;
+    viewBarRect.bottom = viewBarRect.top + viewBarHight;
 
 	if((rebarRect.right - rebarRect.left) > m_maxTbwidth || moved)
 	{
@@ -138,7 +130,33 @@ LRESULT CTreeWithToolBar::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	return 0;
 }
 
-void CTreeWithToolBar::GetDocumentStructure(MSHTML::IHTMLDocument2Ptr& v)
+LRESULT CTreeWithToolBar::OnToolTipText(int idCtrl, LPNMHDR pnmh, BOOL&)
+{
+    LPNMTTDISPINFOW pDispInfo = (LPNMTTDISPINFOW)pnmh;
+    pDispInfo->szText[0] = 0;
+
+    if((idCtrl != 0) && !(pDispInfo->uFlags & TTF_IDISHWND))
+    {
+        const int cchBuff = 256;
+        wchar_t szBuff[cchBuff];
+        szBuff[0] = 0;
+        int nRet = ::LoadStringW(ModuleHelper::GetResourceInstance(), idCtrl, szBuff, cchBuff);
+        for(int i = 0; i < nRet; i++)
+        {
+            if(szBuff[i] == L'\n')
+            {
+                SecureHelper::strncpyW_x(pDispInfo->szText, _countof(pDispInfo->szText), &szBuff[i + 1], _TRUNCATE);
+                break;
+            }
+        }
+        if(nRet > 0)   // string was loaded, save it
+            pDispInfo->uFlags |= TTF_DI_SETITEM;
+    }
+
+    return 0;
+}
+
+void CTreeWithToolBar::GetDocumentStructure(MSHTML::IHTMLDocument2Ptr v)
 {
 	m_tree.GetDocumentStructure(v);
 }
@@ -164,16 +182,12 @@ LRESULT CTreeWithToolBar::ForwardWMCommand(WORD wNotifyCode, WORD wID, HWND hWnd
 	DWORD lParam = (LPARAM)hWndCtl;
 	return ::SendMessage(m_tree, WM_COMMAND, wParam, lParam);
 }
-
+// fill main menu for tree (descriptors)
 void CTreeWithToolBar::FillViewBar()
 {
-	unsigned int st_count = _EDMnr.GetStEDsCount();
-	unsigned int count = _EDMnr.GetEDsCount();
-
-	m_st_menu = ::CreateMenu();	
-	HMENU menu = ::CreateMenu();
+	m_st_menu = ::CreateMenu();	// standard descroiptors
+	HMENU menu = ::CreateMenu();// nonstandard descroiptors (scripts)
 	HMENU bar = ::CreateMenu();
-
 
 	wchar_t elsMenuItem[MAX_LOAD_STRING + 1];
 	wchar_t scriptsMenuItem[MAX_LOAD_STRING + 1];
@@ -186,26 +200,22 @@ void CTreeWithToolBar::FillViewBar()
 
 	int picType = 0;
 	HANDLE picHandle = 0;
-
+	unsigned int st_count = _EDMnr.GetStEDsCount();
+	unsigned int count = _EDMnr.GetEDsCount();
+    //append standard descriptors
 	for(unsigned int i = 0; i < st_count; ++i)
 	{
 		::AppendMenu(m_st_menu, MF_STRING, IDC_TREE_ST_BASE + i, _EDMnr.GetStED(i)->GetCaption());
 		if(_EDMnr.GetStED(i)->ViewInTree())
 			::CheckMenuItem(m_st_menu, IDC_TREE_ST_BASE + i, MF_CHECKED);
-		/*if(_EDMnr.GetStED(i)->GetPic(picHandle, picType))
-		{
-			switch(picType)
-			{
-			case 0:
-				m_view_bar.AddBitmap((HBITMAP)picHandle, IDC_TREE_ST_BASE + i);
-				break;
-			case 1:
-				m_view_bar.AddIcon((HICON)picHandle, IDC_TREE_ST_BASE + i);
-				break;
-			}
-		}*/
 	}
+    // append "Clear" menu item
+	::AppendMenu(m_st_menu, MF_SEPARATOR, 0, 0);
+	CString s(L""); 
+    s.LoadString(IDS_DOC_TREE_CLEANUP);
+	::AppendMenu(m_st_menu, MF_STRING, IDC_TREE_UNCHECK_ALL, s);
 
+    //append nonstandard descriptors
 	for(unsigned int i = 0; i < count; ++i)
 	{
 		::AppendMenu(menu, MF_STRING, IDC_TREE_BASE + i, _EDMnr.GetED(i)->GetCaption());
@@ -213,15 +223,15 @@ void CTreeWithToolBar::FillViewBar()
 
 		if(ED->GetPic(picHandle, picType))
 		{
-			int imageID;
+			int imageID = 0;
 
 			switch(picType)
 			{
-			case 0:
+			case 0: //bitmap
 				m_view_bar.AddBitmap((HBITMAP)picHandle, IDC_TREE_BASE + i);
 				imageID = m_tree.AddImage(picHandle);
 				break;
-			case 1:
+			case 1: //icon
 				m_view_bar.AddIcon((HICON)picHandle, IDC_TREE_BASE + i);
 				imageID = m_tree.AddIcon(picHandle);
 				break;				
@@ -229,36 +239,17 @@ void CTreeWithToolBar::FillViewBar()
 			ED->SetImageID(imageID);
 		}
 	}
-
+    // append "Clear" menu item
 	::AppendMenu(menu, MF_SEPARATOR, 0, 0);
-	CString s; s.LoadString(IDS_DOC_TREE_CLEANUP);
+	s = L""; 
+    s.LoadString(IDS_DOC_TREE_CLEANUP);
 	::AppendMenu(menu, MF_STRING, IDC_TREE_CLEAR_ALL, s);
 
 	m_view_bar.AttachMenu(bar);
 }
 
-LRESULT CTreeWithToolBar::OnMenuCommand(WORD, WORD wID, HWND, BOOL&)
-{
-	bool ctrl_state = (GetKeyState(VK_CONTROL) & 0x8000) != 0x0;
-	unsigned int index = wID - IDC_TREE_BASE;
-	CElementDescriptor* ED = _EDMnr.GetED(index);
-
-	if(ctrl_state)
-	{
-		ClearTree();
-	}
-	else
-	{
-		ED->CleanUp();
-	}
-
-	ED->ProcessScript();
-	ED->SetViewInTree(true);
-	m_tree.UpdateAll();
-	return 0;
-}
-
-void CTreeWithToolBar::ClearTree()
+// Clear all standard descriptors
+LRESULT CTreeWithToolBar::OnMenuUncheckAll(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	_EDMnr.CleanTree();	
 	int st_menu_item_count = m_st_menu.GetMenuItemCount();
@@ -266,9 +257,25 @@ void CTreeWithToolBar::ClearTree()
 	{
 		::CheckMenuItem(m_st_menu, IDC_TREE_ST_BASE + i, MF_UNCHECKED);
 	}
+	m_tree.UpdateAll();
+
+	return 0;
 }
 
+// Clear nonstandard descriptors
+LRESULT CTreeWithToolBar::OnMenuCommand(WORD, WORD wID, HWND, BOOL&)
+{
+	unsigned int index = wID - IDC_TREE_BASE;
+	CElementDescriptor* ED = _EDMnr.GetED(index);
+	ED->CleanUp();
+	ED->ProcessScript();
+	ED->SetViewInTree(true);
+	m_tree.UpdateAll();
 
+	return 0;
+}
+
+// toggle checked state in menu standard descriptor
 LRESULT CTreeWithToolBar::OnMenuStCommand(WORD, WORD wID, HWND, BOOL&)
 {
 	unsigned int index = wID - IDC_TREE_ST_BASE;
@@ -283,16 +290,15 @@ LRESULT CTreeWithToolBar::OnMenuStCommand(WORD, WORD wID, HWND, BOOL&)
 	m_tree.UpdateAll();
 	return 0;
 }
-
+// clear nonstandard menu
 LRESULT CTreeWithToolBar::OnMenuClear(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL &bHandled)
 {
 	_EDMnr.CleanUpAll();
 	return 0;
 }
 
-
 //==================================================================================================================
-
+// CDocumentTree - PaneContainer class to display container window (with title and close button) for TreeView
 
 LRESULT CDocumentTree::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -300,18 +306,15 @@ LRESULT CDocumentTree::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 
 	m_tree.Create(*this, rcDefault);
 	m_tree.m_tree.SetMainwindow(GetParent());
-	/*m_element_browser.Create(*this, rcDefault);
-	m_element_browser.m_tree.SetMainwindow(GetParent());*/
 	this->SetClient(m_tree);
 
 	wchar_t capt[MAX_LOAD_STRING + 1];
 	::LoadString(_Module.GetResourceInstance(), IDS_DOCUMENT_TREE_CAPTION, capt, MAX_LOAD_STRING);
 	this->SetTitle(capt);    
+    
     bHandled=FALSE;
     return lRet;
 }
-
-
 
 //WS_DLGFRAME  | WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | CCS_NODIVIDER | CCS_NOPARENTALIGN | TBSTYLE_TOOLTIPS | TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE
 
@@ -326,17 +329,17 @@ LRESULT CDocumentTree::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bH
 	return 0;
 }
 
-void CDocumentTree::GetDocumentStructure(MSHTML::IHTMLDocument2Ptr& v)
+void CDocumentTree::GetDocumentStructure(MSHTML::IHTMLDocument2Ptr v)
 {
 	m_tree.GetDocumentStructure(v);
 }
 
-void CDocumentTree::UpdateDocumentStructure(MSHTML::IHTMLDocument2Ptr& v,MSHTML::IHTMLDOMNodePtr node)
+void CDocumentTree::UpdateDocumentStructure(MSHTML::IHTMLDocument2Ptr v,MSHTML::IHTMLDOMNodePtr node)
 {
 	m_tree.UpdateDocumentStructure(v, node);
 }
 
-void CDocumentTree::HighlightItemAtPos(MSHTML::IHTMLElement *p)
+void CDocumentTree::HighlightItemAtPos(MSHTML::IHTMLElementPtr p)
 {
 	m_tree.HighlightItemAtPos(p);
 }

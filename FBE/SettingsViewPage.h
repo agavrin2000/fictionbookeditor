@@ -4,7 +4,6 @@
 // color picker
 #include <ColorButton.h>
 
-#include "apputils.h"
 #include "utils.h"
 #include "FBEView.h"
 #include "ModelessDialog.h"

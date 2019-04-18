@@ -13,10 +13,14 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E1B04471-3393-4970-93ED-FB6A57BCDA8B}</ProjectGuid>
     <RootNamespace>FBE</RootNamespace>
-    <SccProjectName>Svn</SccProjectName>
-    <SccAuxPath>Svn</SccAuxPath>
-    <SccLocalPath>Svn</SccLocalPath>
-    <SccProvider>SubversionScc</SccProvider>
+    <SccProjectName>
+    </SccProjectName>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccProvider>
+    </SccProvider>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -35,7 +39,7 @@
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CLRSupport>true</CLRSupport>
+    <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -149,7 +153,6 @@ link.exe /OUT:"$(SolutionDir)$(Configuration)\en-US\FBE.exe.mui" /DLL /NOENTRY /
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <WarningLevel>Level4</WarningLevel>
-      <MinimalRebuild>true</MinimalRebuild>
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -173,7 +176,7 @@ gdiplus.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependen
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <Profile>false</Profile>
+      <Profile>true</Profile>
       <ImageHasSafeExceptionHandlers>
       </ImageHasSafeExceptionHandlers>
     </Link>
@@ -190,15 +193,15 @@ link.exe /OUT:"$(SolutionDir)$(Configuration)\en-US\FBE.exe.mui" /DLL /NOENTRY /
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutBox.cpp" />
-    <ClCompile Include="apputils.cpp" />
     <ClCompile Include="buildstamp.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="DocumentTree.cpp" />
-    <ClCompile Include="ElementDescMnr.cpp" />
     <ClCompile Include="ElementDescriptor.cpp" />
     <ClCompile Include="ExternalHelper.cpp" />
+    <ClCompile Include="extras\xmlMatchedTagsHighlighter.cpp" />
+    <ClCompile Include="extras\XMLSerializer.cpp" />
     <ClCompile Include="FBDoc.cpp" />
     <ClCompile Include="FBE.cpp" />
     <ClCompile Include="FBEview.cpp" />
@@ -229,10 +232,8 @@ link.exe /OUT:"$(SolutionDir)$(Configuration)\en-US\FBE.exe.mui" /DLL /NOENTRY /
     </ClCompile>
     <ClCompile Include="TableDialog.cpp" />
     <ClCompile Include="TreeView.cpp" />
-    <ClCompile Include="utils\Utils.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="Words.cpp" />
-    <ClCompile Include="xmlMatchedTagsHighlighter.cpp" />
-    <ClCompile Include="XMLSerializer\XMLSerializer.cpp" />
     <ClCompile Include="extras\ColorButton.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -253,15 +254,15 @@ link.exe /OUT:"$(SolutionDir)$(Configuration)\en-US\FBE.exe.mui" /DLL /NOENTRY /
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutBox.h" />
-    <ClInclude Include="apputils.h" />
     <ClInclude Include="atlimageex.h" />
     <ClInclude Include="extras\atlcrypt.h" />
+    <ClInclude Include="extras\xmlMatchedTagsHighlighter.h" />
+    <ClInclude Include="extras\XMLSerializer.h" />
     <ClInclude Include="FBE.h" />
     <ClInclude Include="TableDialog.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ContainerWnd.h" />
     <ClInclude Include="DocumentTree.h" />
-    <ClInclude Include="ElementDescMnr.h" />
     <ClInclude Include="ElementDescriptor.h" />
     <ClInclude Include="ErrsEx.h" />
     <ClInclude Include="ExternalHelper.h" />
@@ -275,7 +276,7 @@ link.exe /OUT:"$(SolutionDir)$(Configuration)\en-US\FBE.exe.mui" /DLL /NOENTRY /
     <ClInclude Include="res1.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SearchReplace.h" />
-    <ClInclude Include="utils\utils.h" />
+    <ClInclude Include="utils.h" />
     <ClInclude Include="XMLSerializer\Serializable.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SettingsDlg.h" />
@@ -283,12 +284,9 @@ link.exe /OUT:"$(SolutionDir)$(Configuration)\en-US\FBE.exe.mui" /DLL /NOENTRY /
     <ClInclude Include="SettingsOtherPage.h" />
     <ClInclude Include="SettingsWordsPage.h" />
     <ClInclude Include="Speller.h" />
-    <ClInclude Include="Splitter.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TreeView.h" />
     <ClInclude Include="Words.h" />
-    <ClInclude Include="xmlMatchedTagsHighlighter.h" />
-    <ClInclude Include="XMLSerializer\XMLSerializer.h" />
     <ClInclude Include="extras\atlctrlsext.h" />
     <ClInclude Include="extras\atlgdix.h" />
     <ClInclude Include="extras\ColorButton.h" />
@@ -364,6 +362,7 @@ link.exe /OUT:"$(SolutionDir)$(Configuration)\en-US\FBE.exe.mui" /DLL /NOENTRY /
     <None Include="fb2.xsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DeploymentContent>true</DeploymentContent>
+      <SubType>Designer</SubType>
     </None>
     <None Include="rus.xsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -411,15 +410,15 @@ link.exe /OUT:"$(SolutionDir)$(Configuration)\en-US\FBE.exe.mui" /DLL /NOENTRY /
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="main.css">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="main.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="main.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="main_fast.css">

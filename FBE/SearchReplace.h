@@ -142,7 +142,7 @@ public:
 		if(cur.IsEmpty())
 			return;
 
-		LRESULT Idx = ::SendMessage(hCB, CB_FINDSTRINGEXACT, -1, (LPARAM)(const TCHAR*)cur);
+		LRESULT Idx = ::SendMessage(hCB, CB_FINDSTRINGEXACT, (WPARAM)(-1), (LPARAM)(const TCHAR*)cur);
 		if(Idx == 0)
 			return;
 		if(Idx != CB_ERR)

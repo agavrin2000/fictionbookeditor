@@ -266,7 +266,7 @@ void   CMainDlg::FreeFileData() {
 bool CMainDlg::GetSchemaFile()
 {
 	TCHAR szExePath[MAX_PATH] = { 0 };
-	DWORD nCount = ::GetModuleFileName(nullptr, szExePath, MAX_PATH);
+//	DWORD nCount = ::GetModuleFileName(nullptr, szExePath, MAX_PATH);
 	m_pathSchema.m_strPath = szExePath;
 	m_pathSchema.RemoveFileSpec();
 	m_pathSchema.Append(_T("FictionBook.xsd"));

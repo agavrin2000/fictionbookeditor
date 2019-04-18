@@ -1,5 +1,5 @@
 //======================================
-// РџРѕРёСЃРє РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‰РёС… РёР»Рё РЅРµРёСЃРїРѕР»СЊР·СѓРµРјС‹С… РёР·РѕР±СЂР°Р¶РµРЅРёР№
+// Поиск отсутствующих или неиспользуемых изображений
 //                  Alex Saveliev script for FBW2         version 1.1
 //======================================
 
@@ -7,34 +7,34 @@
 
 function Run()
 {
- var lists=document.all.tiCover.getElementsByTagName("select");
+ var lists=$('#tiCover select');
 
  var covers=""; for(var i=0; i<lists.length; i++) if(lists[i].id=='href') covers+=lists[i].value+'|';
 
  // Find unused images
 
- var imgs=fbw_body.getElementsByTagName("IMG"), imgs_len=imgs.length;
- var bins=document.all.binobj.getElementsByTagName("DIV"), bins_len=bins.length;
+ var imgs = fbw_body.getElementsByTagName("IMG"), imgs_len=imgs.length;
+ var bins= $('#binobj DIV'), bins_len=bins.length;
 
  var unused="";
 
 
  for(var i=0; i<bins_len; i++)
  {
-  var found=false; var bin="fbw-internal:#"+bins[i].all.id.value;
+  var found=false; var bin="fbw-internal:#"+bins[i].id.value;
 
   for(var j=0; j<imgs_len; j++) if(imgs[j].src==bin){ found=true; break; }
 
-  if(!found && covers.indexOf(bins[i].all.id.value)==-1) unused+=" вЂў "+bins[i].all.id.value+"\n";
+          if(!found && covers.indexOf(bins[i].id.value)==-1) unused+=" • "+bins[i].id.value+"\n";
  }
 
- if(unused==''){ if(bins && bins.length>0) unused=' вЂў РІСЃРµ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ\n'; else unused=' вЂў РЅРµС‚ Р±РёРЅР°СЂРЅС‹С… РѕР±СЉРµРєС‚РѕРІ\n'; }
+ if(unused==''){ if(bins && bins.length>0) unused=' • все используются\n'; else unused=' • нет бинарных объектов\n'; }
 
- unused="\nРќРµРёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ Р±РёРЅР°СЂРЅС‹Рµ РѕР±СЉРµРєС‚С‹: \n"+unused;
+ unused="\nНеиспользуемые бинарные объекты: \n"+unused;
 
  // Find broken images (no binary)
 
-   if(!imgs || imgs.length==0, !bins || bins.length==0){ MsgBox("\nР’ СЌС‚РѕР№ РєРЅРёРіРµ РЅРµС‚ РЅРё РѕР±Р»РѕР¶РєРё, РЅРё РёР»Р»СЋСЃС‚СЂР°С†РёР№. \n\n"); return; }
+   if(!imgs || imgs.length==0, !bins || bins.length==0){ MsgBox("\nВ этой книге нет ни обложки, ни иллюстраций. \n\n"); return; }
 
  var broken="";
 
@@ -42,14 +42,14 @@ function Run()
  {
   var found=false; var img=imgs[i].src.substr(14);
 
-  for(var j=0; j<bins_len; j++) if(bins[j].all.id.value==img){ found=true; break; } 
+  for(var j=0; j<bins_len; j++) if(bins[j].id.value==img){ found=true; break; } 
 
-  if(!found) broken+=" вЂў "+img+"\n";
+  if(!found) broken+=" • "+img+"\n";
  }
 
- if(broken=='') broken=" вЂў РЅРµ РЅР°Р№РґРµРЅРѕ\n";
+ if(broken=='') broken=" • не найдено\n";
 
- MsgBox("           вЂ”= AlexS Script=вЂ” \n   В«РџСЂРѕРІРµСЂРєР° РёР»Р»СЋСЃС‚СЂР°С†РёР№В» v.1.1\n\n" +unused+"\nРћС‚СЃСѓС‚СЃС‚РІСѓСЋС‰РёРµ РёР»Р»СЋСЃС‚СЂР°С†РёРё: \n"+broken+"\n");
+ alert("           —= AlexS Script=— \n   «Проверка иллюстраций» v.1.1\n\n" +unused+"\nОтсутствующие иллюстрации: \n"+broken+"\n");
 
 }
 

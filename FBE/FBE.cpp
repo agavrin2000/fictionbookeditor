@@ -9,7 +9,6 @@
 
 #include "utils.h"
 #include "Settings.h"
-#include "apputils.h"
 
 #include "FBEView.h"
 #include "FBDoc.h"
@@ -29,11 +28,12 @@
 		EXTERN_C const CLSID DECLSPEC_SELECTANY name \
 		= { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
 
+// CLSID for Internet protocol handle        
 // {7301FF90-9029-4819-B778-19D9999DB419}
 DEFINE_CLSID(CLSID_MemProtocol, 0x7301ff90, 0x9029, 0x4819, 0xb7, 0x78, 0x19, 0xd9, 0x99, 0x9d, 0xb4, 0x19);
 
 CAppModule _Module;
-extern CElementDescMnr _EDMnr;
+// extern CElementDescMnr _EDMnr;
 
 BEGIN_OBJECT_MAP(ObjectMap)
 	OBJECT_ENTRY(CLSID_MemProtocol, CMemProtocol)
@@ -147,15 +147,7 @@ bool LoadEditor()
 	HINSTANCE hLib = ::LoadLibrary(L"SciLexer.dll");
 	if(hLib == NULL)
 		return false;
-	#if 0
-		bool (*scireg)(void *hinst) = (bool (*)(void*)) ::GetProcAddress(hLib,"Scintilla_RegisterClasses");
-		if(scireg == NULL || !scireg(_Module.GetModuleInstance()))
-		{
-			::FreeLibrary(hLib);
-			return false;
-		}
-	#endif
-		return true;
+	return true;
 }
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpstrCmdLine, int nCmdShow)
@@ -205,35 +197,33 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 
   // parse command line
   ParseCommandLine(lpstrCmdLine,_ARGV);
-  if (!AU::ParseCmdLineArgs())
-    goto out;
-  
-  // load xml source editor
-  if (!LoadEditor()) 
+  if (U::ParseCmdLineArgs())
   {
-	  AtlTaskDialog(::GetActiveWindow(), IDS_ERRMSGBOX_CAPTION, IDS_SCINTILLA_LOAD_ERR_MSG, (LPCTSTR)NULL, TDCBF_OK_BUTTON, TD_ERROR_ICON);
-    goto out;
+	  if (LoadEditor())
+	  {
+		  // register our protocol handler
+          // all internet requests with "fbw-internal:" will handle this COM-server
+		  IInternetSession *isess;
+		  if (SUCCEEDED(::CoInternetGetSession(0, &isess, 0))) {
+			  IClassFactory *cf;
+			  if (SUCCEEDED(_Module.GetClassObject(CLSID_MemProtocol, IID_IClassFactory, (void**)&cf))) {
+				  HRESULT hr = isess->RegisterNameSpace(cf, CLSID_MemProtocol, L"fbw-internal", 0, NULL, 0);
+				  if (FAILED(hr))
+					  ATLTRACE("Failed to register protocol handler: %x\n", hr);
+				  cf->Release();
+			  }
+			  isess->Release();
+		  }
+		  // run the main loop
+		  nRet = Run(lpstrCmdLine, nCmdShow);
+	  }
+	  else
+	  {
+		  U::ReportError(IDS_SCINTILLA_LOAD_ERR_MSG);
+	  }
   }
-
-  // register our protocol handler
-  IInternetSession *isess;
-  if (SUCCEEDED(::CoInternetGetSession(0, &isess, 0))) {
-    IClassFactory *cf;
-    if (SUCCEEDED(_Module.GetClassObject(CLSID_MemProtocol, IID_IClassFactory, (void**)&cf))) {
-      HRESULT hr=isess->RegisterNameSpace(cf,CLSID_MemProtocol,L"fbw-internal",0,NULL,0);
-      if (FAILED(hr))
-	      ATLTRACE("Failed to register protocol handler: %x\n",hr);
-      cf->Release();
-    }
-    isess->Release();
-  }
-
-  // run the main loop
-  nRet = Run(lpstrCmdLine, nCmdShow);
-out:
   _Module.Term();
-
   ::OleUninitialize();
-  
+ 
   return nRet;
 }

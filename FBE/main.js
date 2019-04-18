@@ -27,7 +27,7 @@ window.onerror = errorHandler; // document.lvl=0;
 //var ImagesInfo = new Array();
 
 // Internalization functions
-// var curInterfaceLang = window.external.GetInterfaceLanguage(); // Current interface language
+var curInterfaceLang; // Current interface language
 APITranslation = [{
 	eng: "Error at line {dvalue1}:\n {dvalue2} ",
 	rus: "Ошибка в строке {dvalue1}:\n {dvalue2} ",
@@ -39,9 +39,74 @@ APITranslation = [{
 	ukr: '"{dvalue1}" loading error:\n\n{dvalue2}\nLine: {dvalue3} , Col: {dvalue4}'
 },
 {
+	eng: 'insert image',
+	rus: 'вставка рисунка',
+	ukr: 'insert image'
+},
+{
+	eng: 'make epigraph',
+	rus: 'создать эпиграф',
+	ukr: 'make epigraph'
+},
+{
+	eng: 'make annotation',
+	rus: 'создать аннотацию',
+	ukr: 'make annotation'
+},
+{
+	eng: 'insert inline image',
+	rus: 'вставка рисунка в текст',
+	ukr: 'insert inline image'
+},
+{
+	eng: 'make text-author',
+	rus: 'создать слова автора',
+	ukr: 'make text-author'
+},
+{
 	eng: 'Error loading file:"{dvalue1}":\nCan\'t prepare document for Body mode.',
 	rus: 'Ошибка при загрузке файла:"{dvalue1}":\nНевозможно подготовить BODY',
 	ukr: 'Error loading file:"{dvalue1}":\nCan\'t prepare document for Body mode.'
+},
+{
+	eng: 'Notes',
+	rus: 'Примечания',
+	ukr: 'Notes'
+},
+{
+	eng: 'Cite',
+	rus: 'Цитата',
+	ukr: 'Cite'
+},
+{
+	eng: 'Stanza',
+	rus: 'Строфа',
+	ukr: 'Stanza'
+},
+{
+	eng: 'Title',
+	rus: 'Заголовок',
+	ukr: 'Title'
+},
+{
+	eng: 'Annotation',
+	rus: 'Аннотация',
+	ukr: 'Annotation'
+},
+{
+	eng: 'Epigraph',
+	rus: 'Эпиграф',
+	ukr: 'Epigraph'
+},
+{
+	eng: 'Author Text',
+	rus: 'Текст автора',
+	ukr: 'Author Text'
+},
+{
+	eng: 'Subtitle',
+	rus: 'Подзаголовок',
+	ukr: 'Subtitle'
 }
 ];
 
@@ -49,35 +114,9 @@ APITranslation = [{
 // Public API
 //======================================
 
-$(function () {
-	/*   $("#dialog").dialog({
-		   title: "Image Library",
-		   width: 400,
-		   modal: true,
-		   autoOpen: false,
-		   buttons: [
-		   {
-			   text: "Ok",
-			   click: function() {
-				   $( this ).dialog( "close" );
-				   alert($("#selectImage").val());
-			   }
-		   },
-		   {
-			   text: "Отмена",
-			   click: function() {
-				   $( this ).dialog( "close" );
-			   }
-		   }
-		   ]
-	   });
-	   */
-});
 //--------------------------------------
 // Gets a binary object for the memory protocol to display book images in the browser
-
 function FillCoverList() {
-
 	return FillLists();
 }
 
@@ -85,9 +124,14 @@ function OnBinaryIdChange() {
 	FillLists();
 }
 
-//--------------------------------------
-// Adds a binary object.
 // Don't forget to call FillCoverList() when you have finished adding objects!
+///<summary>Add new binary (picture). 
+///Don't forget to call FillCoverList() when you have finished adding objects!</summary>
+///<param name='fullpath'>Filepath</param>
+///<param name='id'>Proposed picture ID</param>
+///<param name='type'>Type of binary (image)</param>
+///<param name='data'>Binary data</param>
+///<returns>Real ID of picture</returns>
 function apiAddBinary(fullpath, id, type, data) {
 	// check if this ID already exists and generate new ID, keeping file extension (good for image saving)
 	var idx = 0;
@@ -98,22 +142,6 @@ function apiAddBinary(fullpath, id, type, data) {
 	if (idx > 0)
 		curid = id + "_" + (idx - 1);
 	curid += "." + ext;
-	/*
-		var bo = document.binobj.getElementsByTagName("DIV");
-		for (; ;) {
-			var found = false;
-			for (var i = 0; i < bo.length; i++)
-				if (bo[i].id.value == curid) {
-					found = true;
-					break;
-				}
-	
-			if (!found) break;
-	
-			curid = id + "_" + idx;
-			idx++;
-		}
-	*/
 	var div = document.createElement("DIV");
 
 	div.innerHTML = '<button id="del" ' +
@@ -154,10 +182,9 @@ function apiAddBinary(fullpath, id, type, data) {
 		OnBinaryIdChange();
 	});
 	$(div).find("#type").val(type);
-	$(div).prop("base64data", data);
+	$(div).data("base64data", data);
 
 	$("#binobj").append(div);
-
 	return curid;
 }
 
@@ -165,7 +192,7 @@ function apiAddBinary(fullpath, id, type, data) {
 ///<param name='id'>search value of value-attribute</param>
 ///<returns> if found: base64 string or undefined  </returns>
 function GetImageData(id) {
-	return $("#binobj DIV").filter(function () { return $("#id", this).val() == id }).prop("base64data");
+	return $("#binobj DIV").filter(function () { return $("#id", this).val() == id }).data("base64data");
 }
 
 ///<summary>Show\Hide border around repeatable element</summary>
@@ -284,7 +311,6 @@ function HidePrevImage() {
 function ShowFullImage(source) {
 	HidePrevImage();
 
-
 	// get width\heihgt values
 	var strWH = $("#binobj DIV").filter(function () { return ("fbw-internal:#" + $("#id", this).val()) == source }).find("#dims").val();
 
@@ -339,7 +365,7 @@ function HideFullImage() {
 ///<param name='binDiv'>DIV-element with image</param>
 function SaveImage(binDiv) {
 	if ($(binDiv).find("INPUT#id").val()) {
-		window.external.SaveBinary(src, $(binDiv).prop("base64data"), 1);
+		window.external.SaveBinary(src, $(binDiv).data("base64data"), 1);
 	}
 }
 
@@ -418,59 +444,52 @@ function TransformXML(xslt, dom) {
 
 	proc = xslt.createProcessor();
 	proc.input = dom;
+
+	var par = desc.parentNode;
 	proc.setStartMode("description");
 	proc.transform();
+	par = desc.parentNode;
+	desc.removeNode(true);
 	desc.innerHTML = proc.output;
+	// desc.onclick = ClickOnDesc;
+	par.appendChild(desc);
 	PutBinaries(dom);
 	SetupDescription(desc);
-	// desc.onclick = ClickOnDesc;
+
 	proc.setStartMode("body");
 	proc.transform();
+	par = body.parentNode;
+	body.removeNode(true);
 	body.innerHTML = proc.output;
-	window.external.InflateParagraphs(body);
+	par.appendChild(body);
+
+	//window.external.InflateParagraphs(body);
 	//	document.fbwFilename=name;
 	document.urlprefix = "fbw-internal:";
+
+	// Show needed description elements according to settings
+	$("#fbw_desc SPAN[id]").each(function () {
+		ShowElement($(this).attr("id"), window.external.GetExtendedStyle($(this).attr("id")));
+	});
+
 	return true;
 }
-
-/*
-function ShowDescElements() {
-	$("#fbw_desc SPAN[id]").each(function () {
-		ShowElement(this.id, window.external.GetExtendedStyle(this.id));
-	});
-	/*
-	  var desc = document.getElementById("fbw_desc");
-	  var spans = desc.getElementsByTagName("SPAN");
-	  for(var i=0; i < spans.length; i++)
-	  {
-		var elem_id = spans[i].getAttribute("id");
-		if(elem_id)
-		  ShowElement(elem_id, window.external.GetExtendedStyle(elem_id));
-	  }
-		
-}
-*/
 
 ///<summary>Load and transform xml</summary>
 ///<param name='dom'>xml-document</param>
 ///<param name='lang'>Current app interface language</param>
 ///<returns>html-document</returns>
 function LoadFromDOM(dom, lang) {
-//	dom.setProperty("SelectionNamespaces", "xmlns:fb='" + fbNS + "' xmlns:xlink='" + xlNS + "'");
+
+	dom.async = false;
+	dom.preserveWhiteSpace = true;
 
 	// fb2.xsl should be in app directory! Why??
 	var xpath = window.external.GetStylePath() + "\\fb2.xsl";
 
+	// transform to html
 	var ret = TransformXML(LoadXSL(xpath, lang), dom);
 
-	// Show description elements according to settings
-	$("#fbw_desc SPAN[id]").each(function () {
-		ShowElement($(this).attr("id"), window.external.GetExtendedStyle($(this).attr("id")));
-	});
-
-	//ShowDescElements();
-
-	// transform to html
 	return ret;
 }
 
@@ -490,7 +509,7 @@ function XmlFromText(text) {
 }
 
 // TO-DO ???
-///<summary>Replace nbsp on repChar in all text</summary>
+///<summary>Replace nbsp on repChar in all text node</summary>
 ///<param name='elem'>starting xml-node</param>
 ///<param name='repChar'>replacing char</param>
 function recursiveChangeNbsp(elem, repChar) {
@@ -511,64 +530,57 @@ function recursiveChangeNbsp(elem, repChar) {
 function apiLoadFB2_new(path, strXML, lang) {
 	//	var css_filename = $("#css").attr("href");
 	//	$("#css").attr("href","");
+	try {
+		curInterfaceLang = lang;
+		var xml = new ActiveXObject("Msxml2.DOMDocument.6.0");
+		xml.async = false;
+		xml.preserveWhiteSpace = true;
 
-	var xml = new ActiveXObject("Msxml2.DOMDocument.6.0");
-	xml.async = false;
-	xml.preserveWhiteSpace = true;
-
-	xml.loadXML(strXML);
-	if (xml.parseError.errorCode) {
-		return getTrString('"{dvalue1}" loading error:\n\n{dvalue2}\nLine: {dvalue3} , Col: {dvalue4}',
-			[path, xml.parseError.reason, xml.parseError.line, xml.parseError.linepos]);
-	}
-
-	pi = xml.firstChild;
-	var encoding;
-	if (pi) {
-		attr = pi.attributes;
-		if (attr) {
-			enc = attr.getNamedItem("encoding");
-			if (enc) {
-				encoding = enc.text;
-			}
+		xml.loadXML(strXML);
+		if (xml.parseError.errorCode) {
+			return getTrString('"{dvalue1}" loading error:\n\n{dvalue2}\nLine: {dvalue3} , Col: {dvalue4}',
+				[path, xml.parseError.reason, xml.parseError.line, xml.parseError.linepos]);
 		}
-	}
 
-	xml.setProperty("SelectionNamespaces", "xmlns:fb='" + fbNS + "' xmlns:xlink='" + xlNS + "'");
+		xml.setProperty("SelectionLanguage", "XPath");
+		xml.setProperty("SelectionNamespaces", "xmlns:fb='" + fbNS + "' xmlns:xlink='" + xlNS + "'");
 
-	// Replace nbsp on special char
-	var nbspChar = window.external.GetNBSP();
-	if (nbspChar) {
-		if (nbspChar != "\u00A0") {
-			var sel = xml.selectSingleNode("/fb:FictionBook/fb:description/fb:title-info/fb:annotation");
-			if (sel)
-				recursiveChangeNbsp(sel, nbspChar);
-			sel = xml.selectSingleNode("/fb:FictionBook/fb:description/fb:document-info/fb:history");
-			if (sel)
-				recursiveChangeNbsp(sel, nbspChar);
-			sel = xml.selectSingleNode("/fb:FictionBook/fb:body");
-			while (sel) {
-				if (sel.nodeName == "body")
+		// Replace nbsp on special char
+		var nbspChar = window.external.GetNBSP();
+		if (nbspChar) {
+			if (nbspChar != "\u00A0") {
+				// replace in annotation
+				var sel = xml.selectSingleNode("/fb:FictionBook/fb:description/fb:title-info/fb:annotation");
+				if (sel)
 					recursiveChangeNbsp(sel, nbspChar);
-				sel = sel.nextSibling;
+				// replace in history
+				sel = xml.selectSingleNode("/fb:FictionBook/fb:description/fb:document-info/fb:history");
+				if (sel)
+					recursiveChangeNbsp(sel, nbspChar);
+				// replace in body
+				sel = xml.selectSingleNode("/fb:FictionBook/fb:body");
+				while (sel) {
+					if (sel.nodeName == "body")
+						recursiveChangeNbsp(sel, nbspChar);
+					sel = sel.nextSibling;
+				}
 			}
 		}
+
+		if (!LoadFromDOM(xml, lang))
+			return getTrString('Error loading file:"{dvalue1}":\nCan\'t prepare document for Body mode.', [path]);
+
+		// generate GUID if it is empty
+		var $id = $("#fbw_desc #diID");
+		if ($id.Length)
+			if (path.indexOf("blank.fb2") != -1) {
+				$id.val(window.external.GetUUID());
+			}
 	}
-
-	if (!LoadFromDOM(xml, lang))
-		return getTrString('Error loading file:"{dvalue1}":\nCan\'t prepare document for Body mode.', [file]);
-
-	var sel = document.getSelection();
-	sel.removeAllRanges();
-
-	//	var desc = document.getElementById("fbw_desc");
-	var $id = $("#fbw_desc #diID");
-	if ($id.Length)
-		if (path.indexOf("blank.fb2") != -1) {
-			$id.val(window.external.GetUUID());
-		}
-
-	apiShowDesc(false);
+	catch (e) {
+		alert('Ошибка ' + e.name + ":" + e.message + "\n" + e.stack);
+	}
+	// apiShowDesc(false);
 
 	// restore CSS href
 	//$("#css").attr("href", css_filename);
@@ -582,30 +594,23 @@ function apiShowDesc(state) {
 	if (state) {
 		$("#fbw_body").css("display", "none");
 		$("#fbw_desc").css("display", "block");
-		document.ScrollSave = document.body.scrollTop;
+		//document.ScrollSave = document.body.scrollTop;
 		document.body.scrollTop = 0;
 	}
 	else {
 		$("#fbw_body").css("display", "block");
 		$("#fbw_desc").css("display", "none");
-		document.body.scrollTop = document.ScrollSave;
+		//document.body.scrollTop = document.ScrollSave;
 	}
 }
 
 //// == DESC == ///////////////////////////////////////////////////////////////////
 
-/*
-function RemoveOuterTags(node)
-{
-	node.removeNode(false);
-}
-
-*/
 ///<summary>Remove DIV but keep children</summary>
 ///<param name='className'>DIV class</param>
 function apiCleanUp(className) {
-	var cnt = $("DIV.className").contents();
-	$("DIV.className").replaceWith(cnt);
+	var cnt = $("DIV." + className).contents();
+	$("DIV." + className).replaceWith(cnt);
 	/*
 		var divs = document.getElementsByTagName("DIV");
 		for(var i=0; i < divs.length; i++)
@@ -624,7 +629,7 @@ function FillLists() {
 			cover = "";
 
 		$(this).empty();
-		
+
 		$(this).append($("<option value=''></option>"));
 
 		var $list = $(this);
@@ -663,48 +668,28 @@ function PutSpacers(obj) {
 	});
 }
 
-//-----------------------------------------------
-// Puts spacers between all clones in description
+// Initializes fieldsets.
 function InitFieldsets() {
 	$("fieldset").each(function () {
 		PutSpacers(this);
 	});
 }
-// Initializes fieldsets.
 
-///<summary>Set languages in drop-down boxes</summary>
+///<summary>Set languages in drop-down box</summary>
+function SetSelLangComboBox(id) {
+	$langList = $(id);
+	var sel = $langList.val();
+	$langList.find("option").filter(function () { return this.text == "-org-"; }).remove();
+	$langList.find("option[value='" + sel + "']").prop("selected", true)
+}
+
+///<summary>Set selected languages</summary>
 function SelectLanguages() {
 	// title-info language
-	$langList = $("#tiLang");
-	var sel = $langList.val();
-
-	$langList.find("option:contains('-org-')").remove();
-	//$langList.val() = sel;
-	$langList.find("option[value='" + sel + "']").prop("selected", true)
-
-	// title-info source language
-	$langList = $("#tiSrcLang");
-	var sel = $langList.val();
-
-	$langList.find("option:contains('-org-')").remove();
-	//$langList.val() = sel;
-	$langList.find("option[value='" + sel + "']").prop("selected", true)
-
-	// src-title-info language
-	$langList = $("#stiLang");
-	var sel = $langList.val();
-
-	$langList.find("option:contains('-org-')").remove();
-	//$langList.val() = sel;
-	$langList.find("option[value='" + sel + "']").prop("selected", true)
-
-	// src-title-info source language
-	$langList = $("#stiSrcLang");
-	var sel = $langList.val();
-
-	$langList.find("option:contains('-org-')").remove();
-	//$langList.val() = sel;
-	$langList.find("option[value='" + sel + "']").prop("selected", true)
+	SetSelLangComboBox("#tiLang");
+	SetSelLangComboBox("#tiSrcLang");
+	SetSelLangComboBox("#stiLang");
+	SetSelLangComboBox("#stiSrcLang");
 }
 
 ///<summary>Initializes default fields in description section if needed</summary>
@@ -749,27 +734,11 @@ function SetupDescription(desc) {
 	SelectLanguages();
 }
 
-///<summary>Set property inflateBlock for <p> and his descendants to render empty objects as if they contained text</summary>
-///<param name='elem'>Container element</param>
-function InflateIt(elem) {
-	$(elem).find("P").each(function () {
-		window.external.inflateBlock(this) = true;
-	});
-	/*
- if(!elem || elem.nodeType! = ELEMENT_NODE) return;
-
- if(elem.tagName=="P"){  window.external.inflateBlock(elem) = true; return; }
-
- elem = elem.firstChild;
- while(elem){ InflateIt(elem); elem=elem.nextSibling; }*/
-}
-
 ///<summary>Shows Genres menu and gets the genre (button event handler)</summary>
 function GetGenre(d) {
 	var v = window.external.GenrePopup(d, window.event.screenX, window.event.screenY);
 	if (v) {
 		$(d).parent().find("#genre").val(v);
-		SetModifiedState();
 	}
 }
 
@@ -834,12 +803,6 @@ function ChildClone(obj) {
 	PutSpacers(obj);
 }
 
-///<summary>Update hidden field to set modified state</summary>
-function SetModifiedState() {
-	var $Updater = $('#fbw_updater');
-	$Updater.text(!$Updater.text());
-}
-
 //// == DESC == ///////////////////////////////////////////////////////////////////
 
 /// WORKING WITH XMLDocument
@@ -851,7 +814,9 @@ var xlNS = "http://www.w3.org/1999/xlink";
 ///<param name='node'>Node</param>
 ///<param name='len'>indent size</param>
 function Indent(node, len) {
-	var s = "\r\n"; while (len--) s = s + " ";
+	var s = "\r\n";
+	while (len--)
+		s = s + " ";
 	node.appendChild(node.ownerDocument.createTextNode(s));
 }
 
@@ -961,7 +926,7 @@ function MakeSeq2(xn, hn, indent) {
 	if (added || name.length > 0 || num.length > 0) {
 		Indent(xn, indent);
 		xn.appendChild(newxn);
-		if (newxn.hasChildNodes()) 
+		if (newxn.hasChildNodes())
 			Indent(newxn, indent);
 		added = true;
 	}
@@ -970,7 +935,7 @@ function MakeSeq2(xn, hn, indent) {
 
 function MakeSeq(xn, hn, indent) {
 	var added = false;
-	$(hn).children("DIV").each(function(){
+	$(hn).children("DIV").each(function () {
 		added = MakeSeq2(xn, this, indent + 1) || added;
 	});
 
@@ -981,7 +946,7 @@ function IsEmpty(ii) {
 	if (!ii || !ii.hasChildNodes()) return true;
 
 	for (var v = ii.firstChild; v; v = v.nextSibling)
-		if (v.nodeType == ELEMENT_NODE && v.baseName != "empty-line") 
+		if (v.nodeType == ELEMENT_NODE && v.baseName != "empty-line")
 			return false;
 
 	return true;
@@ -1058,12 +1023,14 @@ function MakeTitleInfo(doc, desc, ann, indent) {
 	// coverpage images
 	var cp = doc.createNode(1, "coverpage", fbNS);
 	$("#tiCover DIV #href").each(function () {
-		var xn = doc.createNode(ELEMENT_NODE, "image", fbNS);
-		var an = doc.createNode(ATTRIBUTE_NODE, "l:href", xlNS);
-		an.appendChild(doc.createTextNode(this.value));
-		xn.setAttributeNode(an);
-		Indent(cp, indent + 2);
-		cp.appendChild(xn);
+		if (this.value.length > 0) {
+			var xn = doc.createNode(ELEMENT_NODE, "image", fbNS);
+			var an = doc.createNode(ATTRIBUTE_NODE, "l:href", xlNS);
+			an.appendChild(doc.createTextNode(this.value));
+			xn.setAttributeNode(an);
+			Indent(cp, indent + 2);
+			cp.appendChild(xn);
+		}
 	});
 
 	if (cp.hasChildNodes) {
@@ -1118,8 +1085,8 @@ function IsSeqExist(hn) {
 ///<returns>true if not empty</returns>
 function IsSTBFieldTextExist() {
 	// authors
-	  if($("#stiAuthor DIV").filter(function() {return $(":text", this).val()}).length>0)
-		  return true;
+	if ($("#stiAuthor DIV input").filter(function () { return this.value != ""; }).length > 0)
+		return true;
 	/*list = document.getElementById("tiAuthor").getElementsByTagName("DIV");
 	for (var i = 0; i < list.length; ++i) {
 		if (list.item(i).querySelector("#first").value || list.item(i).querySelector("#middle").value ||
@@ -1143,6 +1110,7 @@ function IsSTBFieldTextExist() {
 	// date
 	if ($("#stiDateVal").val() || $("#stiDate").val())
 		return true;
+
 	// coverpage images
 	if ($("#stiCover DIV").filter(function () { return $("#href", this).val() }).length > 0)
 		return true;
@@ -1151,9 +1119,8 @@ function IsSTBFieldTextExist() {
 	if ($("#stiLang").val() || $("#stiSrcLang").val())
 		return true;
 
-
-	  if($("#stiTrans DIV :text").filter(function() {return this.value}).length>0)
-		  return true;
+	if ($("#stiTrans DIV input").filter(function () { return this.value != "" }).length > 0)
+		return true;
 
 	// translator
 	/*list = document.stiTrans.getElementsByTagName("DIV");
@@ -1164,11 +1131,10 @@ function IsSTBFieldTextExist() {
 	}*/
 
 	// sequence
-	if ($("#stiSeq DIV").filter(function () { return $(":text", this).val() }).length > 0)
+	if ($("#stiSeq DIV input").filter(function () { return this.value != "" }).length > 0)
 		return true;
 	//if(IsSeqExist(document.all.stiSeq))
 	//  return true;
-
 	return false;
 }
 
@@ -1180,7 +1146,6 @@ function IsSTBFieldTextExist() {
 function MakeSourceTitleInfo(doc, desc, ann, indent) {
 	var sti = doc.createNode(1, "src-title-info", fbNS);
 	if (IsSTBFieldTextExist()) {
-		//		alert("teszt");
 		Indent(desc, indent);
 		desc.appendChild(sti);
 
@@ -1194,7 +1159,6 @@ function MakeSourceTitleInfo(doc, desc, ann, indent) {
 			Indent(sti, indent + 1);
 			sti.appendChild(ge);
 		});
-
 		// authors
 		var added = false;
 		$("#stiAuthor DIV").each(function () {
@@ -1206,7 +1170,7 @@ function MakeSourceTitleInfo(doc, desc, ann, indent) {
 
 		MakeText(sti, "book-title", $("#stiTitle").val(), true, indent + 1);
 		MakeText(sti, "keywords", $("#stiKwd").val(), false, indent + 1);
-		MakeDate(sti,  $("#stiDate").val(), $("#stiDateVal").val(), indent + 1);
+		MakeDate(sti, $("#stiDate").val(), $("#stiDateVal").val(), indent + 1);
 
 		// coverpage images
 		var cp = doc.createNode(ELEMENT_NODE, "coverpage", fbNS);
@@ -1252,15 +1216,15 @@ function MakeDocInfo(doc, desc, hist, indent) {
 
 	// authors
 	var i;
-	
-		// authors
-		var added = false;
-		$("#diAuthor DIV").each(function () {
-			added = MakeAuthor(di, "author", this, false, indent + 1) || added;
-		});
-		if (!added && $("#diAuthor DIV").length > 0) {
-			MakeAuthor(di, "author", $("#diAuthor DIV").first(), true, indent + 1);
-		}
+
+	// authors
+	var added = false;
+	$("#diAuthor DIV").each(function () {
+		added = MakeAuthor(di, "author", this, false, indent + 1) || added;
+	});
+	if (!added && $("#diAuthor DIV").length > 0) {
+		MakeAuthor(di, "author", $("#diAuthor DIV").first(), true, indent + 1);
+	}
 
 	added = MakeText(di, "program-used", $("#diProgs").val(), false, indent + 1) || added;
 	added = MakeDate(di, $("#diDate").val(), $("#diDateVal").val(), indent + 1) || added;
@@ -1306,7 +1270,7 @@ function MakePubInfo(doc, desc, indent) {
 	// sequence
 	added = MakeSeq(pi, $("#piSeq"), indent + 1) || added;
 
-	// only append publisher info it is non-empty
+	// append non-empty publisher info only
 	if (added) {
 		Indent(desc, indent);
 		desc.appendChild(pi);
@@ -1370,7 +1334,7 @@ function GetBinaries(doc) {
 	$("#binobj DIV").each(function () {
 		var newb = doc.createNode(1, "binary", fbNS);
 		newb.dataType = "bin.base64";
-		newb.nodeTypedValue = $(this).prop("base64data");
+		newb.nodeTypedValue = $(this).data("base64data");
 
 		SetAttr(newb, "id", $(this).find("#id").val());
 		SetAttr(newb, "content-type", $(this).find("#type").val());
@@ -1395,46 +1359,39 @@ function GetBinaries(doc) {
 	 }*/
 }
 
-///<summary>Fill binary data in HTML</summary>
+///<summary>Add all binary data in HTML</summary>
 ///<param name='doc'>xml doc</param>
 function PutBinaries(doc) {
-	var nerr = 0; 
-    var bl = doc.selectNodes("/fb:FictionBook/fb:binary");
+	var nerr = 0;
+	var bl = doc.selectNodes("/fb:FictionBook/fb:binary");
 
 	for (var i = 0; i < bl.length; i++) {
 		if (bl[i].tagName != "binary") continue;
 
 		bl[i].dataType = "bin.base64";
-		var id = bl[i].getAttribute("id"); 
+		var id = bl[i].getAttribute("id");
 		var dt;
 
 		try {
 			dt = bl[i].nodeTypedValue;
 		}
 		catch (e) {
-			if (nerr++ < 3) 
-				MsgBox("Invalid base64 data for " + id); 
+			if (nerr++ < 3)
+				MsgBox("Invalid base64 data for " + id);
 			continue;
 		}
 
 		apiAddBinary("", id, bl[i].getAttribute("content-type"), dt);
 	}
 
-	if (nerr > 3) 
-		MsgBox(nerr-3 + " more invalid images ignored"); 
-	
+	if (nerr > 3)
+		MsgBox(nerr - 3 + " more invalid images ignored");
+
 	// update Cover lists
 	FillLists();
 }
 
 //// == BODY == ///////////////////////////////////////////////////////////////////
-// Don't used!! Same function in code
-function KillDivs(e) {
-	$(e).find("DIV").contents().unwrap();
-	// var divs = e.getElementsByTagName("DIV");
-	// while(divs.length > 0) divs[0].removeNode(false);
-}
-//-----------------------------------------------
 
 function GoTo(elem) {
 	if (!elem) return;
@@ -1455,10 +1412,10 @@ function GoTo(elem) {
 }
 
 // Skip elements: empty <P>, n1-n3
-// returns nex sibling
+// returns next sibling
 function SkipOver(np, n1, n2, n3) {
 	while (np) {
-		if (!(np.tagName == "P" && !np.firstChild && !window.external.inflateBlock(np)) &&  //not an empty P
+		if (!(np.tagName == "P" && (!np.firstChild || np.firstChild.tagname == "br")) &&  //not an empty P
 			(!n1 || (np.tagName != n1 && np.className != n1)) && // and not n1
 			(!n2 || (np.tagName != n2 && np.className != n2)) && // and not n2
 			(!n3 || (np.tagName != n3 && np.className != n3)))   // and not n3
@@ -1470,12 +1427,15 @@ function SkipOver(np, n1, n2, n3) {
 //-----------------------------------------------
 
 function StyleCheck(cp, st) {
-	if (!cp || cp.tagName != "P") return false;
+	if (!cp || cp.tagName != "P")
+		return false;
 
 	var pp = cp.parentElement;
-	if (!pp || pp.tagName != "DIV") return false;
+	if (!pp || pp.tagName != "DIV")
+		return false;
 
 	switch (st) {
+		// ordinary style
 		case "":
 			if (pp.className != "section" && pp.className != "title" && pp.className != "epigraph" &&
 				pp.className != "stanza" && pp.className != "cite" && pp.className != "annotation" &&
@@ -1508,13 +1468,15 @@ function StyleCheck(cp, st) {
 	return true;
 }
 //-----------------------------------------------
-
 function SetStyle(cp, check, name) {
-	if (!StyleCheck(cp, name)) return;
+	if (!StyleCheck(cp, name))
+		return;
 
-	if (check) return true;
+	if (check)
+		return true;
 
-	if (name.length == 0) name = "normal";
+	if (name.length == 0)
+		name = "normal";
 
 	window.external.BeginUndoUnit(document, name + " style");
 	window.external.SetStyleEx(document, cp, name);
@@ -1526,6 +1488,82 @@ function SetStyle(cp, check, name) {
 ///<param name='check'>if true don/t set style, just check</param>
 function StyleNormal(cp, check) {
 	return SetStyle(cp, check, "");
+}
+
+function SetStyleNormal() {
+	if (!CanApplyStyle("normal"))
+		return;
+
+	// can be inside section, body, poem, stanza
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	var begin_range = rng.duplicate();
+	var end_range = rng.duplicate();
+	begin_range.collapse(true);
+	end_range.collapse(false);
+
+	var begin_str = "";
+	var begin_el = begin_range.parentElement();
+
+	// add closed inline tags
+	while (begin_el.tagName != "P") {
+		switch (begin_el.tagName) {
+			case "B":
+			case "I":
+			case "SUP":
+			case "SUB":
+			case "STRIKE":
+			case "U":
+				begin_str = "</" + begin_el.tagName + ">" + begin_str;
+				break;
+			default:
+				break;
+		}
+		begin_el = begin_el.parentElement;
+	}
+
+	var end_str = "";
+	var end_el = end_range.parentElement();
+
+	// add opened inline tags
+	while (end_el.tagName != "P") {
+		switch (end_el.tagName) {
+			case "B":
+			case "I":
+			case "SUP":
+			case "SUB":
+			case "STRIKE":
+			case "U":
+				end_str += "<" + end_el.tagName + ">";
+				break;
+			default:
+				break;
+		}
+		end_el = end_el.parentElement;
+	}
+
+	var int_str = rng.htmlText;
+	alert(rng.htmlText);
+	//remove inline style tags
+	int_str = int_str.replace(/<STRONG>/gi, "");
+	int_str = int_str.replace(/<EM>/gi, "");
+	int_str = int_str.replace(/<SUP>/gi, "");
+	int_str = int_str.replace(/<SUB>/gi, "");
+	int_str = int_str.replace(/<STRIKE>/gi, "");
+	int_str = int_str.replace(/<U>/gi, "");
+	int_str = int_str.replace(/<\/STRONG>/gi, "");
+	int_str = int_str.replace(/<\/EM>/gi, "");
+	int_str = int_str.replace(/<\/SUP>/gi, "");
+	int_str = int_str.replace(/<\/SUB>/gi, "");
+	int_str = int_str.replace(/<\/STRIKE>/gi, "");
+	int_str = int_str.replace(/<\/U>/gi, "");
+	alert(int_str);
+
+	window.external.BeginUndoUnit(document, "reset style");
+	rng.pasteHTML(begin_str + int_str + end_str);
+	window.external.EndUndoUnit(document);
 }
 
 ///<summary>Set style=text-author</summary>
@@ -1578,10 +1616,430 @@ function StyleCode(check, cp, range) {
 	return SetStyle(cp, check, "code");
 }
 
+///<summary>Check if it's possible to apply style or add image</summary>
+///<returns>true if can</returns>
+function CanApplyStyle(st) {
+	if (document.selection.type == "Control")
+		return false;
+
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	switch (st) {
+		// subtitle style
+		case "subtitle":
+			// can be in section|annotation|cite (not realized: can be in stanza also but just one after title!)
+			if (!$(rng.parentElement()).closest("div.section,.stanza,.annotation,.cite,.history")[0])
+				return false;
+			break;
+
+		case "body_notes":
+			if ($("div.body[fbname=notes]").length>0)
+				return false;
+
+			break;
+		case "code":
+			break;
+
+		case "bold":
+		case "italic":
+		case "superscript":
+		case "subscript":
+		case "strikethrough":
+		case "normal":
+			break;
+
+		case "link":
+			// can be just in v|th|td|text-author|subtitle|no-class
+			if (rng.parentElement() && rng.parentElement().nodeName != "P")
+				return false;
+
+			if (!$(rng.parentElement()).closest("p:not([class]),.v,.th,.td,.text-author,.subtitle")[0])
+				return false;
+
+			break;
+
+		case "text-author":
+			// can be in cite|epigraph|poem
+			if (!$(rng.parentElement()).closest("div.epigraph,.cite,.poem")[0])
+				return false;
+			break;
+
+		case "annotation":
+			// can be inside one section only
+			rng.collapse(true);
+			var begin_node = $(rng.parentElement()).closest("div.section")[0];
+			if (!begin_node)
+				return false;
+
+			// check if annotation already exists
+			if ($(begin_node).children("div.annotation")[0])
+				return false;
+
+			break;
+
+		case "epigraph":
+			// can be inside section, body, poem
+			rng.collapse(true);
+			if (!$(rng.parentElement()).closest("div.section,.body,.poem")[0])
+				return false;
+
+			break;
+		case "cite":
+			// selection end can be inside section, annotation, epigraph
+			rng.collapse(false);
+			if (!$(rng.parentElement()).closest("div.section,.annotation,.epigraph")[0])
+				return false;
+			break;
+
+		case "poem":
+			// selection end can be inside section, cite, annotation, epigraph
+			rng.collapse(false);
+			if (!$(rng.parentElement()).closest("div.section,.cite,.annotation,.epigraph")[0])
+				return false;
+			break;
+
+		case "stanza":
+			// selection end can be inside poem
+			rng.collapse(false);
+			if (!$(rng.parentElement()).closest("div.poem")[0])
+				return false;
+			break;
+
+		case "title":
+			// can be inside section, body, poem, stanza
+			rng.collapse(true);
+			var begin_node = $(rng.parentElement()).closest("div.section,.body,.poem")[0];
+			if (!begin_node)
+				return false;
+
+			// check if title already exists
+			if ($(begin_node).children("div.title")[0])
+				return false;
+			break;
+
+		case "section":
+			// slect should be in one P-element
+			rng.collapse(true);
+			if (!$(rng.parentElement()).closest("div.section")[0])
+				return false;
+
+			break;
+
+		case "image":
+			if (rng.text != "")
+				return false;
+			if (!$(rng.parentElement()).closest("div.body,.section")[0] &&
+				(!(rng.parentElement().nodeName == "P" && $(rng.parentElement()).closest("p:not([class]),.v,.th,.td,.text-author,.subtitle")[0]))
+				)
+				return false;
+			break;
+
+		case "table":
+			if (!$(rng.parentElement()).closest("div.section,.cite,.annotation,.history")[0])
+				return false;
+			break;
+
+		case "inlineimage":
+			if (rng.parentElement().nodeName != "P")
+				return false;
+
+			if (!$(rng.parentElement()).closest("p:not([class]),.v,.th,.td,.text-author,.subtitle")[0])
+				return false;
+			break;
+
+	}
+	return true;
+}
+
+///<summary>Apply style or add image</summary>
+///<returns>true if can</returns>
+function applyStyle(st) {
+	if (!canApplyStyle(st))
+		return;
+	/*	
+		var sel = document.getSelection();
+		if (!sel || sel.rangeCount == 0)
+			return false;
+		var rng = sel.getRangeAt(0);
+		if (!rng)
+			return false;
+		rng = rng.cloneRange();
+		
+		switch (st) {
+			// ordinary style
+			case "normal":
+				var start_p = $(rng.StartContainer).closest("p");
+				var end_p = $(rng.EndContainer).closest("p");
+				do
+				{
+					if(start_p.tagName == "P")
+						start_p.class = "";
+					start_p = start_p.nextSibling;
+				}
+				while (start_p != end_p)
+	
+				break;
+			// subtitle style
+			case "subtitle":
+				var start_p = $(rng.startContainer).closest("p")[0];
+				var end_p = $(rng.endContainer).closest("p")[0];
+				window.external.BeginUndoUnit(document, "make subtitle");
+				do {
+					start_p.className = "subtitle";
+					start_p = start_p.nextSibling;
+				} while (start_p != end_p);
+				end_p.className = "subtitle";
+				window.external.EndUndoUnit(document);
+				
+				break;
+			case "code":
+				window.external.BeginUndoUnit(document, "make code");
+	
+				var end_p = $(rng.endContainer).closest("p")[0];
+				var new_node;
+				var new_node_before;
+				var new_node_after;
+				var p_node; // current <P> node
+				var parent_node;
+	
+				var rng1 = document.createRange();
+				var rng2 = document.createRange();
+				// process first P
+				var cur_node = rng.startContainer;
+			    
+				// process internal tags in <P>, split tags if it is necessary
+				while (cur_node.parentNode.tagName != "P") {
+					parent_node = cur_node.parentNode;
+	
+					// get left and right parts of node content
+					rng1.selectNodeContents(parent_node);
+					rng1.setEnd(cur_node, rng.startOffset);
+					var content_before = rng1.cloneContents(); 
+	
+					rng2.selectNodeContents(parent_node);
+					rng2.setStart(cur_node, rng.startOffset);
+					var content_after = rng2.cloneContents();
+				    
+					// delete old node and insert two new nodes
+					rng1.selectNode(parent_node);
+					rng1.deleteContents();
+				    
+					// don't insert empty nodes
+					if(content_beforenode.hasChildNodes()) {
+						new_node_before.appendChild(content_before);
+						rng1.insertNode(new_node_before);
+						rng1.setStartAfter(new_node_before);
+						cur_node = new_node_before;
+						//move main range start position to split point
+						rng.setStartAfter(new_node_before);
+					}
+					if(content_after.hasChildNodes()) {
+						new_node_after = parent_node.cloneNode(false);
+						rng1.insertNode(new_node_after);
+						cur_node = new_node_after;
+						//move main range start position to split point
+						rng.setStartBefore(new_node_after);
+					}
+				}
+				p_node = cur_node.parentNode;
+	
+				// set range from split point to end of <P>
+				rng1.selectNodeContents(p_node);
+				rng1.setStart(rng.startContainer, rng.startOffset);
+	
+				// wrap fragment in SPAN
+				wrap_node = document.createElement("SPAN");
+				wrap_node.className = "code";
+				wrap_node.appendChild(rng1.extractContents());
+				rng1.insertNode(wrap_node);
+	
+				// process all full selected <P>
+				p_node = p_node.nextSibling;
+				while (p_node != end_p) {
+					wrap_node = document.createElement("SPAN");
+					wrap_node.className = "code";
+	
+					rng1.selectNodeContents(p_node);
+	
+					wrap_node.appendChild(rng1.extractContents());
+					rng1.insertNode(wrap_node);
+					p_node = p_node.nextSibling;
+				}
+	
+				// process end <P>
+				cur_node = rng.endContainer;
+				alert(cur_node.parentNode.nodeType);
+				while (cur_node.parentNode.tagName != "P") {
+					parent_node = cur_node.parentNode;
+					new_node_before = cur_node.cloneNode(false);
+					new_node_after = cur_node.cloneNode(false);
+	
+					// set ranges
+					rng1.selectNodeContents(parent_node);
+					rng1.setEnd(cur_node, rng.endOffset);
+	
+					rng2.selectNodeContents(parent_node);
+					rng2.setStart(cur_node, rng.endOffset);
+				    
+					var content_before = rng1.cloneContents();
+	
+					rng2.selectNodeContents(parent_node);
+					var content_after = rng2.setStart(cur_node, rng.startOffset);
+	
+					// delete old node and insert two new nodes
+					rng1.selectNode(parent_node);
+					rng1.deleteContents();
+				    
+					// don't insert empty nodes
+					if(content_beforenode.hasChildNodes()) {
+						new_node_before.appendChild(content_before);
+						rng1.insertNode(new_node_before);
+						rng1.setStartAfter(new_node_before);
+						cur_node = new_node_before;
+						//move main range start position to split point
+						rng.setEndAfter(new_node_before);
+					}
+					if(content_after.hasChildNodes()) {
+						new_node_after = parent_node.cloneNode(false);
+						rng1.insertNode(new_node_after);
+						cur_node = new_node_after;
+						//move main range start position to split point
+						rng.setEndAfter(new_node_before);
+					}
+					cur_node = new_node_before;
+				}
+	
+						p_node = cur_node.parentNode;
+	
+				// set range from split point to end of <P>
+				rng1.selectNodeContents(p_node);
+				rng1.setEnd(rng.endContainer, rng.endOffset);
+	
+				// wrap fragment in SPAN
+				wrap_node = document.createElement("SPAN");
+				wrap_node.className = "code";
+				wrap_node.appendChild(rng1.extractContents());
+				rng1.insertNode(wrap_node);
+	
+				rng1.selectNodeContents(wrap_node);
+	
+				rng = sel.getRangeAt(0);
+				rng.setEndAfter(rng1.startContainer, rng1.endOffset);
+	
+				sel.removeAllRanges();
+				sel.addRange(rng);
+				window.external.EndUndoUnit(document);
+	
+				break;
+	
+			case "link":
+				// can be just in v|th|td|text-author|subtitle|no-class
+				if (rng.commonAncestorContainer.nodeType != TEXT_NODE)
+					return false;
+	
+				if (!$(rng.commonAncestorContainer).closest("p:not([class]),.v,.th,.td,.text-author,.subtitle")[0])
+					return false;
+	
+				break;
+	
+			case "text-author":
+				var start_p = $(rng.startContainer).closest("p")[0];
+				var end_p = $(rng.endContainer).closest("p")[0];
+				window.external.BeginUndoUnit(document, "make text-author");
+				do {
+					start_p.className = "text-author";
+					start_p = start_p.nextSibling;
+				} while (start_p != end_p);
+				end_p.className = "text-author";
+				window.external.EndUndoUnit(document);
+	
+				break;
+	
+			case "annotation":
+				// can be just first element in section after title/epigraph
+				if (!$(rng.commonAncestorContainer).closest("div.section")[0])
+					return false;
+	
+				// search closest P
+				var begin_node = $(rng.startContainer).closest("p")[0];
+	
+				if (!begin_node || (begin_node.previousSibling && begin_node.previousSibling.className.search(/title|epigraph/) < 0))
+					return false;
+	
+				break;
+	
+			case "epigraph":
+				if (!$(rng.commonAncestorContainer).closest("div.section,.body,.poem")[0])
+					return false;
+				break;
+	
+				// search closest P
+				var begin_node = $(rng.startContainer).closest("p")[0];
+	
+				if (!begin_node || (begin_node.previousSibling && begin_node.previousSibling.className != "title"))
+					return false;
+	
+				break;
+			case "cite":
+				if (!$(rng.commonAncestorContainer).closest("div.section,.annotation,.epigraph")[0])
+					return false;
+				break;
+	
+			case "poem":
+				if (!$(rng.commonAncestorContainer).closest("div.section,.cite,.annotation,.epigraph")[0])
+					return false;
+				break;
+	
+				break;
+	
+			case "title":
+				// can be just first element in body|section|poem|stanza
+				if (!$(rng.commonAncestorContainer).closest("div.body,.section,.poem,.stanza")[0])
+					return false;
+	
+				var begin_node = $(rng.startContainer).closest("p")[0];
+	
+				if (!begin_node || begin_node.previousSibling)
+					return false;
+	
+				break;
+	
+			case "table":
+				if (!$(rng.commonAncestorContainer).closest("div.section,.cite,.annotation,.history")[0])
+					return false;
+				break;
+	
+			case "inlineimage":
+				if (rng.commonAncestorContainer.nodeType != TEXT_NODE)
+					return false;
+	
+				if (!$(rng.commonAncestorContainer).closest("p:not([class]),.v,.th,.td,.text-author,.subtitle")[0])
+					return false;
+				break;
+	
+		}
+	*/
+	return true;
+}
+
 ///<summary>Check if element is Code</summary>
-///<param name='cp'>Element</param>
-function IsCode(cp) {
-	return ($(cp).parents("SPAN.code").length > 0);
+function IsCode() {
+	// as analog for bold check only selection start point
+	// can be inside section, body, poem, stanza
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	rng.collapse(true);
+	var begin_node = rng.parentElement();
+	if (rng.parentElement().tagName == "U")
+		return true;
+	else
+		return false;
+
+//	return ($(cp).parents("SPAN.code").length > 0);
 	/*  while(cp && cp.tagName != "DIV")
 	  {
 		if(cp.tagName == "SPAN" && cp.className == "code")
@@ -1590,6 +2048,7 @@ function IsCode(cp) {
 	  }
 	  return false;*/
 }
+
 
 ///<summary>Replace &, < , >  to special HTML entities</summary>
 ///<param name='s'>text</param>
@@ -1604,99 +2063,20 @@ function TextIntoHTML(s) {
 	return s.replace(re0, re0_).replace(re1, re1_).replace(re2, re2_);
 }
 
-///<summary>Add title to HTML</summary>
-///<param name='cp'>HTML node</param>
-function AddTitle(cp, check) {
+//-----------------------------------------------
+
+function GetCP(cp) {
 	if (!cp)
 		return;
 
 	if (cp.tagName == "P")
 		cp = cp.parentElement;
 
+	if (cp.tagName == "DIV" && cp.className == "title")
+		cp = cp.parentElement;
+
 	if (cp.tagName != "DIV")
 		return;
-
-	if (cp.className != "body" && cp.className != "section" && cp.className != "stanza" && cp.className != "poem")
-		return;
-
-	var np = cp.firstChild;
-	if (np) {
-		if (cp.className == "body" && np.tagName == "DIV" && np.className == "image")
-			np = np.nextSibling;
-		if (np.tagName == "DIV" && np.className == "title")
-			return;
-	}
-
-	var sel = document.createRange();
-	if (sel)
-		if (sel.text)
-			if (cp.innerText.length < sel.text.length)
-				return;
-
-	if (check)
-		return true;
-
-	window.external.BeginUndoUnit(document, "add title");
-
-	var div = document.createElement("DIV");
-	div.className = "title";
-
-	// targ = np.tagName;
-	//full = (sel.text == cp.innerText);
-
-	var del = false;
-
-	if (sel.text == "" || cp.className == "body") {
-		var pp = document.createElement("P");
-		pp.innerText = "";
-		window.external.inflateBlock(pp) = true;
-		div.appendChild(pp);
-	} else {
-		if (sel.htmlText.indexOf("<DIV") == -1) {
-			div.innerHTML = "<P>" + TextIntoHTML(sel.text).replace(/\r+\n/gi, "</P><P>") + "</P>";
-			del = true;
-		}
-	}
-
-	if (del) {
-		sel.text = "";
-	}
-
-	InsBefore(cp, np, div);
-
-	GoTo(div);
-
-	window.external.EndUndoUnit(document);
-}
-
-///<summary>Add new Body to HTML</summary>
-function AddBody(check) {
-	if (check) 
-        return true;
-
-	window.external.BeginUndoUnit(document, "add body");
-	var newbody = document.createElement("DIV");
-	newbody.className = "body";
-	newbody.innerHTML = '<DIV class="title"><P></P></DIV><DIV class="section"><P></P></DIV>';
-
-	var body = document.getElementById("fbw_body"); 
-        if (!body) return false;
-
-	body.appendChild(newbody);
-	InflateIt(newbody);
-	window.external.EndUndoUnit(document);
-	GoTo(newbody);
-}
-//-----------------------------------------------
-
-function GetCP(cp) {
-	if (!cp) return;
-
-	if (cp.tagName == "P") cp = cp.parentElement;
-
-	if (cp.tagName == "DIV" && cp.className == "title") cp = cp.parentElement;
-
-	if (cp.tagName != "DIV") return;
 
 	return cp;
 }
@@ -1734,219 +2114,404 @@ function CloneContainer(cp, check) {
 
 		case "stanza": case "cite": case "epigraph": ncp.innerHTML = '<P></P>'; break;
 	}
-	InflateIt(ncp);
+	//InflateIt(ncp);
 	cp.insertAdjacentElement("afterEnd", ncp);
 	window.external.EndUndoUnit(document);
 	GoTo(ncp);
 }
 //-----------------------------------------------
 
-var imgcode = "<DIV onresizestart='return false' contentEditable='false' class='image' href='#undefined'>"
-"<IMG src='" + imgPrefix + ":#undefined'></DIV>";
-
-///<summary>Insert image into HTML</summary>
-///<param name='id'>Image id</param>
-///<returns>Range Parent element or undefined</returns>
-function InsImage(check, id) {
-	var sel = document.getSelection();
-	var rng = document.createRange();
-
-	if (!rng || !("compareEndPoints" in rng)) return;
-
-	if (rng.compareEndPoints("StartToEnd", rng) != 0) {
-		rng.collapse(true); if (rng.move("character", 1) == 1) rng.move("character", -1);
-	}
-
-	var pe = rng.parentElement(); while (pe && pe.tagName != "DIV") pe = pe.parentElement;
-
-	if (!pe || pe.className != "section") return;
-
-	if (check) return true;
-
-	window.external.BeginUndoUnit(document, "insert image");
-	if (id == "")
-		rng.pasteHTML(imgcode);
-	else
-		rng.pasteHTML("<DIV onresizestart='return false' contentEditable='false' class='image' href='#" +
-			id + "'><IMG src='fbw-internal:#" + id + "'></DIV>");
-	window.external.EndUndoUnit(document);
-
-	return rng.parentElement;
-}
-
-var inlineimgcode = "<SPAN onresizestart='return false' contentEditable='false' class='image' href='#undefined'>" +
-	"<IMG src='" + imgPrefix + "#undefined'></SPAN>";
-
-///<summary>Insert inline image into HTML</summary>
-///<param name='id'>Image id</param>
-///<returns>Range Parent element or undefined</returns>
-function InsInlineImage(check, id) {
-	var sel = document.getSelection();
-	var rng = document.createRange();
-
-
-	if (!rng || !("compareEndPoints" in rng)) return;
-
-	if (rng.compareEndPoints("StartToEnd", rng) != 0) {
-		rng.collapse(true); if (rng.move("character", 1) == 1) rng.move("character", -1);
-	}
-
-	var pe = rng.parentElement(); while (pe && pe.tagName != "DIV") pe = pe.parentElement;
-
-	if (!pe || (pe.className.search(/section|annotation|history|title|epigraph|cite|stanza/) < 0))
+///<summary>Add title to HTML</summary>
+///<param name='cp'>HTML node</param>
+function AddTitle(cp) {
+	if (!CanApplyStyle("title"))
 		return;
 
-	if (check) return true;
+	// can be inside section, body, poem, stanza
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
 
-	window.external.BeginUndoUnit(document, "insert inline image");
-	if (id == "")
-		rng.pasteHTML(inlineimgcode);
-	else
-		rng.pasteHTML("<SPAN onresizestart='return false' contentEditable='false' class='image' href='#"
-			+ id + "'><IMG src='" + imgPrefix + "#" + id + "'></SPAN>");
-
-	window.external.EndUndoUnit(document);
-
-	return rng.parentElement;
-}
-//-----------------------------------------------
-
-///<summary>Attach image to list but not insert to BODY</summary>
-///<param name='cp'>Image id</param>
-///<returns>Range Parent element or undefined</returns>
-function AddImage(cp, check) {
-	cp = GetCP(cp); if (!cp) return;
-
-	if (cp.className != "body" && cp.className != "section") return;
-
-	var np = cp.firstChild;
-	if (cp.className == "body")
-		np = SkipOver(np, null, null, null);
-	else
-		np = SkipOver(np, "title", "epigraph", null);
-
-	if (np && np.tagName == "DIV" && np.className == "image")
+	rng.collapse(true);
+	var begin_node = $(rng.parentElement()).closest("div.section,.body,.poem")[0];
+	if (!begin_node)
 		return;
 
-	if (check)
-		return true;
+	window.external.BeginUndoUnit(document, "add title");
 
-	window.external.BeginUndoUnit(document, "add image");
-	InsBeforeHTML(cp, np, imgcode);
+	var div = document.createElement("DIV");
+	div.className = "title";
+	div.innerHTML = "<P>" + getTrString("Title", []) + "</P>";
+	if (begin_node.firstChild)
+		div = begin_node.insertBefore(div, begin_node.firstChild);
+	else
+		div = begin_node.appendChild(div);
+
+	// select text in P
+	rng.moveToElementText(div.firstChild);
+	rng.collapse(false);
+	rng.select();
+
 	window.external.EndUndoUnit(document);
 }
 
 ///<summary>Add new epigraph</summary>
-///<param name='cp'>HTML Element/param>
-function AddEpigraph(cp, check) {
-	cp = GetCP(cp);
-	if (!cp) return;
+function AddEpigraph() {
+	if (!CanApplyStyle("epigraph"))
+		return;
 
-	if (cp.className != "body" && cp.className != "section" && cp.className != "poem") return;
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
 
-	var pp = cp.firstChild;
-	if (cp.className == "body") // different order
-		pp = SkipOver(pp, "title", "image", "epigraph");
-	else
-		pp = SkipOver(pp, "title", "epigraph", null);
-
-	if (check) return true;
-
-	var rng = document.createRange();
-	var txt = "";
-	var pps;
-
-	if (rng && rng.text != "") {
-		var dpps = document.createElement("DIV");
-		dpps.innerHTML = rng.htmlText;
-		pps = dpps.getElementsByTagName("P");
-		if (pps.length == 0)
-			txt = rng.text;
-	}
+	rng.collapse(true);
+	
+	var begin_node = $(rng.parentElement()).closest("div.section,.body,.poem")[0];
+	if (!begin_node)
+		return;
 
 	window.external.BeginUndoUnit(document, "add epigraph");
-	var ep = document.createElement("DIV");
-	ep.className = "epigraph";
-	if (txt != "") {
-		var pwt = document.createElement("P");
-		pwt.innerHTML = txt;
-		ep.appendChild(pwt);
-	}
-	else if (pps && pps.length > 0) {
-		var upTag = "";
-		for (i = 0; i < pps.length; ++i) {
-			var pwt = document.createElement("P");
-			if (i == pps.length - 2
-				&& pps[i].children
-				&& pps[i].children.length
-				&& pps[i].children.length == 1) {
-				upTag = pps[i].children[0].tagName;
-			}
-			if (i == pps.length - 1) {
-				var pptext = pps[i].innerText;
-				var pptags = new Array();
-				var ppall = pps[i].all;
-				var j = 0;
 
-				for (k = 0; k < ppall.length; ++k) {
-					if (ppall[k].innerText && ppall[k].innerText == pptext)
-						pptags[j++] = ppall[k].tagName;
-				}
+	var div = document.createElement("DIV");
+	div.className = "epigraph";
+	div.innerHTML = "<P>" + getTrString("Epigraph", []) + "</P>";
+	var ep = $(begin_node).children("div.title,.epigraph");
+	if (ep.length == 0)
+		div = begin_node.insertBefore(div, begin_node.firstChild);
+	else 
+		div = begin_node.insertBefore(div, ep[ep.length-1].nextSibling);
 
-				if (pptags.length > 0 && pps.length > 1) {
-					for (pptag in pptags) {
-						if (pptag != upTag) {
-							pwt.className = "text-author";
-							break;
-						}
-					}
-				}
-			}
-			pwt.innerHTML = pps[i].innerText;
-			ep.appendChild(pwt);
-		}
-	}
-	else
-		ep.appendChild(document.createElement("P"));
-
-	InsBefore(cp, pp, ep);
-	InflateIt(ep);
-	rng.pasteHTML("");
-	if (pp && (!pp.innerText || pp.innerText == "" || pp.innerText == " "))
-		pp.removeNode(true);
 	window.external.EndUndoUnit(document);
-	GoTo(ep);
+
+	// select text in P
+	rng.moveToElementText(div.firstChild);
+	rng.collapse(false);
+	rng.select();
+}
+
+///<summary>Add new epigraph</summary>
+function AddPoem() {
+	if (!CanApplyStyle("poem"))
+		return;
+
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	rng.collapse(false);
+	var end_node = $(rng.parentElement()).closest("p")[0];
+
+	if (!end_node)
+		return;
+
+	window.external.BeginUndoUnit(document, "add poem");
+
+	var div = document.createElement("DIV");
+	div.className = "poem";
+	div.innerHTML = "<DIV class='stanza'><P>" + getTrString("Stanza",[]) + "</P></DIV>";
+
+	div = end_node.parentElement.insertBefore(div, end_node.nextSibling);
+
+	window.external.EndUndoUnit(document);
+
+	// select text in P
+	rng.moveToElementText(div.firstChild.firstChild);
+	rng.collapse(false);
+	rng.select();
+}
+
+///<summary>Add new cite</summary>
+function AddCite() {
+	if (!CanApplyStyle("cite"))
+		return;
+
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	rng.collapse(false);
+	var end_node = $(rng.parentElement()).closest("p")[0];
+
+	if (!end_node)
+		return;
+
+	window.external.BeginUndoUnit(document, "add cite");
+
+	var div = document.createElement("DIV");
+	div.className = "cite";
+	div.innerHTML = "<P>" + getTrString("Cite",[]) +"</P>";
+
+	div = end_node.parentElement.insertBefore(div, end_node.nextSibling);
+
+	window.external.EndUndoUnit(document);
+
+	// select text in P
+	rng.moveToElementText(div.firstChild);
+	rng.collapse(true);
+	rng.select();
+}
+
+///<summary>Add new stanza</summary>
+function AddStanza() {
+	if (!CanApplyStyle("stanza"))
+		return;
+
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	rng.collapse(false);
+	var end_node = $(rng.parentElement()).closest("div.stanza,div.title,p.subtitle")[0];
+
+	if (!end_node)
+		return;
+
+	window.external.BeginUndoUnit(document, "add stanza");
+
+	var div = document.createElement("DIV");
+	div.className = "stanza";
+	div.innerHTML = "<P>" + getTrString("Stanza", []) + "</P>";
+
+	div = end_node.parentElement.insertBefore(div, end_node.nextSibling);
+
+	window.external.EndUndoUnit(document);
+
+	// select text in P
+	rng.moveToElementText(div.firstChild);
+	rng.collapse(true);
+	rng.select();
+}
+
+///<summary>Add new author text</summary>
+function AddTextAuthor() {
+	if (!CanApplyStyle("text-author"))
+		return;
+
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	rng.collapse(false);
+	var parent_node = $(rng.parentElement()).closest("div.epigraph,.cite,.poem")[0];
+
+	if (!parent_node)
+		return;
+
+	window.external.BeginUndoUnit(document, "add author text");
+
+	var p = document.createElement("P");
+	p.className = "text-author";
+	p.innerText = getTrString("Author Text", []);
+
+	p = parent_node.appendChild(p);
+
+	window.external.EndUndoUnit(document);
+
+	// select text in P
+	rng.moveToElementText(p);
+	rng.collapse(true);
+	rng.select();
+}
+
+///<summary>Add new author text</summary>
+function AddSubtitle() {
+	if (!CanApplyStyle("subtitle"))
+		return;
+
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	rng.collapse(false);
+	var parent_node = $(rng.parentElement()).closest("div.section,.stanza,.annotation,.cite,.history")[0];
+
+	if (!parent_node)
+		return;
+
+	window.external.BeginUndoUnit(document, "add subtitle");
+
+	var p = document.createElement("P");
+	p.className = "subtitle";
+	p.innerText = getTrString("Subtitle", []);
+
+	p = parent_node.appendChild(p);
+
+	window.external.EndUndoUnit(document);
+
+	// select text in P
+	rng.moveToElementText(p);
+	rng.collapse(true);
+	rng.select();
 }
 
 ///<summary>Add annotation</summary>
-///<param name='cp'>HTML Element/param>
-function AddAnnotation(cp, check) {
-	cp = GetCP(cp); if (!cp) return;
+function AddAnnotation() {
+	if (!CanApplyStyle("annotation"))
+		return;
 
-	if (cp.className != "section") return;
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
 
-	var pp = SkipOver(cp.firstChild, "title", "epigraph", "image");
+	rng.collapse(true);
 
-	if (pp && pp.tagName == "DIV" && pp.className == "annotation") return;
-
-	if (check) return true;
+	// can be inside one section only
+	var start_range = rng.duplicate();
+	start_range.collapse(true);
+	var begin_node = $(rng.parentElement()).closest("div.section")[0];
 
 	window.external.BeginUndoUnit(document, "add annotation");
 
-	var ep = document.createElement("DIV");
-	ep.className = "annotation";
-	ep.appendChild(document.createElement("P"));
-	InsBefore(cp, pp, ep);
-	InflateIt(ep);
+	var div = document.createElement("DIV");
+	div.className = "annotation";
+	div.innerHTML = "<P>" + getTrString("Annotation", []) +"</P>";
+
+	var ep = $(begin_node).children("div.title,.epigraph,.image");
+	if (ep.length == 0)
+		div = begin_node.insertBefore(div, begin_node.firstChild);
+	else
+		div = begin_node.insertBefore(div, ep[ep.length - 1].nextSibling);
 
 	window.external.EndUndoUnit(document);
 
-	GoTo(ep);
+	// select text in P
+	rng.moveToElementText(div.firstChild);
+	rng.collapse(false);
+	rng.select();
 }
+
+///<summary>Add section</summary>
+function AddSection() {
+	if (!CanApplyStyle("annotation"))
+		return;
+
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	// can be inside one section only
+	var begin_node = $(rng.parentElement()).closest("div.section")[0];
+
+	window.external.BeginUndoUnit(document, "add annotation");
+
+	var div = document.createElement("DIV");
+	div.className = "section";
+	div.innerHTML = "<DIV class='title'><P>" + getTrString("Title", []) + "</P></DIV><P>&nbsp;</P>";
+	div = begin_node.parentElement.insertBefore(div, begin_node.nextSibling);
+
+	window.external.EndUndoUnit(document);
+
+	// select text in P
+	rng.moveToElementText(div.firstChild.firstChild);
+	rng.collapse(true);
+	rng.select();
+}
+
+///<summary>Add new Body to HTML</summary>
+function AddBody(notes) {
+	window.external.BeginUndoUnit(document, "add body");
+	var newbody = document.createElement("DIV");
+	newbody.className = "body";
+	if (notes)
+	{
+		newbody.setAttribute("fbname", "notes");
+		newbody.innerHTML = '<DIV class="title"><P>' + getTrString('Notes', []) + '</P></DIV><DIV class="section"><P></P></DIV>';
+	}
+	else
+		newbody.innerHTML = '<DIV class="title"><P></P></DIV><DIV class="section"><P></P></DIV>';
+	var body = document.getElementById("fbw_body");
+	if (!body) return false;
+
+	body.appendChild(newbody);
+	//InflateIt(newbody);
+	window.external.EndUndoUnit(document);
+	//GoTo(newbody);
+}
+
+
+///<summary>Insert image into HTML</summary>
+///<param name='id'>Image id</param>
+///<returns>Parent HTML-element or undefined</returns>
+function InsImage(id) {
+	var imgcode = "<DIV onresizestart='return false' contentEditable='false' class='image' href='#undefined'>"
+	"<IMG src='" + imgPrefix + ":#undefined'></DIV>";
+	var inlineimgcode = "<SPAN onresizestart='return false' contentEditable='false' class='image' href='#undefined'>" +
+		"<IMG src='" + imgPrefix + "#undefined'></SPAN>";
+
+	if (!CanApplyStyle("image"))
+			return false;
+	var rng = document.selection.createRange();
+	if (!rng)
+		return false;
+
+	window.external.BeginUndoUnit(document, "insert image");
+
+	var next_el = rng.parentElement().nextSibling;
+	var par_el = rng.parentElement().parentElement;
+	if (rng.parentElement().innerText =="") {
+		//insert full image
+		var img_div = document.createElement("div");
+		img_div.contentEditable = false;
+		img_div.className = "image";
+		img_div.setAttribute("onresizestart", "return false");
+		img_div.attachEvent("onresizestart", function () { return false; });
+		if (id == "") {
+			img_div.setAttribute("href", "#undefined");
+			img_div.innerHTML = "<IMG src='" + imgPrefix + "#undefined'>";
+		}
+		else {
+			img_div.setAttribute("href", "#" + id);
+			img_div.innerHTML = "<IMG src='" + imgPrefix + "#" + id +"'>";
+		}
+		par_el.removeChild(rng.parentElement());
+		img_div = par_el.insertBefore(img_div, next_el);
+		rng.moveToElementText(img_div);
+		rng.collapse(true);
+		rng.select();
+	}
+	else {
+		//insert inline image
+		id == "" ? rng.pasteHTML(inlineimgcode) : rng.pasteHTML(inlineimgcode.replace(new RegExp("undefined", 'g'), id));
+	}
+	window.external.EndUndoUnit(document);
+}
+
+//-----------------------------------------------
 
 ///<summary>Add author text</summary>
 ///<param name='cp'>HTML Element/param>
 function AddTA(cp, check) {
+	if (!CanInsTA())
+		return false;
+
+	var sel = document.getSelection();
+	if (!sel)
+		return false;
+	var rng = sel.getRangeAt(0).cloneRange();
+
+	// search closest P boundaries
+	var first_node = rng.startContainer;
+	while (first_node && first_node.tagName != "P")
+		first_node = first_node.parentNode;
+
+	var end_node = rng.endContainer;
+	while (end_node && end_node.tagName != "P")
+		end_node = end_node.parentNode;
+
+	rng.setStartBefore(first_node);
+	rng.setEndAfter(end_node);
+	window.external.BeginUndoUnit(document, getTrString("make text-author", []));
+	var tt = rng.cloneContents();
+	var ep = document.createElement("P");
+	ep.className = "text-author";
+	ep.innerText = rng.extractContents().textContent;
+
+	// rng.deleteContents();
+	rng.insertNode(ep);
+	window.external.EndUndoUnit(document);
+	/*
+
+
 	cp = GetCP(cp);
 
 	while (cp) {
@@ -1965,10 +2530,10 @@ function AddTA(cp, check) {
 
 	var np = document.createElement("P");
 	np.className = "text-author";
-	window.external.inflateBlock(np) = true;
+	//window.external.inflateBlock(np) = true;
 	cp.appendChild(np);
 	window.external.EndUndoUnit(document);
-	GoTo(np);
+	GoTo(np);*/
 }
 
 ///<summary>Check if element has <P>-child</summary>
@@ -1981,19 +2546,6 @@ function IsCtSection(s) {
    
 	return true;*/
 }
-
-// Don't used??
-/*
-function FindSE(cp,name)
-{
- for(cp=cp.firstChild;cp;cp=cp.nextSibling)
- {
-  if(cp.nodeName !="DIV") return;
-  if(cp.className==name) return cp;
-  if(cp.className=="section") return;
- }
-}
-*/
 
 ///<summary>Merge two elements (this + next sibling)</summary>
 ///<param name='cp'>first HTML Element to merge</param>
@@ -2062,7 +2614,7 @@ function MergeContainers(cp, check) {
 				dst = document.createElement("DIV");
 				dst.className = "section";
 				var pp = document.createElement("P");
-				window.external.inflateBlock(pp) = true;
+				//window.external.inflateBlock(pp) = true;
 				dst.appendChild(pp);
 				cp.appendChild(dst);
 			}
@@ -2138,7 +2690,7 @@ function RemoveOuterContainer(cp, check) {
 	while (cp.firstChild) {
 		var cc = cp.firstChild;
 		cc.removeNode(true);
-		if (cc.nodeName == "DIV" && cc.className == "section") 
+		if (cc.nodeName == "DIV" && cc.className == "section")
 			cp.insertAdjacentElement("beforeBegin", cc);
 	}
 
@@ -2247,84 +2799,10 @@ function errCantLoad(xd, file) {
 		[file, xd.parseError.reason, xd.parseError.line, xd.parseError.linepos]));
 }
 
-///<summary>Load and run external script</summary>
-///<param name='path'>Full path to sript file</param>
-function apiRunCmd(path) {
-	var script = document.getElementById("userCmd");
-	if (!script)
-		return;
-///	script.src = "file:///" + path;
-
-    script.src = "11.js";
-	
-	$.getScript("11.js", function( data, textStatus, jqxhr ) {
-		Run();
-
-		alert( data ); // Data returned
-		alert( textStatus ); // Success
-		alert( jqxhr.status ); // 200
-		alert( "Load was performed." );
-	  });
-	Run();
-}
-
-// Don't use already! Remove from C++ code
-///<summary>Load external script and get ClassName</summary>
-///<param name='path'>Full path to sript file</param>
-///<returns>ClassName as string</returns>
-function apiGetClassName(path) {
-	// var escript = document.getElementById("userCmd");
-    var escript = document.createElement("script");
-	if (!escript)
-		return;
-    escript.type = 'text/javascript';
-    escript.async = false;
-    escript.src = "file:///E:/Projects/fictionbookeditor/Debug/22.js";
-    var hh = document.getElementsByTagName('head')[0];
-    hh.appendChild(escript);
-/*    $.getScript( "file:///E:\Projects\fictionbookeditor\Debug\22.js" )
-    .done(function( script, textStatus ) {
-		alert( "Load was performed." );
-  })
-  .fail(function( jqxhr, settings, exception ) {
-		alert( "Load failed" );
-		alert( exception );
-    });*/
-	// script.src = "file:///" + path;
-	//return GetClassName(); // External function should be defined in js-file!
-}
-
-function Run()
-{
- var MsgWindow = window.open("Scripts/debug.htm",null,"height=680,width=1014,status=no,toolbar=no,menubar=no,location=no,scrollbars=yes,resizeble=yes");
- MsgWindow.document.body.innerText = document.documentElement.innerHTML;
-}
-
-function MyMsgWindow(pe)
-{
- msg = pe.outerHTML;
- var MsgWindow = window.open("Scripts/debug.htm",null,"height=680,width=1014,status=no,toolbar=no,menubar=no,location=no,scrollbars=yes,resizeble=yes");
- MsgWindow.document.body.innerText = msg;
-}
-// Don't use already! Remove from C++ code
-///<summary>Load external script and get Title</summary>
-///<param name='path'>Full path to sript file</param>
-///<returns>Title as string</returns>
-function apiGetTitle(path) {
-	var script = document.getElementById("userCmd");
-	if (!script)
-		return;
-	script.src = "file:///" + path;
-	return GetTitle(); // External function should be defined in js-file!
-}
-
-// Don't use already! Remove from C++ code
-function apiProcessCmd(path) {
-	var script = document.getElementById("userCmd");
-	if (!script)
-		return;
-	script.src = "file:///" + path;
-	ProcessCmd();
+function MyMsgWindow(pe) {
+	msg = pe.outerHTML;
+	var MsgWindow = window.open("Scripts/debug.htm", null, "height=680,width=1014,status=no,toolbar=no,menubar=no,location=no,scrollbars=yes,resizeble=yes");
+	MsgWindow.document.body.innerText = msg;
 }
 
 ///<summary>Return translated string for current interface language</summary>
@@ -2371,59 +2849,4 @@ function ShowImageLibrary() {
         });*/
 	});
 	$('#dialog').dialog("open");
-}
-
-function utf8_to_b64(str) {
-	alert(encodeURIComponent(str));
-	return btoa(unescape(encodeURIComponent(str)));
-}
-
-function u_btoa(buffer) {
-	var binary = [];
-	var bytes = new Uint8Array(buffer);
-	for (var i = 0, il = bytes.byteLength; i < il; i++) {
-		binary.push(String.fromCharCode(bytes[i]));
-	}
-	return btoa(binary.join(''));
-}
-
-function b64EncodeUnicode(str) {
-	// first we use encodeURIComponent to get percent-encoded UTF-8,
-	// then we convert the percent encodings into raw bytes which
-	// can be fed into btoa.
-	return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
-		return String.fromCharCode('0x' + p1);
-	}));
-}
-
-// bufferToBinaryString
-function bufferToBinaryString(buf) {
-	var binstr = Array.prototype.map.call(buf, function (ch) {
-		return String.fromCharCode(ch);
-	}).join('');
-
-	return binstr;
-}
-// bufferToBase64
-function bufferToBase64(arr) {
-	var binstr = bufferToBinaryString(arr);
-	return btoa(binstr);
-}
-
-function bufferToUtf8(buf) {
-	var binstr = bufferToBinaryString(buf);
-
-	return binaryStringToUtf8(binstr);
-}
-
-function binaryStringToUtf8(binstr) {
-	var escstr = binstr.replace(/(.)/g, function (m, p) {
-		var code = p.charCodeAt(p).toString(16).toUpperCase();
-		if (code.length < 2) {
-			code = '0' + code;
-		}
-		return '%' + code;
-	});
-
-	return decodeURIComponent(escstr);
 }

@@ -29,7 +29,7 @@ function Run() {
 
  var tr;
  var errMsg="Нет выделения.\n\nПеред запуском скрипта нужно выделить текст, который будет обработан.";
- tr=document.selection.createRange();
+ tr=document.createRange();
  if (!tr) {
   MsgBox(errMsg);
   return;
@@ -54,7 +54,7 @@ function Run() {
  else if (tr.parentElement().nodeName!="INPUT") {
   var body=document.getElementById("fbw_body");
   var coll=tr.getClientRects();
-  var ttr1 = body.document.selection.createRange();
+  var ttr1 = body.document.createRange();
   var el=body.document.elementFromPoint(coll[0].left, coll[0].top);
 
   var cursorPos=null;

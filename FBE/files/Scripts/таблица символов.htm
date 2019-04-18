@@ -13,8 +13,8 @@ function myMain() {
 
  function onClick() {
   var rng;
-  if (event.srcElement.nodeName=="TD" && fbw_body.contains(fb2doc.selection.createRange().parentElement())) {
-   var rng=fb2doc.selection.createRange();
+  if (event.srcElement.nodeName=="TD" && fbw_body.contains(fb2doc.createRange().parentElement())) {
+   var rng=fb2doc.createRange();
    var ht=event.srcElement.innerHTML;
    if (ht=="́ ́") rng.pasteHTML(rng.htmlText+"&#769;");
    else rng.pasteHTML(rng.htmlText+ht);

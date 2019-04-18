@@ -18,97 +18,71 @@ namespace FB // put all FB2 related stuff into its own namespace
 class Doc
 {
 public:
-  // document encoding
-  CString		m_encoding;
-
-  // owner frame
-  HWND			m_frame;
-
+	Doc(HWND hWndFrame);
+	~Doc();
+  
   // document text is stored here
-  //CFBEView		m_desc;
   CFBEView		m_body;
-
-  // filename
-  CString		m_filename;
-  bool			m_namevalid;
-  bstr_t		m_save_marker;
-
-  static bool			  m_fast_mode;
-
-  MSHTML::IHTMLElementPtr m_saved_element;
-
-  // construction and destruction
-  Doc(HWND hWndFrame);
-  ~Doc();
-
-  void		SaveSelectedPos();
-  void		DeleteSaveMarker();
-  long		GetSavedPos(bstr_t& dom, bool deleteMarker = true);
-
+  MSXML2::IXMLDOMDocument2Ptr m_saved_xml;
+    
+  CString		m_filename; // filename
+  CString		m_file_encoding; // file encoding
+  
   // loading and saving
   void	  CreateBlank(HWND hWndParent);
   bool	  Load(HWND hWndParent,const CString& filename);
-  MSXML2::IXMLDOMDocument2Ptr CreateDOM(const CString& encoding);
+  bool	  Save(const CString& filename);
+  CString GetDocFileName() const;
+
+  void CreateDOM();
+  bool LoadXMLFromString(BSTR text);
+  bool BuildHTML();
+  bool Validate(int& errcol, int& errline, CString& errmessage);
+  
+  // transfer selection between views
+  bool SetHTMLSelectionFromXML(int selectedPosBegin, int selectedPosEnd, BSTR ustr);
+  bool GetXMLSelectionFromHTML(int& selectedPosBegin, int& selectedPosEnd, _bstr_t& ustr);
+  void ClearHTMLSelection();
+  void SaveHTMLSelection();
+  void RestoreHTMLSelection();
+  
   HRESULT InvokeFunc(BSTR FuncName, CComVariant *params, int count, CComVariant &vtResult);
   void	  RunScript(BSTR filePath);
-
-  bool	  Save(const CString& filename);
-  bool	  Validate(int &errline,int &errcol) {
-    AU::CPersistentWaitCursor wc;
-    return SaveToFile(CString(),true,&errline,&errcol);
-  }
-  bool	  SetXMLAndValidate(HWND sci,bool fValidateOnly,int& errline,int& errcol);
-  bool	  TextToXML(BSTR text, MSXML2::IXMLDOMDocument2Ptr *xml);
-
-  //bool	  SetXML(MSXML2::IXMLDOMDocument2 *dom);
-  bool	  Save();
+  bool LoadScript(BSTR filePath);
 
   // changes
-  bool	  DocChanged() {
-	  return m_body_ver!=m_body.GetVersionNumber() || 
-		  //m_desc_ver!=m_desc.GetVersionNumber() || 
-		  m_body.IsFormChanged(); }
-
-  // added by SeNS
-  void	  AdvanceDocVersion (int delta) {
-	  m_body_ver += delta;
+  bool IsChanged()
+  {
+	  return m_doc_changed;
   }
 
-  void	  MarkSavePoint() { 
-	  m_body_ver=m_body.GetVersionNumber();
-	  //m_desc_ver=m_desc.GetVersionNumber(); 
-	  m_body.ResetFormChanged(); 
-  }
-  void	  ResetSavePoint() { m_body_ver=-1; }
-
-  void	  MarkDocCP() { 
-	  m_body_cp=m_body.GetVersionNumber(); 
-	  //m_desc_cp=m_desc.GetVersionNumber(); 
-	  m_body.ResetFormCP(); }
-  bool	  DocRelChanged() { 
-	  return m_body_cp!=m_body.GetVersionNumber() || 
-//		  m_desc_cp!=m_desc.GetVersionNumber() || 
-		  m_body.IsFormCP(); 
+  void Changed(bool state)
+  {
+	  m_doc_changed = state;
   }
 
-  // IDs
-  void	  BinIDsToComboBox(CComboBox& box);
-  void	  ParaIDsToComboBox(CComboBox& box);
+  bool IsTraceChangesEnabled() 
+  {
+	  return m_trace_changes;
+  }
+
+  void TraceChanges(bool state)
+  {
+	  m_trace_changes = state;
+  }
 
   // binary objects
-  BSTR PrepareDefaultId(const CString& filename);
+  //BSTR PrepareDefaultId(const CString& filename);
   void AddBinary(const CString& filename);
+  bool GetBinary(const wchar_t *id,_variant_t& vt);
 
   // config
-  void	  ApplyConfChanges();
+  //void	  ApplyConfChanges();
 
   // active document table
-  static Doc  *LocateDocument(const wchar_t *id);
   static Doc* m_active_doc;
 
-  // binary objects
-  bool GetBinary(const wchar_t *id,_variant_t& vt);
-  
+
 	// Word lists
 	struct Word
 	{
@@ -120,42 +94,36 @@ public:
 		Word() : count(0), flags(0) { }
 		Word(CString& word, int count) : word(word), count(count), flags(0) { }
 	};
-
 	enum
 	{
 		GW_INCLUDE_HYPHENS	= 1,
 		GW_HYPHENS_ONLY		= 2,
 		GW_SORT_BY_COUNT	= 4
 	};
-
 	void GetWordList(int flags, CSimpleArray<Word>& words, CString tagName);
-
-private:
-  //long		    m_desc_ver;
-  long		    m_body_ver;
-  //long		    m_desc_cp;
-  long		    m_body_cp;
-
-  // saving support
-  bool	  SaveToFile(const CString& filename,bool fValidateOnly=false,int *errline=NULL,int *errcol=NULL);
-  MSXML2::IXMLDOMDocument2Ptr CreateDOMImp(const CString& encoding);
-
-  CString MyID() { CString ret; ret.Format(_T("%lu"),(unsigned long)this); return ret; }
-  CString MyURL(const wchar_t *part) { CString ret; ret.Format(_T("fbw-internal:%lu:%s"),(unsigned long)this,part); return ret; }
-
-  static CSimpleMap<Doc*,Doc*>	m_active_docs;  
-
-public:
 	MSHTML::IHTMLDOMNodePtr MoveNode(MSHTML::IHTMLDOMNodePtr from, MSHTML::IHTMLDOMNodePtr to, MSHTML::IHTMLDOMNodePtr insertBefore);
-	int GetSelectedPos();
-
-	CString GetOpenFileName()const;
-
+	//void GoTo(int pos);
 private:
-	size_t ReadFB2File(const CString& filename, char** buffer);
-	size_t ReadZIPFile(const CString& filename, char** buffer);
-	bool SaveZIPFile(const CString& filename, void* buffer, size_t bufsize);
-	CString Doc::HandleZIPLibError(zip_error_t& error);
+	MSHTML::IHTMLDOMRangePtr m_body_sel;
+	bool m_namevalid;
+	bool m_trace_changes;
+	bool m_doc_changed;
+
+	CString MyID() 
+	{ 
+		CString ret; 
+		ret.Format(_T("%lu"), (unsigned long)this); 
+		return ret; 
+	}
+	CString MyURL(const wchar_t *part) 
+    { 
+        CString ret; 
+        ret.Format(_T("fbw-internal:%lu:%s"), (unsigned long)this, part); 
+        return ret; 
+    }
+
+	static CSimpleMap<Doc*, Doc*>	m_active_docs;
+	bool	  SaveToFile(const CString& filename);
 };
 
 } // namespace FB
